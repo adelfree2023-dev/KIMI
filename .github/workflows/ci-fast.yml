@@ -299,11 +299,17 @@ jobs:
       - name: Install Dependencies
         run: bun install
 
+      - name: Download Build Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts
+          path: .
+
       - name: Run Unit Tests
         run: |
           echo "🧪 Running unit tests..."
-          # turbo doesn't support --coverage flag, run vitest directly
-          bunx vitest run --coverage --reporter=verbose
+          # Explicitly use root ESM config and download build outputs for resolution
+          bunx vitest run -c vitest.config.mts --coverage --reporter=verbose
         env:
           NODE_ENV: test
           SKIP_DOCKER_TESTS: true

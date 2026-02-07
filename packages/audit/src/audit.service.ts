@@ -60,10 +60,10 @@ export class AuditService {
     try {
       // 🔒 S2 Enforcement: Reset search_path to public before audit query
       await client.query('SET search_path TO public');
-      
+
       await client.query(
         `
-        INSERT INTO public.audit_logs (
+        INSERT INTO audit_logs (
           tenant_id, 
           user_id, 
           action, 
@@ -115,7 +115,7 @@ export class AuditService {
     try {
       // 1. Create table if not exists
       await client.query(`
-        CREATE TABLE IF NOT EXISTS public.audit_logs (
+        CREATE TABLE IF NOT EXISTS audit_logs (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
           tenant_id TEXT NOT NULL,
           user_id TEXT,
@@ -138,9 +138,9 @@ export class AuditService {
         END;
         $$ LANGUAGE plpgsql;
 
-        DROP TRIGGER IF EXISTS trg_protect_audit_update ON public.audit_logs;
+        DROP TRIGGER IF EXISTS trg_protect_audit_update ON audit_logs;
         CREATE TRIGGER trg_protect_audit_update 
-        BEFORE UPDATE ON public.audit_logs 
+        BEFORE UPDATE ON audit_logs 
         FOR EACH ROW EXECUTE FUNCTION protect_audit_log_update();
       `);
 
@@ -152,9 +152,9 @@ export class AuditService {
         END;
         $$ LANGUAGE plpgsql;
 
-        DROP TRIGGER IF EXISTS trg_protect_audit_delete ON public.audit_logs;
+        DROP TRIGGER IF EXISTS trg_protect_audit_delete ON audit_logs;
         CREATE TRIGGER trg_protect_audit_delete 
-        BEFORE DELETE ON public.audit_logs 
+        BEFORE DELETE ON audit_logs 
         FOR EACH ROW EXECUTE FUNCTION protect_audit_log_delete();
       `);
 
@@ -253,7 +253,7 @@ export async function query(
     // Test expects array param for LIMIT/OFFSET logic usually, keeping simple for now
 
     const sql = `
-      SELECT * FROM public.audit_logs
+      SELECT * FROM audit_logs
       ${whereClause}
       ORDER BY created_at DESC
       ${limitClause}

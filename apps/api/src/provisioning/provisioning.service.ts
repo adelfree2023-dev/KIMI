@@ -30,7 +30,7 @@ export interface ProvisioningOptions {
 export class ProvisioningService {
   private readonly logger = new Logger(ProvisioningService.name);
 
-  constructor(private readonly audit: AuditService) {}
+  constructor(private readonly audit: AuditService) { }
 
   /**
    * Provision a new store in under 60 seconds
@@ -108,8 +108,7 @@ export class ProvisioningService {
       }
 
       throw new InternalServerErrorException(
-        `Provisioning Failed: ${
-          error instanceof Error ? error.message : 'Unknown'
+        `Provisioning Failed: ${error instanceof Error ? error.message : 'Unknown'
         }`
       );
     }
@@ -123,7 +122,7 @@ export class ProvisioningService {
     try {
       await client.query(
         `
-        INSERT INTO public.tenants (subdomain, name, plan, status, created_at)
+        INSERT INTO tenants (subdomain, name, plan, status, created_at)
         VALUES ($1, $2, $3, $4, NOW())
       `,
         [options.subdomain, options.storeName, options.plan, 'active']

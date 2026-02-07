@@ -37,7 +37,7 @@ describe('Audit Service (S4 Protocol)', () => {
       release: vi.fn(),
     };
     vi.mocked(publicPool.connect).mockResolvedValue(mockClient as any);
-    vi.spyOn(console, 'log').mockImplementation(() => {});
+    vi.spyOn(console, 'log').mockImplementation(() => { });
   });
 
   describe('log', () => {
@@ -62,7 +62,7 @@ describe('Audit Service (S4 Protocol)', () => {
       await log(entry);
 
       expect(mockClient.query).toHaveBeenCalledWith(
-        expect.stringContaining('INSERT INTO public.audit_logs'),
+        expect.stringContaining('INSERT INTO audit_logs'),
         expect.arrayContaining([
           'test-uuid-1234',
           '2026-01-01T00:00:00.000Z',
@@ -332,7 +332,7 @@ describe('Audit Service (S4 Protocol)', () => {
       await initializeAuditTable();
 
       expect(mockClient.query).toHaveBeenCalledWith(
-        expect.stringContaining('CREATE TABLE IF NOT EXISTS public.audit_logs')
+        expect.stringContaining('CREATE TABLE IF NOT EXISTS audit_logs')
       );
     });
 

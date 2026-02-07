@@ -49,79 +49,81 @@ function isSafe(line: string): boolean {
   return SAFE_PATTERNS.some(pattern => pattern.test(line));
 }
 
+function analyzeLine(line: string, lineNum: number, relativePath: string, filePath: string): void {
+  // Skip test files
+  if (filePath.includes('.test.ts') || filePath.includes('.spec.ts')) {
+    return;
+  }
+
+  // Skip comments
+  if (line.trim().startsWith('//') || line.trim().startsWith('*')) {
+    return;
+  }
+
+  // Check 1: Direct public schema access
+  if (DANGEROUS_PATTERNS.directPublicAccess.test(line) && !isSafe(line)) {
+    VIOLATIONS.push({
+      file: relativePath,
+      line: lineNum,
+      column: line.indexOf('public.'),
+      type: 'DIRECT_PUBLIC_ACCESS',
+      severity: 'CRITICAL',
+      message: 'Direct public schema access bypasses tenant isolation',
+      code: line.trim(),
+    });
+  }
+
+  // Check 2: Raw SQL without tenant context
+  if (DANGEROUS_PATTERNS.rawSql.test(line)) {
+    const hasTenantContext =
+      line.includes('tenant') ||
+      line.includes('search_path') ||
+      line.includes('getCurrentTenant');
+
+    if (!hasTenantContext) {
+      VIOLATIONS.push({
+        file: relativePath,
+        line: lineNum,
+        column: line.indexOf('sql`'),
+        type: 'RAW_SQL_NO_TENANT',
+        severity: 'WARNING',
+        message: 'Raw SQL without visible tenant context',
+        code: line.trim(),
+      });
+    }
+  }
+
+  // Check 3: Unqualified table references
+  const unqualifiedMatch = DANGEROUS_PATTERNS.unqualifiedTable.exec(line);
+  if (unqualifiedMatch && !isSafe(line)) {
+    const tableName = unqualifiedMatch[2];
+    // Skip if it's a CTE or subquery
+    if (!tableName.match(/^(SELECT|WITH|FROM)$/i)) {
+      VIOLATIONS.push({
+        file: relativePath,
+        line: lineNum,
+        column: line.indexOf(tableName),
+        type: 'UNQUALIFIED_TABLE',
+        severity: 'WARNING',
+        message: `Unqualified table reference: ${tableName}`,
+        code: line.trim(),
+      });
+    }
+  }
+
+  // Reset regex lastIndex
+  DANGEROUS_PATTERNS.directPublicAccess.lastIndex = 0;
+  DANGEROUS_PATTERNS.rawSql.lastIndex = 0;
+  DANGEROUS_PATTERNS.unqualifiedTable.lastIndex = 0;
+}
+
 function scanFile(filePath: string, content: string): void {
   const lines = content.split('\n');
   const relativePath = relative(process.cwd(), filePath);
 
-  lines.forEach((line, index) => {
-    const lineNum = index + 1;
-
-    // Skip test files
-    if (filePath.includes('.test.ts') || filePath.includes('.spec.ts')) {
-      return;
-    }
-
-    // Skip comments
-    if (line.trim().startsWith('//') || line.trim().startsWith('*')) {
-      return;
-    }
-
-    // Check 1: Direct public schema access
-    if (DANGEROUS_PATTERNS.directPublicAccess.test(line) && !isSafe(line)) {
-      VIOLATIONS.push({
-        file: relativePath,
-        line: lineNum,
-        column: line.indexOf('public.'),
-        type: 'DIRECT_PUBLIC_ACCESS',
-        severity: 'CRITICAL',
-        message: 'Direct public schema access bypasses tenant isolation',
-        code: line.trim(),
-      });
-    }
-
-    // Check 2: Raw SQL without tenant context
-    if (DANGEROUS_PATTERNS.rawSql.test(line)) {
-      const hasTenantContext =
-        line.includes('tenant') ||
-        line.includes('search_path') ||
-        line.includes('getCurrentTenant');
-
-      if (!hasTenantContext) {
-        VIOLATIONS.push({
-          file: relativePath,
-          line: lineNum,
-          column: line.indexOf('sql`'),
-          type: 'RAW_SQL_NO_TENANT',
-          severity: 'WARNING',
-          message: 'Raw SQL without visible tenant context',
-          code: line.trim(),
-        });
-      }
-    }
-
-    // Check 3: Unqualified table references
-    const unqualifiedMatch = DANGEROUS_PATTERNS.unqualifiedTable.exec(line);
-    if (unqualifiedMatch && !isSafe(line)) {
-      const tableName = unqualifiedMatch[2];
-      // Skip if it's a CTE or subquery
-      if (!tableName.match(/^(SELECT|WITH|FROM)$/i)) {
-        VIOLATIONS.push({
-          file: relativePath,
-          line: lineNum,
-          column: line.indexOf(tableName),
-          type: 'UNQUALIFIED_TABLE',
-          severity: 'WARNING',
-          message: `Unqualified table reference: ${tableName}`,
-          code: line.trim(),
-        });
-      }
-    }
-
-    // Reset regex lastIndex
-    DANGEROUS_PATTERNS.directPublicAccess.lastIndex = 0;
-    DANGEROUS_PATTERNS.rawSql.lastIndex = 0;
-    DANGEROUS_PATTERNS.unqualifiedTable.lastIndex = 0;
-  });
+  for (let i = 0; i < lines.length; i++) {
+    analyzeLine(lines[i], i + 1, relativePath, filePath);
+  }
 }
 
 function walkDir(dir: string, callback: (file: string) => void): void {
@@ -158,22 +160,22 @@ function printReport(): void {
 
   if (critical.length > 0) {
     console.log('❌ CRITICAL VIOLATIONS (Must Fix):\n');
-    critical.forEach(v => {
+    for (const v of critical) {
       console.log(`   📁 ${v.file}:${v.line}:${v.column}`);
       console.log(`      Type: ${v.type}`);
       console.log(`      ${v.message}`);
       console.log(`      Code: ${v.code.substring(0, 80)}`);
       console.log('');
-    });
+    }
   }
 
   if (warnings.length > 0) {
     console.log('⚠️  WARNINGS (Review Recommended):\n');
-    warnings.forEach(v => {
+    for (const v of warnings) {
       console.log(`   📁 ${v.file}:${v.line}:${v.column}`);
       console.log(`      ${v.message}`);
       console.log('');
-    });
+    }
   }
 
   console.log('='.repeat(70));

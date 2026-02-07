@@ -3,7 +3,7 @@
  * Super-#01: Tenant Overview Table
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import {
   getTenantList,
   getTenantById,
@@ -69,8 +69,8 @@ vi.mock('@apex/db', () => ({
   },
   publicDb: {
     select: () => ({
-      from: (table: string) => ({
-        where: (condition: unknown) => ({
+      from: (_table: string) => ({
+        where: (_condition: unknown) => ({
           limit: (n: number) => mockTenants.slice(0, n),
           orderBy: () => mockTenants,
         }),

@@ -63,11 +63,10 @@ export function Pricing() {
           {plans.map((plan) => (
             <div
               key={plan.name}
-              className={`rounded-2xl p-8 ${
-                plan.popular
+              className={`rounded-2xl p-8 ${plan.popular
                   ? 'bg-primary-600 text-white ring-4 ring-primary-600 ring-offset-2'
                   : 'bg-white text-gray-900 shadow-sm'
-              }`}
+                }`}
             >
               {plan.popular && (
                 <span className="inline-block rounded-full bg-primary-500 px-3 py-1 text-sm font-semibold">
@@ -91,6 +90,7 @@ export function Pricing() {
                 {plan.features.map((feature) => (
                   <li key={feature} className="flex items-center">
                     <svg
+                      aria-hidden="true"
                       className={`h-5 w-5 ${plan.popular ? 'text-primary-200' : 'text-green-500'}`}
                       fill="currentColor"
                       viewBox="0 0 20 20"
@@ -107,11 +107,11 @@ export function Pricing() {
               </ul>
 
               <button
-                className={`mt-8 w-full rounded-lg px-4 py-3 font-semibold transition-colors ${
-                  plan.popular
+                type="button"
+                className={`mt-8 w-full rounded-lg px-4 py-3 font-semibold transition-colors ${plan.popular
                     ? 'bg-white text-primary-600 hover:bg-primary-50'
                     : 'bg-primary-600 text-white hover:bg-primary-700'
-                }`}
+                  }`}
               >
                 {plan.cta}
               </button>

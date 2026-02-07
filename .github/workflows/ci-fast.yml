@@ -76,8 +76,11 @@ jobs:
 
       - name: Check S1 Schema Prefix
         run: |
-          if grep -r "public\." packages/db/src --include="*.ts" | grep -v "audit_logs" | grep -v "node_modules" | head -5; then
-            echo "❌ S1 Violation: Found 'public.' schema references (excludes audit_logs)"
+          # Look for actual schema references like "public.table_name" (excluding comments and audit_logs)
+          violations=$(grep -rE "public\.[a-zA-Z_]+" packages/db/src --include="*.ts" | grep -v "audit_logs" | grep -v "node_modules" | grep -v "//.*public\." | head -5)
+          if [ -n "$violations" ]; then
+            echo "❌ S1 Violation: Found unauthorized 'public.' schema references:"
+            echo "$violations"
             exit 1
           fi
           echo "✅ No unauthorized public. schema references"

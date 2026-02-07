@@ -3,7 +3,7 @@
  * Exposed API for Super Admins to create new store environments
  */
 
-import type { AuditService } from '@apex/audit';
+import { AuditService } from '@apex/audit';
 import {
   Body,
   Controller,
@@ -22,7 +22,7 @@ export class ProvisioningController {
   constructor(
     private readonly provisioningService: ProvisioningService,
     readonly _audit: AuditService
-  ) {}
+  ) { }
 
   /**
    * POST /api/provision

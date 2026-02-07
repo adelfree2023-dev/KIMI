@@ -1,29 +1,43 @@
 {
   "compilerOptions": {
-    "module": "NodeNext",
     "target": "ESNext",
-    "declaration": true,
-    "removeComments": true,
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true,
-    "allowSyntheticDefaultImports": true,
-    "sourceMap": true,
-    "outDir": "./dist",
-    "baseUrl": "./",
-    "incremental": true,
-    "skipLibCheck": true,
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
     "strict": true,
-    "noImplicitAny": false,
-    "strictBindCallApply": false,
-    "forceConsistentCasingInFileNames": false,
-    "noFallthroughCasesInSwitch": false
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "declaration": true,
+    "composite": true,
+    "lib": [
+      "ESNext",
+      "DOM"
+    ],
+    /* 1. تفعيل الـ Decorators عشان NestJS */
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    /* 2. تعريف المسارات (أهم جزء لحل الأخطاء) */
+    "baseUrl": ".",
+    "paths": {
+      "@apex/audit": [
+        "packages/audit/src/index.ts"
+      ],
+      "@apex/db": [
+        "packages/db/src/index.ts"
+      ],
+      "@apex/config": [
+        "packages/config/src/index.ts"
+      ],
+      "@apex/provisioning": [
+        "packages/provisioning/src/index.ts"
+      ],
+      "@apex/middleware": [
+        "packages/middleware/src/index.ts"
+      ]
+    }
   },
   "exclude": [
     "node_modules",
-    "dist",
-    "coverage",
-    "**/*.spec.ts",
-    "**/*.test.ts",
-    "vitest.config.*"
+    "dist"
   ]
 }

@@ -323,8 +323,7 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-          --entrypoint minio
-          server /data --console-address ":9001"
+          --entrypoint "minio server /data --console-address ':9001'"
     steps:
       - uses: actions/checkout@v4
       - name: Setup Bun
@@ -497,8 +496,7 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-          --entrypoint minio
-          server /data --console-address ":9001"
+          --entrypoint "minio server /data --console-address ':9001'"
     steps:
       - uses: actions/checkout@v4
       - name: Setup Bun

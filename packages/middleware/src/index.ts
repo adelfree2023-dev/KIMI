@@ -4,6 +4,7 @@
  */
 
 export {
+  getTenantContext,
   getCurrentTenantContext,
   getCurrentTenantId,
   hasTenantContext,

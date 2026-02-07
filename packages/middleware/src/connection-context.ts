@@ -55,6 +55,11 @@ export function getCurrentTenantContext(): TenantContext | null {
 }
 
 /**
+ * Require tenant context - alias for getTenantContext
+ */
+export const getTenantContext = requireTenantContext;
+
+/**
  * Require tenant context - throws if not present
  * @returns TenantContext (guaranteed)
  * @throws Error if no tenant context found

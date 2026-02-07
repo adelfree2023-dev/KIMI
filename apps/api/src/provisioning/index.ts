@@ -8,3 +8,4 @@
 export * from './dto/provision-response.dto.js';
 export { ProvisioningController } from './provisioning.controller.js';
 export { ProvisioningService } from './provisioning.service.js';
+export { ProvisioningModule } from './provisioning.module.js';

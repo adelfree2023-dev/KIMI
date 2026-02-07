@@ -10,7 +10,7 @@
     }
   },
   "scripts": {
-    "build": "tsc --emitDeclarationOnly && bun build ./src/index.ts --outdir ./dist --target node && bun build ./src/index.ts --outfile ./dist/index.cjs --target node",
+    "build": "bun build ./src/index.ts --outdir ./dist --target node && bun build ./src/index.ts --outfile ./dist/index.cjs --target node",
     "db:generate": "drizzle-kit generate:pg",
     "db:migrate": "bun run src/migrate.ts",
     "db:studio": "drizzle-kit studio",

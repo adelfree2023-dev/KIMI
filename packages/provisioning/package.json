@@ -9,7 +9,7 @@
     }
   },
   "scripts": {
-    "build": "tsc --emitDeclarationOnly && bun build ./src/index.ts --outdir ./dist --target node",
+    "build": "bun build ./src/index.ts --outdir ./dist --target node",
     "test": "vitest run",
     "test:unit": "vitest run --coverage",
     "lint": "biome check .",

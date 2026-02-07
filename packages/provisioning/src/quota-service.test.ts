@@ -212,7 +212,7 @@ describe('Quota Service', () => {
     });
 
     it('should reject taken subdomains', async () => {
-      vi.mocked(publicDb.query.tenants.findFirst).mockResolvedValue({
+      vi.mocked((publicDb as any).query.tenants.findFirst).mockResolvedValue({
         id: 'existing-id',
         subdomain: 'mystore',
       } as any);
@@ -223,28 +223,28 @@ describe('Quota Service', () => {
     });
 
     it('should approve available subdomains', async () => {
-      vi.mocked(publicDb.query.tenants.findFirst).mockResolvedValue(undefined);
+      vi.mocked((publicDb as any).query.tenants.findFirst).mockResolvedValue(undefined);
 
       const available = await validateSubdomainAvailability('mycoolstore');
       expect(available.available).toBe(true);
     });
 
     it('should approve valid subdomains with hyphens', async () => {
-      vi.mocked(publicDb.query.tenants.findFirst).mockResolvedValue(undefined);
+      vi.mocked((publicDb as any).query.tenants.findFirst).mockResolvedValue(undefined);
 
       const hyphen = await validateSubdomainAvailability('my-cool-store');
       expect(hyphen.available).toBe(true);
     });
 
     it('should approve valid subdomains with numbers', async () => {
-      vi.mocked(publicDb.query.tenants.findFirst).mockResolvedValue(undefined);
+      vi.mocked((publicDb as any).query.tenants.findFirst).mockResolvedValue(undefined);
 
       const numbers = await validateSubdomainAvailability('store123');
       expect(numbers.available).toBe(true);
     });
 
     it('should handle database errors gracefully', async () => {
-      vi.mocked(publicDb.query.tenants.findFirst).mockRejectedValue(
+      vi.mocked((publicDb as any).query.tenants.findFirst).mockRejectedValue(
         new Error('DB Error')
       );
 

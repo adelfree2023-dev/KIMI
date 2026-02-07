@@ -151,7 +151,7 @@ describe('Tenant Context Management', () => {
       runWithTenantContext(mockContext, () => {
         const ctx = getCurrentTenantContext();
         if (!ctx) throw new Error('Context missing');
-        // @ts-expect-error - Testing runtime immutability
+
         expect(() => {
           (ctx as any).tenantId = 'hacked';
         }).toThrow();

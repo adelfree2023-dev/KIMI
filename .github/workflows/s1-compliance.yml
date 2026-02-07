@@ -9,6 +9,9 @@ on:
 permissions:
   contents: read
   security-events: write
+  pull-requests: write
+  actions: read
+  checks: read
 
 env:
   JWT_SECRET: test_secret_key_for_ci_environment_only_32

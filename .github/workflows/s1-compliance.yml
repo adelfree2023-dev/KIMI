@@ -1,0 +1,139 @@
+name: S1-S8 Security Compliance CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+env:
+  JWT_SECRET: test_secret_key_for_ci_environment_only_32
+  DATABASE_URL: postgresql://test:test@localhost:5432/test
+  MINIO_ACCESS_KEY: test
+  MINIO_SECRET_KEY: test123
+
+jobs:
+  s1-compliance:
+    name: S1 Environment Verification
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Test S1 Crash on Invalid JWT_SECRET
+        run: |
+          # Test 1: Missing JWT_SECRET should crash
+          if JWT_SECRET="" bun run packages/config/src/index.ts 2>&1; then
+            echo "❌ FAIL: App should have crashed with empty JWT_SECRET"
+            exit 1
+          else
+            echo "✅ PASS: App crashed as expected with empty JWT_SECRET"
+          fi
+
+          # Test 2: Short JWT_SECRET should crash
+          if JWT_SECRET="short" bun run packages/config/src/index.ts 2>&1; then
+            echo "❌ FAIL: App should have crashed with short JWT_SECRET"
+            exit 1
+          else
+            echo "✅ PASS: App crashed as expected with short JWT_SECRET"
+          fi
+
+          # Test 3: Valid JWT_SECRET should pass
+          if bun run packages/config/src/index.ts 2>&1; then
+            echo "✅ PASS: App started with valid JWT_SECRET"
+          else
+            echo "❌ FAIL: App should have started with valid JWT_SECRET"
+            exit 1
+          fi
+
+  lint-and-format:
+    name: Biome Maximum Strictness Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Check Biome formatting
+        run: bun run biome check .
+
+      - name: Verify no console.log (S4 Audit preparation)
+        run: |
+          if grep -r "console.log" packages/*/src/*.ts --include="*.ts" | grep -v "console.warn" | grep -v "console.error"; then
+            echo "❌ FAIL: console.log found. Use structured logging instead (S4)."
+            exit 1
+          fi
+
+  build:
+    name: Turborepo Build
+    runs-on: ubuntu-latest
+    needs: [s1-compliance]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Build all packages
+        run: bun run turbo run build
+
+      - name: Verify build outputs
+        run: |
+          test -d packages/config/dist || (echo "❌ config build missing" && exit 1)
+          test -d packages/db/dist || (echo "❌ db build missing" && exit 1)
+          test -d packages/auth/dist || (echo "❌ auth build missing" && exit 1)
+          echo "✅ All packages built successfully"
+
+  docker-health:
+    name: Docker Stack Health Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Docker
+        uses: docker/setup-buildx-action@v3
+
+      - name: Start infrastructure
+        run: docker compose up -d
+
+      - name: Wait for health checks
+        run: |
+          echo "Waiting for services to be healthy..."
+          sleep 30
+
+          # Check all services are healthy
+          docker compose ps | grep "healthy" | wc -l | grep -q "5" && echo "✅ All services healthy" || (echo "❌ Not all services healthy" && docker compose ps && exit 1)
+
+          # Test PostgreSQL
+          docker compose exec -T postgres pg_isready -U apex
+
+          # Test Redis
+          docker compose exec -T redis redis-cli ping | grep -q "PONG" && echo "✅ Redis OK"
+
+          # Test MinIO
+          curl -f http://localhost:9000/minio/health/live || (echo "❌ MinIO not healthy" && exit 1)
+
+          # Test Traefik
+          curl -f http://localhost:8080/ping || (echo "❌ Traefik not healthy" && exit 1)
+
+      - name: Cleanup
+        if: always()
+        run: docker compose down -v

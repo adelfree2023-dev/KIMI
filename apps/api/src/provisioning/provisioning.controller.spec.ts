@@ -5,68 +5,72 @@ import { ProvisioningController } from './provisioning.controller.js';
 import { ProvisioningService } from './provisioning.service.js';
 
 describe('ProvisioningController', () => {
-    let controller: ProvisioningController;
-    let service: ProvisioningService;
+  let controller: ProvisioningController;
+  let service: ProvisioningService;
 
-    const mockProvisioningService = {
-        provision: vi.fn(),
+  const mockProvisioningService = {
+    provision: vi.fn(),
+  };
+
+  const mockAuditService = {
+    log: vi.fn(),
+  };
+
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      controllers: [ProvisioningController],
+      providers: [
+        {
+          provide: ProvisioningService,
+          useValue: mockProvisioningService,
+        },
+        {
+          provide: AuditService,
+          useValue: mockAuditService,
+        },
+      ],
+    }).compile();
+
+    controller = module.get<ProvisioningController>(ProvisioningController);
+    service = module.get<ProvisioningService>(ProvisioningService);
+
+    vi.clearAllMocks();
+  });
+
+  it('should be defined', () => {
+    expect(controller).toBeDefined();
+  });
+
+  describe('provisionStore', () => {
+    const validDto = {
+      subdomain: 'test-store',
+      storeName: 'Test Store',
+      adminEmail: 'admin@test.com',
+      plan: 'basic' as const,
+      superAdminKey: 'valid-key',
     };
 
-    const mockAuditService = {
-        log: vi.fn(),
-    };
+    it('should provision with valid data', async () => {
+      mockProvisioningService.provision.mockResolvedValue({
+        subdomain: 'test-store',
+        durationMs: 1500,
+      });
 
-    beforeEach(async () => {
-        const module: TestingModule = await Test.createTestingModule({
-            controllers: [ProvisioningController],
-            providers: [
-                {
-                    provide: ProvisioningService,
-                    useValue: mockProvisioningService
-                },
-                {
-                    provide: AuditService,
-                    useValue: mockAuditService
-                }
-            ],
-        }).compile();
+      const result = await controller.provisionStore(validDto as any);
 
-        controller = module.get<ProvisioningController>(ProvisioningController);
-        service = module.get<ProvisioningService>(ProvisioningService);
-
-        vi.clearAllMocks();
+      expect(result.message).toBe('Store provisioned successfully');
+      expect(result.data.subdomain).toBe('test-store');
+      expect(service.provision).toHaveBeenCalled();
     });
 
-    it('should be defined', () => {
-        expect(controller).toBeDefined();
+    it('should handle provisioning errors', async () => {
+      mockProvisioningService.provision.mockRejectedValue(
+        new Error('Provisioning failed')
+      );
+
+      await expect(controller.provisionStore(validDto as any)).rejects.toThrow(
+        'Provisioning failed'
+      );
     });
-
-    describe('provisionStore', () => {
-        const validDto = {
-            subdomain: 'test-store',
-            storeName: 'Test Store',
-            adminEmail: 'admin@test.com',
-            plan: 'basic' as const,
-            superAdminKey: 'valid-key'
-        };
-
-        it('should provision with valid data', async () => {
-            mockProvisioningService.provision.mockResolvedValue({
-                subdomain: 'test-store',
-                durationMs: 1500
-            });
-
-            const result = await controller.provisionStore(validDto as any);
-
-            expect(result.message).toBe('Store provisioned successfully');
-            expect(result.data.subdomain).toBe('test-store');
-            expect(service.provision).toHaveBeenCalled();
-        });
-
-        it('should handle provisioning errors', async () => {
-            mockProvisioningService.provision.mockRejectedValue(new Error('Provisioning failed'));
-
-            await expect(controller.provisionStore(validDto as any)).rejects.toThrow('Provisioning failed');
-        });
-    });
+  });
 });

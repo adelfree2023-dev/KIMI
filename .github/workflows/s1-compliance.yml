@@ -88,11 +88,11 @@ jobs:
       - name: Security Audit (S1 - Critical/High)
         run: bun audit
 
-      - name: TypeScript Check (Type Safety)
-        run: bun x tsc --noEmit
+      - name: TypeScript Check (Strict Mode)
+        run: bun x tsc --noEmit --strict
 
-      - name: Check Biome formatting
-        run: bun run biome check .
+      - name: Biome CI (Strict)
+        run: bun run biome ci .
 
       - name: Verify no console.log (S4 Compliance)
         run: |
@@ -142,6 +142,11 @@ jobs:
           test -d packages/db/dist || (echo "❌ db build missing" && exit 1)
           test -d packages/auth/dist || (echo "❌ auth build missing" && exit 1)
           echo "✅ All packages built successfully"
+
+      - name: Generate Artifact Checksums
+        run: |
+          find packages/*/dist -type f -exec sha256sum {} \; > build_checksums.txt
+          cat build_checksums.txt
 
   test-api-integration:
     name: API Integration Tests (Postgres/Redis/MinIO)
@@ -229,15 +234,11 @@ jobs:
       - name: Setup Docker
         uses: docker/setup-buildx-action@v3
 
-      - name: Start infrastructure
-        run: docker compose up -d
+      - name: Start infrastructure (Wait for Health)
+        run: docker compose up -d --wait
 
-      - name: Wait for health checks
-        run: |
-          echo "Waiting for services to be healthy..."
-          sleep 30
-          # Check all services are healthy (Postgres, Redis, MinIO, Traefik, etc.)
-          docker compose ps | grep "healthy" | wc -l | grep -q "5" && echo "✅ All services healthy" || (echo "❌ Not all services healthy" && docker compose ps && exit 1)
+      - name: Verify Service Status
+        run: docker compose ps
 
       - name: Cleanup
         if: always()

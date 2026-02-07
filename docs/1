@@ -237,6 +237,9 @@ bun run test:unit --run
 
 | المخاطر | التأثير | التخفيف |
 |---------|---------|---------|
+| **CVE-2024- fast-xml-parser** | High | تحديث MinIO أو استبدال fast-xml-parser بـ 5.3.4+ |
+| **Cross-Tenant Data Leak** | Catastrophic | S2 Middleware + 100% E2E Isolation Tests + Manual Audit كل Sprint |
+|---------|---------|---------|
 | **Cross-Tenant Data Leak** | Catastrophic | S2 Middleware + 100% E2E Isolation Tests + Manual Audit كل Sprint |
 | **Provisioning Timeout** | High | Monitoring at 50s → Alert at 55s → Auto-Rollback |
 | **Mobile Rebuild Required** | Medium | Server-Driven UI Strict Implementation |
@@ -264,6 +267,53 @@ bun run test:unit --run
 - [ ] Product Owner
 
 **التاريخ:** _______________
+
+---
+
+## 🔒 ملحق أمني: حل ثغرة fast-xml-parser (CVE-2024-)
+
+### المشكلة
+```
+fast-xml-parser >=4.3.6 <=5.3.3
+  workspace:@apex/provisioning › minio
+  high: fast-xml-parser has RangeError DoS Numeric Entities Bug
+```
+
+### السبب
+ثغرة **DoS** في مكتبة `fast-xml-parser` تستخدمها حزمة `minio` لمعالجة XML. يمكن استغلالها عبر كيانات رقمية ضخمة تؤدي إلى استنفاد الذاكرة.
+
+### الحلول المتاحة
+
+| الطريقة | الأمر | الملاحظات |
+|---------|-------|-----------|
+| **1. التحديث التلقائي** | `bun update` | يحدث لأحدث إصدار متوافق |
+| **2. التحديث القسري** | `bun update --latest` | قد يحتوي على Breaking Changes |
+| **3. Override يدوي** | تعديل `package.json` | فرض إصدار آمن |
+
+### الحل المُوصى به
+
+```json
+// package.json - override
+{
+  "overrides": {
+    "fast-xml-parser": ">=5.3.4"
+  }
+}
+```
+
+ثم تشغيل:
+```bash
+bun install
+bun audit
+# Expected: 0 vulnerabilities
+```
+
+### التحقق من الإصلاح
+```bash
+# التأكد من الإصدار الآمن
+bun list fast-xml-parser
+# Expected: fast-xml-parser@5.3.4 أو أحدث
+```
 
 ---
 **المرجعية:** Constitution-2026-01, Roadmap-2026-01, Architecture-S1-S8, Plan-143-Requirements.

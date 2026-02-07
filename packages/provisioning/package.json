@@ -16,8 +16,8 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@apex/config": "workspace:*",
-    "@apex/db": "workspace:*",
+    "@apex/config": "*",
+    "@apex/db": "*",
     "minio": "latest",
     "drizzle-orm": "^0.29.3",
     "postgres": "^3.4.3"

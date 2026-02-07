@@ -22,12 +22,12 @@
     "rxjs": "^7.8.1",
     "nestjs-zod": "^3.0.0",
     "zod": "^3.22.0",
-    "@apex/middleware": "workspace:*",
-    "@apex/provisioning": "workspace:*",
-    "@apex/audit": "workspace:*",
-    "@apex/db": "workspace:*",
-    "@apex/auth": "workspace:*",
-    "@apex/config": "workspace:*"
+    "@apex/middleware": "*",
+    "@apex/provisioning": "*",
+    "@apex/audit": "*",
+    "@apex/db": "*",
+    "@apex/auth": "*",
+    "@apex/config": "*"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.0.0",

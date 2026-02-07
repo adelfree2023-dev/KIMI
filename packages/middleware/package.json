@@ -17,8 +17,8 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@apex/config": "workspace:*",
-    "@apex/db": "workspace:*",
+    "@apex/config": "*",
+    "@apex/db": "*",
     "redis": "^4.6.0"
   },
   "devDependencies": {

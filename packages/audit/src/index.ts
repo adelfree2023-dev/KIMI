@@ -2,11 +2,11 @@ export {
   type AuditAction,
   type AuditLogEntry,
   type AuditQueryOptions,
+  AuditService, // Added missing export
   type AuditSeverity,
   initializeAuditTable,
   log,
   logProvisioning,
   logSecurityEvent,
   query,
-  AuditService, // Added missing export
 } from './audit.service';

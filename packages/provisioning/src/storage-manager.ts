@@ -3,9 +3,9 @@
  * Handles multi-tenant bucket isolation using MinIO/S3 (S3 Protocol)
  */
 
+import { Buffer } from 'node:buffer';
 import { validateEnv } from '@apex/config';
 import * as Minio from 'minio';
-import { Buffer } from 'node:buffer';
 
 // Initialize client from environment
 // Initialize client from environment
@@ -47,7 +47,7 @@ export async function createStorageBucket(
     free: 1024 * 1024 * 1024,
     basic: 10 * 1024 * 1024 * 1024,
     pro: 100 * 1024 * 1024 * 1024,
-    enterprise: 1000 * 1024 * 1024 * 1024
+    enterprise: 1000 * 1024 * 1024 * 1024,
   };
   const quotaBytes = quotaMap[plan] || quotaMap.free;
 
@@ -66,25 +66,35 @@ export async function createStorageBucket(
     // Public read policy
     const policy = {
       Version: '2012-10-17',
-      Statement: [{
-        Effect: 'Allow',
-        Principal: '*',
-        Action: ['s3:GetObject'],
-        Resource: [`arn:aws:s3:::${bucketName}/public/*`]
-      }]
+      Statement: [
+        {
+          Effect: 'Allow',
+          Principal: '*',
+          Action: ['s3:GetObject'],
+          Resource: [`arn:aws:s3:::${bucketName}/public/*`],
+        },
+      ],
     };
     await minioClient.setBucketPolicy(bucketName, JSON.stringify(policy));
 
     // Create folders
-    await minioClient.putObject(bucketName, 'public/products/.keep', Buffer.from(''));
-    await minioClient.putObject(bucketName, 'private/exports/.keep', Buffer.from(''));
+    await minioClient.putObject(
+      bucketName,
+      'public/products/.keep',
+      Buffer.from('')
+    );
+    await minioClient.putObject(
+      bucketName,
+      'private/exports/.keep',
+      Buffer.from('')
+    );
 
     return {
       bucketName,
       region,
       createdAt: new Date(),
       quotaBytes,
-      durationMs: Date.now() - start
+      durationMs: Date.now() - start,
     };
   } catch (error) {
     console.error(`Bucket creation failed for ${bucketName}:`, error);
@@ -98,7 +108,10 @@ export async function createStorageBucket(
  * Delete a tenant's storage bucket (WARNING: Destructive)
  * @param subdomain - Tenant subdomain
  */
-export async function deleteStorageBucket(subdomain: string, force: boolean = false): Promise<boolean> {
+export async function deleteStorageBucket(
+  subdomain: string,
+  force: boolean = false
+): Promise<boolean> {
   const bucketName = sanitizeBucketName(subdomain);
 
   try {
@@ -184,7 +197,7 @@ export async function getStorageUsage(subdomain: string) {
     usedBytes: totalSize,
     objectCount,
     quotaBytes,
-    usagePercent: (totalSize / quotaBytes) * 100
+    usagePercent: (totalSize / quotaBytes) * 100,
   };
 }
 

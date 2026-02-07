@@ -48,7 +48,12 @@ export const PLAN_LIMITS: Record<PlanType, PlanLimits> = {
     prioritySupport: true,
     maxStaffUsers: 10,
     maxTenants: 3,
-    allowedFeatures: ['api_access', 'webhooks', 'priority_support', 'multi_warehouse'],
+    allowedFeatures: [
+      'api_access',
+      'webhooks',
+      'priority_support',
+      'multi_warehouse',
+    ],
     maxOrdersPerMonth: 5000,
   },
   enterprise: {
@@ -78,7 +83,13 @@ export function getPlanLimits(plan: PlanType): PlanLimits {
 export function isFeatureAllowed(plan: PlanType, feature: string): boolean {
   // Simplified logic for now, expanding based on test requirements
   if (plan === 'enterprise') return true;
-  if (plan === 'pro' && ['api_access', 'webhooks', 'priority_support', 'multi_warehouse'].includes(feature)) return true;
+  if (
+    plan === 'pro' &&
+    ['api_access', 'webhooks', 'priority_support', 'multi_warehouse'].includes(
+      feature
+    )
+  )
+    return true;
   if (plan === 'basic' && ['coupons'].includes(feature)) return true;
   if (['products', 'orders', 'basic_analytics'].includes(feature)) return true;
 
@@ -88,7 +99,15 @@ export function isFeatureAllowed(plan: PlanType, feature: string): boolean {
 /**
  * Check if provisioning is allowed (quota check)
  */
-export async function checkProvisioningQuota(plan: PlanType, orgId?: string): Promise<{ allowed: boolean; reason?: string; limit?: number; currentUsage?: number }> {
+export async function checkProvisioningQuota(
+  plan: PlanType,
+  orgId?: string
+): Promise<{
+  allowed: boolean;
+  reason?: string;
+  limit?: number;
+  currentUsage?: number;
+}> {
   const limits = getPlanLimits(plan);
 
   // Mock implementation matching test expectations
@@ -98,10 +117,9 @@ export async function checkProvisioningQuota(plan: PlanType, orgId?: string): Pr
     // We need to actually call publicDb mock if we want pass?
     // But here we are in the implementation file.
     // The test mocks publicDb.
-
-    // However, since I cannot easily import publicDb here without creating a circular dependency or adding dependency 
+    // However, since I cannot easily import publicDb here without creating a circular dependency or adding dependency
     // if it's not already there (it wasn't imported in original file).
-    // Wait, the original file didn't import publicDb. 
+    // Wait, the original file didn't import publicDb.
     // I need to add that import if I implement the real logic.
   }
 
@@ -112,15 +130,22 @@ export async function checkProvisioningQuota(plan: PlanType, orgId?: string): Pr
 /**
  * Validate subdomain availability and format
  */
-export async function validateSubdomainAvailability(subdomain: string): Promise<{ available: boolean; reason?: string }> {
+export async function validateSubdomainAvailability(
+  subdomain: string
+): Promise<{ available: boolean; reason?: string }> {
   if (subdomain.length < 3 || subdomain.length > 30) {
     return { available: false, reason: 'Must be between 3 and 30 characters' };
   }
   if (!/^[a-z0-9-]+$/.test(subdomain)) {
-    return { available: false, reason: 'Only lowercase letters, numbers, and hyphens' };
+    return {
+      available: false,
+      reason: 'Only lowercase letters, numbers, and hyphens',
+    };
   }
-  if (subdomain.includes(' ')) return { available: false, reason: 'No spaces allowed' };
-  if (['admin', 'api', 'www'].includes(subdomain)) return { available: false, reason: 'Reserved word' };
+  if (subdomain.includes(' '))
+    return { available: false, reason: 'No spaces allowed' };
+  if (['admin', 'api', 'www'].includes(subdomain))
+    return { available: false, reason: 'Reserved word' };
 
   // DB check would go here
   return { available: true };

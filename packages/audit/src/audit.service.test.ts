@@ -37,7 +37,7 @@ describe('Audit Service (S4 Protocol)', () => {
       release: vi.fn(),
     };
     vi.mocked(publicPool.connect).mockResolvedValue(mockClient as any);
-    vi.spyOn(console, 'log').mockImplementation(() => { });
+    vi.spyOn(console, 'log').mockImplementation(() => {});
   });
 
   describe('log', () => {
@@ -53,7 +53,7 @@ describe('Audit Service (S4 Protocol)', () => {
         metadata: {
           plan: 'basic',
           subdomain: 'test',
-          actorType: 'api_key'
+          actorType: 'api_key',
         },
         severity: 'INFO',
         result: 'SUCCESS',
@@ -84,7 +84,7 @@ describe('Audit Service (S4 Protocol)', () => {
         entityId: 'user-123',
         metadata: {
           email: 'admin@example.com',
-          actorType: 'user'
+          actorType: 'user',
         },
         severity: 'INFO',
         result: 'SUCCESS',
@@ -106,7 +106,7 @@ describe('Audit Service (S4 Protocol)', () => {
         entityId: 'user-123',
         metadata: {
           reason: 'invalid_password',
-          actorType: 'user'
+          actorType: 'user',
         },
         severity: 'HIGH',
         result: 'FAILURE',
@@ -158,7 +158,7 @@ describe('Audit Service (S4 Protocol)', () => {
           changedFields: ['store_name', 'currency'],
           oldValues: { store_name: 'Old Name' },
           newValues: { store_name: 'New Name' },
-          actorType: 'user'
+          actorType: 'user',
         },
         severity: 'INFO',
         result: 'SUCCESS',

@@ -8,7 +8,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-apex}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-apex_secret}
       POSTGRES_DB: ${POSTGRES_DB:-apex_v2}
-      POSTGRES_INITDB_ARGS: "-c shared_buffers=256MB -c max_connections=200"
+      POSTGRES_INITDB_ARGS: "--shared-buffers=256MB --max-connections=200"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./docker/postgres/init:/docker-entrypoint-initdb.d

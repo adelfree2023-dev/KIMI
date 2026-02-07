@@ -205,13 +205,15 @@ export async function logSecurityEvent(
   } as any);
 }
 
-export async function query(options: {
-  tenantId?: string;
-  action?: string;
-  severity?: string;
-  limit?: number;
-  offset?: number;
-} = {}): Promise<AuditLogEntry[]> {
+export async function query(
+  options: {
+    tenantId?: string;
+    action?: string;
+    severity?: string;
+    limit?: number;
+    offset?: number;
+  } = {}
+): Promise<AuditLogEntry[]> {
   const client = await publicPool.connect();
   try {
     const conditions: string[] = [];
@@ -231,7 +233,8 @@ export async function query(options: {
       values.push(options.severity);
     }
 
-    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+    const whereClause =
+      conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
     const limitClause = options.limit ? `LIMIT $${paramIndex++}` : '';
     if (options.limit) values.push(options.limit);
 

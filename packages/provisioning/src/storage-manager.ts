@@ -47,9 +47,7 @@ function getMinioClient(): Minio.Client {
 }
 
 function sanitizeBucketName(subdomain: string): string {
-  return `tenant-${subdomain
-    .toLowerCase()
-    .replace(/[^a-z0-9-]/g, '-')}-assets`;
+  return `tenant-${subdomain.toLowerCase().replace(/[^a-z0-9-]/g, '-')}-assets`;
 }
 
 // Plan quotas in bytes
@@ -111,9 +109,9 @@ export async function createStorageBucket(
     return {
       success: true,
       bucketName,
-      endpoint: `${
-        env.MINIO_USE_SSL === 'true' ? 'https' : 'http'
-      }://${env.MINIO_ENDPOINT}:${env.MINIO_PORT}/${bucketName}`,
+      endpoint: `${env.MINIO_USE_SSL === 'true' ? 'https' : 'http'}://${
+        env.MINIO_ENDPOINT
+      }:${env.MINIO_PORT}/${bucketName}`,
       quotaBytes: PLAN_QUOTAS[plan] || PLAN_QUOTAS.free,
       durationMs: duration,
       createdAt: new Date(),
@@ -231,8 +229,7 @@ export async function getStorageStats(
       const tags = await client.getBucketTagging(bucketName);
       // Tags is Tag[] array, find the plan tag
       const planTag = tags.find((t) => t.Key === 'plan');
-      const plan =
-        (planTag?.Value as keyof typeof PLAN_QUOTAS) || 'free';
+      const plan = (planTag?.Value as keyof typeof PLAN_QUOTAS) || 'free';
       quotaBytes = PLAN_QUOTAS[plan] || PLAN_QUOTAS.free;
     } catch {
       // Ignore tagging errors, use default quota

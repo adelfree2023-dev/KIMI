@@ -5,7 +5,7 @@
  */
 
 import { tenants, type Tenant } from '@apex/db';
-import { eq, like, and, desc, asc, sql, count } from 'drizzle-orm';
+import { eq, and, desc, asc, sql, count } from 'drizzle-orm';
 import { publicDb } from '@apex/db';
 
 export type TenantStatus = 'active' | 'suspended' | 'pending' | 'maintenance';

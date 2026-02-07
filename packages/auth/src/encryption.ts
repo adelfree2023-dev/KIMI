@@ -33,14 +33,14 @@ export function encrypt(plaintext: string, masterKey: string): EncryptedData {
   const salt = randomBytes(SALT_LENGTH);
   const iv = randomBytes(IV_LENGTH);
   const key = deriveKey(masterKey, salt);
-  
+
   const cipher = createCipheriv(ALGORITHM, key, iv);
-  
+
   let encrypted = cipher.update(plaintext, 'utf8', 'hex');
   encrypted += cipher.final('hex');
-  
+
   const tag = cipher.getAuthTag();
-  
+
   return {
     encrypted,
     iv: iv.toString('hex'),
@@ -57,13 +57,13 @@ export function decrypt(encryptedData: EncryptedData, masterKey: string): string
   const iv = Buffer.from(encryptedData.iv, 'hex');
   const tag = Buffer.from(encryptedData.tag, 'hex');
   const key = deriveKey(masterKey, salt);
-  
+
   const decipher = createDecipheriv(ALGORITHM, key, iv);
   decipher.setAuthTag(tag);
-  
+
   let decrypted = decipher.update(encryptedData.encrypted, 'hex', 'utf8');
   decrypted += decipher.final('utf8');
-  
+
   return decrypted;
 }
 
@@ -86,7 +86,7 @@ export function generateApiKey(): string {
 /**
  * Masks sensitive data for display (e.g., credit cards)
  */
-export function maskSensitive(value: string, visibleChars: number = 4): string {
+export function maskSensitive(value: string, visibleChars = 4): string {
   if (value.length <= visibleChars * 2) {
     return '*'.repeat(value.length);
   }
@@ -106,12 +106,12 @@ export class EncryptionService {
 
   constructor() {
     this.masterKey = process.env.ENCRYPTION_MASTER_KEY || '';
-    
+
     // CRITICAL FIX (S7): Strict enforcement for production
     // In production, test keys are NEVER allowed, regardless of environment variables
     const isProduction = process.env.NODE_ENV === 'production';
     const isTestMode = process.env.NODE_ENV === 'test' && !isProduction;
-    
+
     if (!this.masterKey) {
       if (isTestMode) {
         // Generate deterministic test key for tests only
@@ -121,12 +121,12 @@ export class EncryptionService {
         throw new Error('S1 Violation: ENCRYPTION_MASTER_KEY is required');
       }
     }
-    
+
     // Always enforce minimum key length
     if (this.masterKey.length < 32) {
       throw new Error('S1 Violation: ENCRYPTION_MASTER_KEY must be at least 32 characters');
     }
-    
+
     // CRITICAL FIX (S7): In production, explicitly reject any key containing 'test' or 'default'
     if (isProduction) {
       const forbiddenPatterns = ['test', 'default', 'example', 'sample', '123456', 'password'];
@@ -136,13 +136,13 @@ export class EncryptionService {
           throw new Error(`S1 Violation: ENCRYPTION_MASTER_KEY contains forbidden pattern '${pattern}'. Production keys must be cryptographically random.`);
         }
       }
-      
+
       // Additional check: ensure key has high entropy (mix of chars)
       const hasUpper = /[A-Z]/.test(this.masterKey);
       const hasLower = /[a-z]/.test(this.masterKey);
       const hasNumber = /[0-9]/.test(this.masterKey);
       const hasSpecial = /[^A-Za-z0-9]/.test(this.masterKey);
-      
+
       if (!(hasUpper && hasLower && hasNumber && hasSpecial)) {
         throw new Error('S1 Violation: ENCRYPTION_MASTER_KEY must contain uppercase, lowercase, numbers, and special characters');
       }

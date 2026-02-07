@@ -6,7 +6,6 @@ import {
   hasTenantContext,
   requireTenantContext,
   runWithTenantContext,
-  type TenantContext,
   tenantStorage,
 } from './index.js';
 

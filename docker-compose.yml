@@ -105,10 +105,11 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - traefik_certs:/letsencrypt
     healthcheck:
-      test: ["CMD", "traefik", "healthcheck"]
+      test: ["CMD", "traefik", "healthcheck", "--ping"]
       interval: 10s
       timeout: 5s
-      retries: 3
+      retries: 5
+      start_period: 10s
     networks:
       - apex-network
 

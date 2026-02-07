@@ -78,18 +78,15 @@ describe('Audit Service (S4 Protocol)', () => {
       const entry: AuditLogEntry = {
         timestamp: new Date(),
         action: 'USER_LOGIN',
-        actor: {
-          type: 'user',
-          id: 'user-123',
+        userId: 'user-123',
+        ipAddress: '10.0.0.1',
+        entityType: 'user',
+        entityId: 'user-123',
+        metadata: {
           email: 'admin@example.com',
-          ipAddress: '10.0.0.1',
+          actorType: 'user'
         },
-        target: {
-          type: 'user',
-          id: 'user-123',
-        },
-        metadata: {},
-        severity: 'LOW',
+        severity: 'INFO',
         result: 'SUCCESS',
       };
 
@@ -103,16 +100,14 @@ describe('Audit Service (S4 Protocol)', () => {
       const entry: AuditLogEntry = {
         timestamp: new Date('2026-01-01T00:00:00Z'),
         action: 'USER_LOGIN_FAILED',
-        actor: {
-          type: 'user',
-          id: 'user-123',
-          ipAddress: '10.0.0.1',
+        userId: 'user-123',
+        ipAddress: '10.0.0.1',
+        entityType: 'user',
+        entityId: 'user-123',
+        metadata: {
+          reason: 'invalid_password',
+          actorType: 'user'
         },
-        target: {
-          type: 'user',
-          id: 'user-123',
-        },
-        metadata: { reason: 'invalid_password' },
         severity: 'HIGH',
         result: 'FAILURE',
       };
@@ -134,9 +129,11 @@ describe('Audit Service (S4 Protocol)', () => {
       const entry: AuditLogEntry = {
         timestamp: new Date(),
         action: 'TENANT_PROVISIONED',
-        actor: { type: 'system', id: 'system', ipAddress: '127.0.0.1' },
-        target: { type: 'tenant', id: 'test' },
-        metadata: {},
+        userId: 'system',
+        ipAddress: '127.0.0.1',
+        entityType: 'tenant',
+        entityId: 'test',
+        metadata: { actorType: 'system' },
         severity: 'HIGH',
         result: 'FAILURE',
         errorMessage: 'Database connection failed',
@@ -152,14 +149,18 @@ describe('Audit Service (S4 Protocol)', () => {
       const entry: AuditLogEntry = {
         timestamp: new Date(),
         action: 'SETTINGS_CHANGED',
-        actor: { type: 'user', id: 'admin-1', ipAddress: '10.0.0.1' },
-        target: { type: 'tenant', id: 'tenant-1', tenantId: 'tenant-1' },
+        userId: 'admin-1',
+        ipAddress: '10.0.0.1',
+        entityType: 'tenant',
+        entityId: 'tenant-1',
+        tenantId: 'tenant-1',
         metadata: {
           changedFields: ['store_name', 'currency'],
           oldValues: { store_name: 'Old Name' },
           newValues: { store_name: 'New Name' },
+          actorType: 'user'
         },
-        severity: 'MEDIUM',
+        severity: 'INFO',
         result: 'SUCCESS',
       };
 
@@ -178,9 +179,11 @@ describe('Audit Service (S4 Protocol)', () => {
       const entry: AuditLogEntry = {
         timestamp: new Date(),
         action: 'TENANT_PROVISIONED',
-        actor: { type: 'system', id: 'system', ipAddress: '127.0.0.1' },
-        target: { type: 'tenant', id: 'test' },
-        metadata: {},
+        userId: 'system',
+        ipAddress: '127.0.0.1',
+        entityType: 'tenant',
+        entityId: 'test',
+        metadata: { actorType: 'system' },
         severity: 'HIGH',
         result: 'FAILURE',
       };

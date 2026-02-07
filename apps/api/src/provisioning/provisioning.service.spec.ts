@@ -189,7 +189,7 @@ describe('ProvisioningService', () => {
       vi.mocked(provisioning.runTenantMigrations).mockResolvedValue(
         undefined as any
       );
-      vi.mocked(provisioning.createTenantBucket).mockResolvedValue(
+      vi.mocked(provisioning.createStorageBucket).mockResolvedValue(
         undefined as any
       );
       vi.mocked(provisioning.seedTenantData).mockResolvedValue({

@@ -22,7 +22,7 @@ vi.mock('@apex/db', () => ({
         findFirst: vi.fn(),
       },
     },
-  },
+  } as any,
 }));
 
 describe('Quota Service', () => {

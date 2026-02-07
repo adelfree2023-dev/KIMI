@@ -3,7 +3,7 @@
  * Super-#21: Onboarding Blueprint Editor
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import {
   createBlueprint,
   getAllBlueprints,
@@ -53,11 +53,16 @@ vi.mock('@apex/db', () => ({
         returning: () => {
           const record = {
             id: 'test-id',
+            name: 'New Blueprint',
+            description: 'Test description',
+            blueprint: JSON.stringify({ version: '1.0', name: 'Test' }),
+            isDefault: 'false',
+            plan: 'free',
             ...(v as Record<string, unknown>),
             createdAt: new Date(),
             updatedAt: new Date(),
           };
-          mockBlueprints.push(record);
+          mockBlueprints.push(record as any);
           return [record];
         },
       }),

@@ -24,28 +24,24 @@ describe('RateLimit decorator', () => {
   });
 
   it('should create decorator', () => {
-    const decorator = RateLimit({ ttl: 60, limit: 100 });
+    const decorator = RateLimit({ windowMs: 60000, requests: 100 });
     expect(typeof decorator).toBe('function');
   });
 });
 
 describe('ThrottleConfig', () => {
   it('should have default config', () => {
-    expect(ThrottleConfig.DEFAULT).toBeDefined();
-    expect(ThrottleConfig.DEFAULT.ttl).toBe(60);
-    expect(ThrottleConfig.DEFAULT.limit).toBe(100);
+    const defaultConfig = ThrottleConfig.throttlers.find(t => t.name === 'default');
+    expect(defaultConfig).toBeDefined();
+    expect(defaultConfig?.ttl).toBe(60000);
+    expect(defaultConfig?.limit).toBe(100);
   });
 
   it('should have strict config', () => {
-    expect(ThrottleConfig.STRICT).toBeDefined();
-    expect(ThrottleConfig.STRICT.ttl).toBe(60);
-    expect(ThrottleConfig.STRICT.limit).toBe(20);
-  });
-
-  it('should have lenient config', () => {
-    expect(ThrottleConfig.LENIENT).toBeDefined();
-    expect(ThrottleConfig.LENIENT.ttl).toBe(60);
-    expect(ThrottleConfig.LENIENT.limit).toBe(200);
+    const strictConfig = ThrottleConfig.throttlers.find(t => t.name === 'strict');
+    expect(strictConfig).toBeDefined();
+    expect(strictConfig?.ttl).toBe(60000);
+    expect(strictConfig?.limit).toBe(10);
   });
 });
 
@@ -58,11 +54,10 @@ describe('RateLimitGuard', () => {
 describe('RateLimitConfig type', () => {
   it('should accept valid config', () => {
     const config: RateLimitConfig = {
-      ttl: 60,
-      limit: 100,
-      keyPrefix: 'test',
+      windowMs: 60000,
+      requests: 100,
     };
-    expect(config.ttl).toBe(60);
-    expect(config.limit).toBe(100);
+    expect(config.windowMs).toBe(60000);
+    expect(config.requests).toBe(100);
   });
 });

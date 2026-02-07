@@ -30,7 +30,7 @@ describe('TenantIsolationMiddleware', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    middleware = new TenantIsolationMiddleware(mockConfigService as any);
+    middleware = new TenantIsolationMiddleware();
   });
 
   it('should be defined', () => {

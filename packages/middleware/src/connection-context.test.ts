@@ -20,8 +20,10 @@ describe('ConnectionContext', () => {
   it('should set and get tenant context', async () => {
     const mockContext: TenantContext = {
       tenantId: 'test-tenant',
+      schemaName: 'tenant_test_tenant',
       subdomain: 'test',
       plan: 'pro',
+      isActive: true,
       features: [],
       createdAt: new Date(),
     };
@@ -47,16 +49,20 @@ describe('ConnectionContext', () => {
   it('should handle nested contexts correctly', async () => {
     const outerContext: TenantContext = {
       tenantId: 'outer',
+      schemaName: 'tenant_outer',
       subdomain: 'outer',
       plan: 'free',
+      isActive: true,
       features: [],
       createdAt: new Date(),
     };
 
     const innerContext: TenantContext = {
       tenantId: 'inner',
+      schemaName: 'tenant_inner',
       subdomain: 'inner',
       plan: 'pro',
+      isActive: true,
       features: [],
       createdAt: new Date(),
     };

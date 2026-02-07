@@ -3,7 +3,7 @@
  * Super-#01: Tenant Overview Table
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import {
   getTenantList,
   getTenantById,
@@ -28,34 +28,34 @@ const mockTenants: Array<{
   createdAt: Date;
   updatedAt: Date;
 }> = [
-  {
-    id: 'tenant-1',
-    subdomain: 'alpha',
-    name: 'Alpha Store',
-    plan: 'pro',
-    status: 'active',
-    createdAt: new Date('2026-01-01'),
-    updatedAt: new Date('2026-01-01'),
-  },
-  {
-    id: 'tenant-2',
-    subdomain: 'beta',
-    name: 'Beta Shop',
-    plan: 'free',
-    status: 'suspended',
-    createdAt: new Date('2026-01-15'),
-    updatedAt: new Date('2026-01-20'),
-  },
-  {
-    id: 'tenant-3',
-    subdomain: 'gamma',
-    name: 'Gamma Market',
-    plan: 'enterprise',
-    status: 'active',
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-];
+    {
+      id: 'tenant-1',
+      subdomain: 'alpha',
+      name: 'Alpha Store',
+      plan: 'pro',
+      status: 'active',
+      createdAt: new Date('2026-01-01'),
+      updatedAt: new Date('2026-01-01'),
+    },
+    {
+      id: 'tenant-2',
+      subdomain: 'beta',
+      name: 'Beta Shop',
+      plan: 'free',
+      status: 'suspended',
+      createdAt: new Date('2026-01-15'),
+      updatedAt: new Date('2026-01-20'),
+    },
+    {
+      id: 'tenant-3',
+      subdomain: 'gamma',
+      name: 'Gamma Market',
+      plan: 'enterprise',
+      status: 'active',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+  ];
 
 vi.mock('@apex/db', () => ({
   tenants: {

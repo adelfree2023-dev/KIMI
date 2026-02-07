@@ -18,7 +18,7 @@
   "dependencies": {
     "@apex/config": "workspace:*",
     "@apex/db": "workspace:*",
-    "minio": "^7.1.3",
+    "minio": "latest",
     "drizzle-orm": "^0.29.3",
     "postgres": "^3.4.3"
   },

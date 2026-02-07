@@ -183,8 +183,12 @@ export function sanitizeSchemaName(subdomain: string): string {
   // but let's keep the internal logic consistent)
   const sanitized = clean.replace(/^[0-9]/, '_$&');
 
-  if (sanitized.length < 3 || sanitized.length > 50) {
-    throw new Error('Invalid subdomain');
+  if (sanitized.length < 3) {
+    throw new Error(`Invalid subdomain: too short`);
+  }
+
+  if (sanitized.length > 50) {
+    throw new Error(`Invalid subdomain: exceeds 50 character limit`);
   }
 
   return `tenant_${sanitized}`;

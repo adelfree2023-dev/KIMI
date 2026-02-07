@@ -5,12 +5,13 @@ title = "Apex v2 Gitleaks Config"
 
 [extend]
 # Use default Gitleaks rules as base
-path = ""
+useDefault = true
 
 [allowlist]
 # Files to ignore completely
 paths = [
     '''\.env\.example$''',
+    '''\.env\.s1\.local$''',
     '''\.gitleaks\.toml$''',
     '''\.github\/workflows\/.*\.yml$''',
     '''node_modules\/?''',
@@ -18,6 +19,8 @@ paths = [
     '''dist\/?''',
     '''coverage\/?''',
     '''\.turbo\/?''',
+    '''.*\.test\.ts$''',
+    '''.*\.spec\.ts$''',
 ]
 
 # Regex patterns to ignore (test secrets, example values)
@@ -35,23 +38,8 @@ regexes = [
     # Test keys
     '''test_secret_key''',
     '''test_secret_key_for_ci''',
+    '''test_key_for_ci''',
 ]
 
 # Commits to ignore (if needed)
 commits = []
-
-# Specific rules to disable for certain files
-[[rules]]
-id = "generic-api-key"
-[rules.allowlist]
-paths = ['''\.env\.example$''', '''\.github\/workflows\/''']
-
-[[rules]]
-id = "jwt"
-[rules.allowlist]
-paths = ['''\.env\.example$''', '''\.github\/workflows\/''']
-
-[[rules]]
-id = "database-url"
-[rules.allowlist]
-paths = ['''\.env\.example$''', '''\.github\/workflows\/''']

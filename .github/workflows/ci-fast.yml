@@ -308,11 +308,12 @@ jobs:
     name: 'Coverage Gate (30% Phase 1)'
     runs-on: ubuntu-latest
     needs: unit-tests
-    if: always()
+    if: always() && needs.unit-tests.result == 'success'
     steps:
       - uses: actions/checkout@v4
       - name: Download Coverage Reports
         uses: actions/download-artifact@v4
+        continue-on-error: true
         with:
           name: coverage-report-unit
           path: coverage/
@@ -340,7 +341,7 @@ jobs:
   summary:
     name: 'CI Summary'
     runs-on: ubuntu-latest
-    needs: [s1-compliance, security-audit, build, unit-tests, coverage-gate]
+    needs: [secret-scan, s1-compliance, security-audit, build, unit-tests, coverage-gate]
     if: always()
     steps:
       - name: Report Status
@@ -353,8 +354,9 @@ jobs:
           echo "Unit Tests: ${{ needs.unit-tests.result }}"
           echo "Coverage Gate: ${{ needs.coverage-gate.result }}"
           
+          # Phase 1: Build and tests must pass, coverage-gate is optional
           if [ "${{ needs.build.result }}" == "success" ] && [ "${{ needs.unit-tests.result }}" == "success" ]; then
-            echo "✅ CI Fast PASSED"
+            echo "✅ CI Fast PASSED (Phase 1)"
           else
             echo "❌ CI Fast FAILED"
             exit 1

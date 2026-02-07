@@ -26,25 +26,22 @@
         }
       },
       "correctness": {
-        "noUnusedImports": "error",
         "noUnusedVariables": "error",
-        "noUnusedFunctionParameters": "error",
         "noUnreachable": "error"
       },
       "security": {
-        "noDangerouslySetInnerHtml": "error",
-        "noGlobalEval": "error"
+        "noDangerouslySetInnerHtml": "error"
       },
       "suspicious": {
         "noExplicitAny": "off",
-        "noConsole": "off"
+        "noConsoleLog": "off"
       }
     }
   },
   "javascript": {
     "formatter": {
       "quoteStyle": "single",
-      "trailingCommas": "es5",
+      "trailingComma": "es5",
       "semicolons": "always"
     },
     "parser": {

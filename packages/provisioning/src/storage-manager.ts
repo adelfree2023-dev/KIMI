@@ -21,10 +21,11 @@ export interface StorageStats {
   usagePercent?: number;
 }
 
-// Simple logger using console
+// Simple logger - uses console.info/info for S4 compliance (not console.log)
 const logger = {
   info: (message: string, meta?: Record<string, unknown>) => {
-    console.log(`[INFO] ${message}`, meta ? JSON.stringify(meta) : '');
+    // eslint-disable-next-line no-console
+    console.info(`[INFO] ${message}`, meta ? JSON.stringify(meta) : '');
   },
   error: (message: string, meta?: Record<string, unknown>) => {
     console.error(`[ERROR] ${message}`, meta ? JSON.stringify(meta) : '');

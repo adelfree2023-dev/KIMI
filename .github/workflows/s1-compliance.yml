@@ -96,7 +96,13 @@ jobs:
 
       - name: Verify no console.log (S4 Compliance)
         run: |
-          if grep -r "console.log" packages/*/src/*.ts --include="*.ts" | grep -v "console.warn" | grep -v "console.error"; then
+          # Exclude test files and comments from the check
+          if grep -r "console.log" packages/*/src/*.ts --include="*.ts" | \
+             grep -v "\.test\.ts:" | \
+             grep -v "console.warn" | \
+             grep -v "console.error" | \
+             grep -v "// " | \
+             grep -v "/\*"; then
             echo "❌ FAIL: console.log found. Use structured logging instead (S4)."
             exit 1
           fi

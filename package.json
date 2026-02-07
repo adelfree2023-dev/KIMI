@@ -21,7 +21,7 @@
   },
   "packageManager": "npm@10.2.4",
   "overrides": {
-    "glob": "^10.4.5",
+    "glob": "^10.5.0",
     "rimraf": "^5.0.5",
     "lodash": "^4.17.21",
     "fast-xml-parser": "^5.3.4",

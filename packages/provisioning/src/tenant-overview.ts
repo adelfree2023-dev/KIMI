@@ -17,8 +17,8 @@ export interface TenantOverviewRecord {
   name: string;
   plan: TenantPlan;
   status: TenantStatus;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: Date | null;
+  updatedAt: Date | null;
   // Computed fields (populated via joins or separate queries)
   stats?: {
     productCount?: number;

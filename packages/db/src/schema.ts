@@ -1,4 +1,5 @@
 import { pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { type InferSelectModel } from 'drizzle-orm';
 
 /**
  * S2 Compliance: Public Schema Tables (Tenant Management)
@@ -13,6 +14,8 @@ export const tenants = pgTable('tenants', {
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 });
+
+export type Tenant = InferSelectModel<typeof tenants>;
 
 /**
  * Super-#21: Onboarding Blueprint Editor

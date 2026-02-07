@@ -52,8 +52,8 @@ export interface BlueprintRecord {
   blueprint: BlueprintTemplate;
   isDefault: boolean;
   plan: string;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: Date | null;
+  updatedAt: Date | null;
 }
 
 /**

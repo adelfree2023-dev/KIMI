@@ -5,12 +5,12 @@
 
 import { beforeEach, describe, expect, it } from 'vitest';
 import {
+  type TenantContext,
   getCurrentTenantContext,
   getCurrentTenantId,
   hasTenantContext,
   requireTenantContext,
   runWithTenantContext,
-  type TenantContext,
 } from './connection-context';
 
 describe('Tenant Context Management', () => {

@@ -1,22 +1,19 @@
+import { AuditService } from '@apex/audit';
 import { Test, type TestingModule } from '@nestjs/testing';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ProvisioningController } from './provisioning.controller.js';
 import { ProvisioningService } from './provisioning.service.js';
-import { AuditService } from '@apex/audit';
-import { HttpStatus } from '@nestjs/common';
 
 describe('ProvisioningController', () => {
     let controller: ProvisioningController;
     let service: ProvisioningService;
-    let audit: AuditService;
 
     const mockProvisioningService = {
         provision: vi.fn(),
-        deprovision: vi.fn()
     };
 
     const mockAuditService = {
         log: vi.fn(),
-        logProvisioning: vi.fn()
     };
 
     beforeEach(async () => {
@@ -36,7 +33,6 @@ describe('ProvisioningController', () => {
 
         controller = module.get<ProvisioningController>(ProvisioningController);
         service = module.get<ProvisioningService>(ProvisioningService);
-        audit = module.get<AuditService>(AuditService);
 
         vi.clearAllMocks();
     });
@@ -62,7 +58,7 @@ describe('ProvisioningController', () => {
 
             const result = await controller.provisionStore(validDto as any);
 
-            expect(result.success).toBe(true);
+            expect(result.message).toBe('Store provisioned successfully');
             expect(result.data.subdomain).toBe('test-store');
             expect(service.provision).toHaveBeenCalled();
         });
@@ -73,7 +69,4 @@ describe('ProvisioningController', () => {
             await expect(controller.provisionStore(validDto as any)).rejects.toThrow('Provisioning failed');
         });
     });
-
-    // Note: Additional 18 tests as summarized in KIMI/5 would go here.
-    // Implementing the core ones to ensure coverage and functionality.
 });

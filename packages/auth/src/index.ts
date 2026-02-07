@@ -3,7 +3,7 @@
  * S2: Tenant Isolation Enforcement via TenantScopedGuard
  */
 
-import { getCurrentTenantContext, type TenantContext } from '@apex/middleware';
+import { type TenantContext, getCurrentTenantContext } from '@apex/middleware';
 import {
   type CanActivate,
   type ExecutionContext,
@@ -27,7 +27,7 @@ export interface AuthenticatedRequest extends Request {
 
 @Injectable()
 export class TenantScopedGuard implements CanActivate {
-  constructor(private jwtService: JwtService) {}
+  constructor(private jwtService: JwtService) { }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<AuthenticatedRequest>();

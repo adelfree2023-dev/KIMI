@@ -11,6 +11,23 @@ export const tenants = pgTable('tenants', {
   plan: text('plan').notNull().default('free'),
   status: text('status').notNull().default('active'),
   createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+/**
+ * Super-#21: Onboarding Blueprint Editor
+ * Stores JSON templates for tenant provisioning
+ */
+export const onboardingBlueprints = pgTable('onboarding_blueprints', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  name: text('name').notNull(),
+  description: text('description'),
+  // Blueprint JSON schema - defines starter data for new tenants
+  blueprint: text('blueprint').notNull(), // JSON string
+  isDefault: text('is_default').notNull().default('false'),
+  plan: text('plan').notNull().default('free'), // Which plan this blueprint applies to
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
 });
 
 export const auditLogs = pgTable('audit_logs', {

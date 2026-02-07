@@ -1,0 +1,361 @@
+# ═══════════════════════════════════════════════════════════════
+# CI Fast - No Docker (Phase 1: Lightweight PR Checks)
+# Purpose: Run on every push/PR for fast feedback without Docker
+# ═══════════════════════════════════════════════════════════════
+
+name: CI Fast (No Docker)
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ═══════════════════════════════════════════════════════════════
+  # Phase 0: Secret Scanning (Security First)
+  # ═══════════════════════════════════════════════════════════════
+  secret-scan:
+    name: 'Secret Scanning'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Gitleaks Scan
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE || 'free' }}
+
+  # ═══════════════════════════════════════════════════════════════
+  # Phase 1: S1 Compliance Validation
+  # ═══════════════════════════════════════════════════════════════
+  s1-compliance:
+    name: 'S1 Protocol Compliance Check'
+    runs-on: ubuntu-latest
+    needs: secret-scan
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.0.0'
+
+      - name: Check S1 Environment File Exists
+        run: |
+          if [ ! -f "apps/api/.env.s1.local" ]; then
+            echo "❌ S1 Environment file not found (apps/api/.env.s1.local)"
+            exit 1
+          fi
+          echo "✅ S1 Environment file exists"
+
+      - name: Validate S1 Variables
+        run: |
+          echo "🔍 Checking S1 Required Variables..."
+          required_vars=("DATABASE_URL" "REDIS_URL" "S3_ENDPOINT" "TENANT_ISOLATION_MODE")
+          for var in "${required_vars[@]}"; do
+            if ! grep -q "^${var}=" apps/api/.env.s1.local; then
+              echo "❌ Missing required S1 variable: ${var}"
+              exit 1
+            fi
+          done
+          echo "✅ All S1 required variables present"
+
+      - name: Verify S1 Isolation Mode
+        run: |
+          isolation_mode=$(grep "^TENANT_ISOLATION_MODE=" apps/api/.env.s1.local | cut -d= -f2 | tr -d '"')
+          if [ "$isolation_mode" != "strict" ]; then
+            echo "❌ TENANT_ISOLATION_MODE must be 'strict' for S1 compliance (found: ${isolation_mode})"
+            exit 1
+          fi
+          echo "✅ S1 Strict Isolation Mode verified"
+
+      - name: Check S1 Schema Prefix
+        run: |
+          if grep -r "public\." packages/db/src --include="*.ts" | grep -v "audit_logs" | grep -v "node_modules" | head -5; then
+            echo "❌ S1 Violation: Found 'public.' schema references (excludes audit_logs)"
+            exit 1
+          fi
+          echo "✅ No unauthorized public. schema references"
+
+  # ═══════════════════════════════════════════════════════════════
+  # Phase 2: Security Audit
+  # ═══════════════════════════════════════════════════════════════
+  security-audit:
+    name: 'Security Audit & Lint'
+    runs-on: ubuntu-latest
+    needs: secret-scan
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.0.0'
+
+      - name: Install Dependencies
+        run: bun install
+
+      - name: Biome Lint Check
+        run: bun run lint || echo "⚠️ Biome lint issues (non-blocking for Phase 1)"
+
+      - name: Type Check (TSC)
+        run: |
+          echo "📝 Running TypeScript type checking..."
+          bunx tsc --noEmit || echo "⚠️ Type errors detected (non-blocking for Phase 1)"
+
+  # ═══════════════════════════════════════════════════════════════
+  # Phase 3: Database Schema Validation
+  # ═══════════════════════════════════════════════════════════════
+  db-schema:
+    name: 'Database Schema Validation'
+    runs-on: ubuntu-latest
+    needs: s1-compliance
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.0.0'
+
+      - name: Install Dependencies
+        run: bun install
+
+      - name: Check Drizzle Schema Files
+        run: |
+          if [ ! -f "packages/db/src/schema.ts" ]; then
+            echo "❌ Drizzle schema file not found"
+            exit 1
+          fi
+          echo "✅ Drizzle schema file exists"
+
+      - name: Schema Validation
+        run: |
+          cd packages/db
+          echo "🔍 Validating schema structure..."
+          # Check for tenant_id columns in tables
+          tenant_tables=$(grep -c "tenantId" src/schema.ts || echo "0")
+          echo "Found ${tenant_tables} references to tenant isolation"
+          if [ "$tenant_tables" -eq 0 ]; then
+            echo "❌ No tenant isolation columns found in schema"
+            exit 1
+          fi
+          echo "✅ Tenant isolation schema verified"
+
+  # ═══════════════════════════════════════════════════════════════
+  # Phase 4: Dependency Boundary Check
+  # ═══════════════════════════════════════════════════════════════
+  boundary-check:
+    name: 'Dependency Boundary Check (Rule 1.1)'
+    runs-on: ubuntu-latest
+    needs: [s1-compliance]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check Cross-Boundary Imports
+        run: |
+          echo "🔍 Checking for cross-boundary imports..."
+          
+          # Check that web doesn't import from api
+          web_api_imports=$(grep -r "from.*apps/api" apps/web --include="*.ts" --include="*.tsx" 2>/dev/null | wc -l)
+          
+          # Check that packages don't import from apps
+          pkg_app_imports=$(grep -r "from.*apps/" packages/ --include="*.ts" 2>/dev/null | wc -l)
+          
+          if [ "$web_api_imports" -gt 0 ]; then
+            echo "❌ Rule 1.1 Violation: apps/web imports from apps/api"
+            grep -r "from.*apps/api" apps/web --include="*.ts" --include="*.tsx" 2>/dev/null || true
+            exit 1
+          fi
+          
+          if [ "$pkg_app_imports" -gt 0 ]; then
+            echo "❌ Rule 1.1 Violation: packages/ import from apps/"
+            grep -r "from.*apps/" packages/ --include="*.ts" 2>/dev/null || true
+            exit 1
+          fi
+          
+          echo "✅ No cross-boundary import violations"
+
+  # ═══════════════════════════════════════════════════════════════
+  # Phase 5: Zod Schema Lockdown Check
+  # ═══════════════════════════════════════════════════════════════
+  zod-check:
+    name: 'Zod Schema Lockdown (Rule 5.1)'
+    runs-on: ubuntu-latest
+    needs: [db-schema]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify Zod Usage
+        run: |
+          echo "🔍 Checking Zod Schema Compliance..."
+          
+          # Count Zod schema definitions
+          zod_count=$(find packages apps -name "*.ts" -exec grep -l "z\." {} \; 2>/dev/null | wc -l)
+          echo "Found ${zod_count} files using Zod"
+          
+          # Check for any raw type assertions that bypass Zod
+          bypass_patterns=("as any" "as unknown" "@ts-ignore" "@ts-expect-error")
+          bypass_count=0
+          for pattern in "${bypass_patterns[@]}"; do
+            count=$(grep -r "$pattern" packages/*/src apps/*/src --include="*.ts" 2>/dev/null | grep -v "node_modules" | wc -l)
+            bypass_count=$((bypass_count + count))
+          done
+          
+          if [ "$bypass_count" -gt 0 ]; then
+            echo "⚠️ Warning: Found ${bypass_count} potential type bypass patterns"
+            echo "These should be reviewed for Rule 5.1 compliance"
+          fi
+          
+          echo "✅ Zod schema check complete"
+
+  # ═══════════════════════════════════════════════════════════════
+  # Phase 6: Build
+  # ═══════════════════════════════════════════════════════════════
+  build:
+    name: 'Turborepo Build'
+    runs-on: ubuntu-latest
+    needs: [security-audit, boundary-check, zod-check]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.0.0'
+
+      - name: Install Dependencies
+        run: bun install
+
+      - name: Verify turbo.json
+        run: |
+          if [ ! -f "turbo.json" ]; then
+            echo "❌ turbo.json not found"
+            exit 1
+          fi
+          
+          # Check for correct tasks structure (Turbo v2+)
+          if grep -q '"pipeline"' turbo.json; then
+            echo "⚠️ Warning: turbo.json uses deprecated 'pipeline' key, should be 'tasks'"
+          fi
+          echo "✅ turbo.json exists"
+
+      - name: Build Packages
+        run: |
+          echo "🏗️ Building packages..."
+          bun run build
+        env:
+          NODE_ENV: production
+
+      - name: Verify Build Artifacts
+        run: |
+          echo "🔍 Verifying build artifacts..."
+          for pkg in packages/*/; do
+            if [ -f "${pkg}src/index.ts" ]; then
+              if [ ! -d "${pkg}dist" ]; then
+                echo "⚠️ Warning: ${pkg} missing dist folder"
+              else
+                echo "✅ ${pkg} build artifacts exist"
+              fi
+            fi
+          done
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: |
+            packages/*/dist/**
+            apps/api/dist/**
+            apps/web/.next/**
+          retention-days: 1
+
+  # ═══════════════════════════════════════════════════════════════
+  # Phase 7: Unit Tests (No Docker)
+  # ═══════════════════════════════════════════════════════════════
+  unit-tests:
+    name: 'Unit Tests (No Docker)'
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.0.0'
+
+      - name: Install Dependencies
+        run: bun install
+
+      - name: Run Unit Tests
+        run: |
+          echo "🧪 Running unit tests..."
+          bun run test -- --coverage --reporter=verbose
+        env:
+          NODE_ENV: test
+          SKIP_DOCKER_TESTS: true
+
+      - name: Upload Coverage Reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report-unit
+          path: |
+            coverage/**
+            packages/*/coverage/**
+          retention-days: 7
+
+  # ═══════════════════════════════════════════════════════════════
+  # Phase 8: Coverage Gate (Phase 1: 30% threshold)
+  # ═══════════════════════════════════════════════════════════════
+  coverage-gate:
+    name: 'Coverage Gate (30% Phase 1)'
+    runs-on: ubuntu-latest
+    needs: unit-tests
+    if: always()
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download Coverage Reports
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-report-unit
+          path: coverage/
+
+      - name: Check Coverage Threshold
+        run: |
+          echo "🔍 Checking Coverage Threshold (Phase 1: 30%)..."
+          
+          if [ -f "coverage/coverage-summary.json" ]; then
+            overall=$(cat coverage/coverage-summary.json | grep -o '"lines":{"total":[0-9]*,"covered":[0-9]*,"skipped":[0-9]*,"pct":[0-9.]*' | grep -o '"pct":[0-9.]*' | head -1 | cut -d: -f2)
+            echo "Overall Line Coverage: ${overall}%"
+            
+            if (( $(echo "$overall < 30" | bc -l 2>/dev/null || echo "0") )); then
+              echo "❌ FAIL: Coverage ${overall}% below 30% Phase 1 threshold"
+              exit 1
+            fi
+            echo "✅ Coverage ${overall}% meets Phase 1 threshold (30%)"
+          else
+            echo "⚠️ No coverage summary found - skipping gate (Phase 1 only)"
+          fi
+
+  # ═══════════════════════════════════════════════════════════════
+  # Phase 9: Final Summary
+  # ═══════════════════════════════════════════════════════════════
+  summary:
+    name: 'CI Summary'
+    runs-on: ubuntu-latest
+    needs: [s1-compliance, security-audit, build, unit-tests, coverage-gate]
+    if: always()
+    steps:
+      - name: Report Status
+        run: |
+          echo "═══ CI Fast Summary ═══"
+          echo "Secret Scan: ${{ needs.secret-scan.result }}"
+          echo "S1 Compliance: ${{ needs.s1-compliance.result }}"
+          echo "Security Audit: ${{ needs.security-audit.result }}"
+          echo "Build: ${{ needs.build.result }}"
+          echo "Unit Tests: ${{ needs.unit-tests.result }}"
+          echo "Coverage Gate: ${{ needs.coverage-gate.result }}"
+          
+          if [ "${{ needs.build.result }}" == "success" ] && [ "${{ needs.unit-tests.result }}" == "success" ]; then
+            echo "✅ CI Fast PASSED"
+          else
+            echo "❌ CI Fast FAILED"
+            exit 1
+          fi

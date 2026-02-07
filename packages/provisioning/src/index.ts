@@ -3,11 +3,13 @@
  * The 60-Second Store Provisoning Engine
  */
 
+export * from './blueprint.js';
 export * from './quota-service.js';
 export * from './runner.js';
 export * from './schema-manager.js';
 export * from './seeder.js';
 export * from './storage-manager.js';
+export * from './tenant-overview.js';
 
 export interface ProvisioningOptions {
   subdomain: string;

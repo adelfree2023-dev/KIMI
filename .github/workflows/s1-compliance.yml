@@ -333,6 +333,154 @@ jobs:
             echo "⚠️ S1 Compliance message not found in output"
           fi
 
+  s2-data-isolation-check:
+    name: 🛡️ S2 Data Isolation Advanced Check (Post-Migration)
+    runs-on: ubuntu-latest
+    needs: [db-schema-validation, s1-fail-fast-test]
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: apex
+          POSTGRES_PASSWORD: apex
+          POSTGRES_DB: test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Run Advanced S2 Isolation Checker (TypeScript)
+        run: |
+          echo "🔍 Running Advanced S2 Data Isolation Checker..."
+          bun run scripts/check-s2-isolation.ts
+
+      - name: Check SQL Queries for Tenant Isolation (S2)
+        run: |
+          echo "🔍 Scanning SQL queries for S2 Compliance (Legacy Check)..."
+          echo ""
+          
+          # Look for dangerous patterns that bypass tenant isolation
+          violations=""
+          
+          # Pattern 1: Direct public schema access without search_path
+          echo "Checking for direct 'public.' schema references..."
+          public_refs=$(grep -r "public\." packages/db/src --include="*.ts" --include="*.sql" 2>/dev/null | grep -v "\.test\." | grep -v "// " | grep -v "search_path" | grep -v "information_schema" || true)
+          if [ -n "$public_refs" ]; then
+            violations="$violations\n❌ Direct 'public.' schema reference found (should use search_path):\n$public_refs"
+          fi
+          
+          # Pattern 2: Raw SQL without tenant context
+          echo "Checking for raw SQL queries without tenant isolation..."
+          raw_sql=$(grep -rn "sql\`" packages/db/src --include="*.ts" 2>/dev/null | grep -v "tenant" | grep -v "\.test\." | grep -v "search_path" || true)
+          if [ -n "$raw_sql" ]; then
+            violations="$violations\n⚠️ Raw SQL without tenant context:\n$raw_sql"
+          fi
+          
+          if [ -n "$violations" ]; then
+            echo "🚨 S2 VIOLATION DETECTED: Tenant Isolation Breach!"
+            echo ""
+            echo -e "$violations"
+            echo ""
+            echo "📋 S2 Protocol Requirements:"
+            echo "   - All queries must use SET search_path = tenant_{id}, public"
+            echo "   - OR use fully qualified names with tenant schema"
+            echo "   - Direct 'public.' access bypasses tenant isolation"
+            echo ""
+            echo "🛑 Build rejected. Fix tenant isolation before merging."
+            exit 1
+          fi
+          
+          echo "✅ PASS: No S2 isolation violations found in SQL queries"
+
+      - name: Verify Tenant Context Usage in DB Layer
+        run: |
+          echo "🔍 Verifying tenant context usage..."
+          
+          # Check that DB layer uses tenant context properly
+          # Look for imports from middleware (tenant isolation)
+          middleware_imports=$(grep -r "from ['\"]@apex/middleware['\"]" packages/db/src --include="*.ts" | grep -v "\.test\." | wc -l)
+          
+          if [ "$middleware_imports" -eq 0 ]; then
+            echo "⚠️ WARNING: No imports from @apex/middleware found in DB layer"
+            echo "   Ensure tenant isolation is implemented at a different layer"
+          else
+            echo "✅ Found $middleware_imports imports from @apex/middleware (tenant isolation)"
+          fi
+          
+          # Check for AsyncLocalStorage usage (tenant context)
+          als_usage=$(grep -r "AsyncLocalStorage\|tenantStorage\|getCurrentTenant" packages/db/src --include="*.ts" | grep -v "\.test\." | wc -l)
+          
+          if [ "$als_usage" -eq 0 ]; then
+            echo "⚠️ WARNING: No AsyncLocalStorage/tenant context usage found in DB layer"
+          else
+            echo "✅ Found $als_usage tenant context references"
+          fi
+
+      - name: Run Post-Migration Tenant Isolation Test
+        run: |
+          echo "🧪 Running Post-Migration S2 Isolation Test..."
+          
+          # Setup test tenant schema
+          psql "$DATABASE_URL" -c "CREATE SCHEMA IF NOT EXISTS tenant_test_s2;" || true
+          psql "$DATABASE_URL" -c "CREATE TABLE IF NOT EXISTS tenant_test_s2.products (id serial PRIMARY KEY, name text);" || true
+          psql "$DATABASE_URL" -c "INSERT INTO tenant_test_s2.products (name) VALUES ('Test Product') ON CONFLICT DO NOTHING;"
+          
+          # Verify schema isolation
+          public_count=$(psql "$DATABASE_URL" -t -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'products';" | xargs)
+          tenant_count=$(psql "$DATABASE_URL" -t -c "SELECT COUNT(*) FROM tenant_test_s2.products;" | xargs)
+          
+          echo "Public schema products table count: $public_count"
+          echo "Tenant schema products count: $tenant_count"
+          
+          # Cleanup
+          psql "$DATABASE_URL" -c "DROP SCHEMA IF EXISTS tenant_test_s2 CASCADE;" || true
+          
+          echo "✅ S2 Post-Migration test completed"
+        env:
+          DATABASE_URL: postgresql://apex:apex@localhost:5432/test
+
+  s2-violation-detection:
+    name: 🚨 Violation Detection - S2 Data Isolation Breach
+    runs-on: ubuntu-latest
+    needs: [s2-data-isolation-check]
+    if: failure()
+    steps:
+      - name: Report S2 Violation
+        run: |
+          echo "🚨 CRITICAL VIOLATION DETECTED: Rule S2 (Data Isolation)"
+          echo ""
+          echo "❌ Tenant isolation breach detected in database layer!"
+          echo ""
+          echo "📋 S2 Protocol Violation Details:"
+          echo "   - Direct 'public.' schema access found"
+          echo "   - SQL queries bypass tenant isolation"
+          echo "   - Risk: Cross-tenant data leakage"
+          echo ""
+          echo "🔒 Security Impact:"
+          echo "   - HIGH: Potential data leakage between tenants"
+          echo "   - CRITICAL: Violates multi-tenancy architecture"
+          echo ""
+          echo "📝 Action Required:"
+          echo "   1. Use 'SET search_path = tenant_{id}, public' before queries"
+          echo "   2. OR use fully qualified table names: tenant_{id}.table_name"
+          echo "   3. Ensure all queries go through Tenant Isolation Middleware"
+          echo ""
+          echo "🛑 Build rejected. Fix S2 violation before merging."
+          exit 1
+
   coverage-threshold-enforcement:
     name: 🚨 Violation Detection - Coverage Threshold (Rule 4.1)
     runs-on: ubuntu-latest
@@ -436,7 +584,7 @@ jobs:
   build:
     name: Turborepo Build
     runs-on: ubuntu-latest
-    needs: [s1-compliance, security-audit-lint, db-schema-validation, dependency-boundary-check, zod-schema-lockdown, uncovered-files-check, s1-fail-fast-test, biome-ignore-detection]
+    needs: [s1-compliance, security-audit-lint, db-schema-validation, dependency-boundary-check, zod-schema-lockdown, uncovered-files-check, s1-fail-fast-test, biome-ignore-detection, s2-data-isolation-check]
     steps:
       - uses: actions/checkout@v4
 

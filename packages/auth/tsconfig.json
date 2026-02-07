@@ -3,10 +3,32 @@
   "compilerOptions": {
     "outDir": "./dist",
     "rootDir": "./src",
-    "types": ["node"],
+    "types": [
+      "node"
+    ],
     "declaration": true,
-    "emitDeclarationOnly": true
+    "emitDeclarationOnly": true,
+    "paths": {
+      "@apex/config": [
+        "../config/src/index.ts"
+      ],
+      "@apex/db": [
+        "../db/src/index.ts"
+      ],
+      "@apex/middleware": [
+        "../middleware/src/index.ts"
+      ],
+      "@apex/audit": [
+        "../audit/src/index.ts"
+      ]
+    }
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "**/*.test.ts"]
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/*.test.ts"
+  ]
 }

@@ -41,6 +41,7 @@ export const EnvSchema = z.object({
   MINIO_ACCESS_KEY: z.string().min(3),
   MINIO_SECRET_KEY: z.string().min(8),
   MINIO_BUCKET_NAME: z.string().default('apex-assets'),
+  MINIO_REGION: z.string().default('us-east-1'),
 
   // Application Settings
   NODE_ENV: z

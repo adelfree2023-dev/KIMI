@@ -40,7 +40,7 @@ export class AuditService {
 
   /**
    * Log a security or system event
-   * S4: This logs to an immutable table in the public schema
+   * S4: This logs to an immutable table in the registry schema
    * @param entry - Audit log data
    */
   async log(entry: AuditLogEntry): Promise<void> {
@@ -58,7 +58,7 @@ export class AuditService {
     const client = await publicPool.connect();
 
     try {
-      // 🔒 S2 Enforcement: Reset search_path to public before audit query
+      // 🔒 S2 Enforcement: Reset search_path to registry before audit query
       await client.query('SET search_path TO public');
 
       await client.query(

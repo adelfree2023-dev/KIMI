@@ -13,13 +13,13 @@ export * from './schema.js';
 
 const env = validateEnv();
 
-// Connection pool for public schema (tenant management)
+// Connection pool for registry schema (tenant management)
 export const publicPool = new Pool({
   connectionString: env.DATABASE_URL,
   ssl: env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
 });
 
-// Drizzle instance for public schema
+// Drizzle instance for registry schema
 export const publicDb = drizzle(publicPool);
 
 /**

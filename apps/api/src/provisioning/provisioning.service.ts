@@ -3,7 +3,7 @@
  * Orchestrates the 60-second store creation process
  */
 
-import type { AuditService } from '@apex/audit';
+import { AuditService } from '@apex/audit';
 import { publicPool } from '@apex/db';
 import {
   createStorageBucket,
@@ -115,7 +115,7 @@ export class ProvisioningService {
   }
 
   /**
-   * Register tenant in the public.tenants table
+   * Register tenant in the tenants table (registry)
    */
   private async registerTenant(options: ProvisioningOptions, _adminId: string) {
     const client = await publicPool.connect();

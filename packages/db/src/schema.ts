@@ -2,8 +2,8 @@ import { pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 import { type InferSelectModel } from 'drizzle-orm';
 
 /**
- * S2 Compliance: Public Schema Tables (Tenant Management)
- * These tables exist ONLY in the public schema for tenant registry
+ * S2 Compliance: Registry Schema Tables (Tenant Management)
+ * These tables exist ONLY in the default schema for tenant registry
  */
 export const tenants = pgTable('tenants', {
   id: uuid('id').defaultRandom().primaryKey(),
@@ -47,7 +47,7 @@ export const auditLogs = pgTable('audit_logs', {
 });
 
 /**
- * S2 Compliance: Tenant-Specific Schema Tables
+ * S2 Compliance: Tenant-Specific Schema Tables (Isolated)
  * These table definitions are used to create tables inside tenant_{id} schemas
  * NEVER access these directly - always use SET search_path = tenant_{id}, public
  */

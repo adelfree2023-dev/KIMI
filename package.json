@@ -29,7 +29,7 @@
     "fast-xml-parser": "^5.3.4",
     "tmp": "^0.2.4",
     "esbuild": "^0.25.0",
-    "webpack": "^5.94.0",
+    "webpack": "^5.105.0",
     "micromatch": "^4.0.8"
   }
 }

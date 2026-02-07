@@ -108,7 +108,7 @@ export async function checkProvisioningQuota(
   limit?: number;
   currentUsage?: number;
 }> {
-  const limits = getPlanLimits(plan);
+  const _limits = getPlanLimits(plan);
 
   // Mock implementation matching test expectations
   // In a real scenario, this would check DB for org usage

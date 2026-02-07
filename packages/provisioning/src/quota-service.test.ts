@@ -46,7 +46,9 @@ describe('QuotaService', () => {
   describe('getPlanLimits', () => {
     it('should return limits for valid plan', () => {
       const limits = getPlanLimits('pro');
-      expect(limits.maxStorageMb).toBeGreaterThan(PLAN_LIMITS.free.maxStorageMb);
+      expect(limits.maxStorageMb).toBeGreaterThan(
+        PLAN_LIMITS.free.maxStorageMb
+      );
     });
 
     it('should throw for invalid plan', () => {

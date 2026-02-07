@@ -47,7 +47,9 @@ function getMinioClient(): Minio.Client {
 }
 
 function sanitizeBucketName(subdomain: string): string {
-  return `tenant-${subdomain.toLowerCase().replace(/[^a-z0-9-]/g, '-')}-assets`;
+  return `tenant-${subdomain
+    .toLowerCase()
+    .replace(/[^a-z0-9-]/g, '-')}-assets`;
 }
 
 // Plan quotas in bytes
@@ -87,8 +89,16 @@ export async function createStorageBucket(
     });
 
     // Create folder structure
-    await client.putObject(bucketName, 'public/products/.keep', Buffer.from(''));
-    await client.putObject(bucketName, 'private/exports/.keep', Buffer.from(''));
+    await client.putObject(
+      bucketName,
+      'public/products/.keep',
+      Buffer.from('')
+    );
+    await client.putObject(
+      bucketName,
+      'private/exports/.keep',
+      Buffer.from('')
+    );
 
     const duration = Date.now() - start;
 
@@ -101,7 +111,9 @@ export async function createStorageBucket(
     return {
       success: true,
       bucketName,
-      endpoint: `${env.MINIO_USE_SSL === 'true' ? 'https' : 'http'}://${env.MINIO_ENDPOINT}:${env.MINIO_PORT}/${bucketName}`,
+      endpoint: `${
+        env.MINIO_USE_SSL === 'true' ? 'https' : 'http'
+      }://${env.MINIO_ENDPOINT}:${env.MINIO_PORT}/${bucketName}`,
       quotaBytes: PLAN_QUOTAS[plan] || PLAN_QUOTAS.free,
       durationMs: duration,
       createdAt: new Date(),
@@ -109,7 +121,9 @@ export async function createStorageBucket(
   } catch (error) {
     logger.error('Failed to create storage bucket', { subdomain, error });
     throw new Error(
-      `Failed to create storage bucket: ${error instanceof Error ? error.message : 'Unknown error'}`
+      `Failed to create storage bucket: ${
+        error instanceof Error ? error.message : 'Unknown error'
+      }`
     );
   }
 }
@@ -155,7 +169,11 @@ export async function getSignedUploadUrl(
     const url = await client.presignedPutObject(bucketName, objectName, expiry);
     return url;
   } catch (error) {
-    logger.error('Failed to generate upload URL', { bucketName, objectName, error });
+    logger.error('Failed to generate upload URL', {
+      bucketName,
+      objectName,
+      error,
+    });
     throw new Error('Failed to generate upload URL');
   }
 }
@@ -172,7 +190,11 @@ export async function getSignedDownloadUrl(
     const url = await client.presignedGetObject(bucketName, objectName, expiry);
     return url;
   } catch (error) {
-    logger.error('Failed to generate download URL', { bucketName, objectName, error });
+    logger.error('Failed to generate download URL', {
+      bucketName,
+      objectName,
+      error,
+    });
     throw new Error('Failed to generate download URL');
   }
 }
@@ -193,7 +215,9 @@ export async function deleteObject(
   }
 }
 
-export async function getStorageStats(subdomain: string): Promise<StorageStats> {
+export async function getStorageStats(
+  subdomain: string
+): Promise<StorageStats> {
   const bucketName = sanitizeBucketName(subdomain);
   const client = getMinioClient();
 
@@ -207,7 +231,8 @@ export async function getStorageStats(subdomain: string): Promise<StorageStats> 
       const tags = await client.getBucketTagging(bucketName);
       // Tags is Tag[] array, find the plan tag
       const planTag = tags.find((t) => t.Key === 'plan');
-      const plan = (planTag?.Value as keyof typeof PLAN_QUOTAS) || 'free';
+      const plan =
+        (planTag?.Value as keyof typeof PLAN_QUOTAS) || 'free';
       quotaBytes = PLAN_QUOTAS[plan] || PLAN_QUOTAS.free;
     } catch {
       // Ignore tagging errors, use default quota
@@ -223,13 +248,19 @@ export async function getStorageStats(subdomain: string): Promise<StorageStats> 
       usagePercent,
       lastModified:
         objects.length > 0
-          ? new Date(Math.max(...objects.map((o) => new Date(o.lastModified || 0).getTime())))
+          ? new Date(
+              Math.max(
+                ...objects.map((o) => new Date(o.lastModified || 0).getTime())
+              )
+            )
           : null,
     };
   } catch (error) {
     logger.error('Failed to get storage stats', { bucketName, error });
     throw new Error(
-      `Failed to get storage stats: ${error instanceof Error ? error.message : 'Unknown error'}`
+      `Failed to get storage stats: ${
+        error instanceof Error ? error.message : 'Unknown error'
+      }`
     );
   }
 }

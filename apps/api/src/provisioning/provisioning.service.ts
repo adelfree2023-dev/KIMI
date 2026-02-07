@@ -108,7 +108,9 @@ export class ProvisioningService {
       }
 
       throw new InternalServerErrorException(
-        `Provisioning Failed: ${error instanceof Error ? error.message : 'Unknown'}`
+        `Provisioning Failed: ${
+          error instanceof Error ? error.message : 'Unknown'
+        }`
       );
     }
   }

@@ -1,8 +1,8 @@
+import { ConfigService } from '@apex/config';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { ConfigService } from '@apex/config';
-import type { JwtPayload, AuthUser } from '../auth.service.js';
+import type { AuthUser, JwtPayload } from '../auth.service.js';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {

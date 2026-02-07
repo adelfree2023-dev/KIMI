@@ -20,7 +20,8 @@ export interface SeedResult {
 
 /**
  * Seed initial data for a new tenant
- * @param options - Seeding configuration
+ * @param options - Seeding
+ * configuration
  * @returns Seeding metadata
  */
 export async function seedTenantData(
@@ -43,7 +44,8 @@ export async function seedTenantData(
     const storeId = storeResult[0].id;
 
     // 2. Create Initial Admin User
-    // Note: Password hash should be handled by auth service, using a placeholder/temp for now
+    // Note: Password hash should be handled by auth service, using a
+    // placeholder/temp for now
     const userResult = await db
       .insert(users)
       .values({
@@ -71,7 +73,9 @@ export async function seedTenantData(
   } catch (error) {
     console.error(`Seeding failed for ${options.subdomain}:`, error);
     throw new Error(
-      `Seeding Failure: ${error instanceof Error ? error.message : 'Unknown error'}`
+      `Seeding Failure: ${
+        error instanceof Error ? error.message : 'Unknown error'
+      }`
     );
   }
 }

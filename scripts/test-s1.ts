@@ -105,7 +105,9 @@ for (const test of tests) {
     ) {
       console.log('   Result: ✅ PASS (Crashed with expected error)');
       console.log(
-        `   Error: ${fullOutput.split('S1 Violation')[1]?.substring(0, 100) || 'N/A'}`
+        `   Error: ${
+          fullOutput.split('S1 Violation')[1]?.substring(0, 100) || 'N/A'
+        }`
       );
       passed++;
     } else if (!test.shouldCrash) {
@@ -118,7 +120,9 @@ for (const test of tests) {
     }
   } else {
     console.log(
-      `   Result: ❌ FAIL (Expected ${test.shouldCrash ? 'crash' : 'success'}, got ${crashed ? 'crash' : 'success'})`
+      `   Result: ❌ FAIL (Expected ${
+        test.shouldCrash ? 'crash' : 'success'
+      }, got ${crashed ? 'crash' : 'success'})`
     );
     console.log(`   Output: ${fullOutput.substring(0, 200)}`);
     failed++;

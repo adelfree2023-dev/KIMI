@@ -235,10 +235,21 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Start infrastructure (Wait for Health)
-        run: docker compose up -d --wait
+        run: |
+          docker compose up -d --wait || {
+            echo "❌ Docker compose failed to start"
+            docker compose logs
+            exit 1
+          }
 
       - name: Verify Service Status
-        run: docker compose ps
+        run: |
+          docker compose ps
+          docker compose ps --all
+
+          # Explicitly check each service
+          docker compose exec -T postgres pg_isready -h localhost || exit 1
+          docker compose exec -T redis redis-cli ping || exit 1
 
       - name: Cleanup
         if: always()

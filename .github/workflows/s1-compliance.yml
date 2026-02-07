@@ -25,7 +25,7 @@ jobs:
   # PHASE 1: Security Foundation (Fastest)
   # ═══════════════════════════════════════════════════════════════
   secret-scan:
-    name: 'Secret Scanning (Gitleaks)'
+    name: "Secret Scanning (Gitleaks)"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -35,7 +35,7 @@ jobs:
         run: |
           curl -sSL https://github.com/gitleaks/gitleaks/releases/download/v8.18.2/gitleaks_8.18.2_linux_x64.tar.gz | tar -xz -C /usr/local/bin gitleaks
           gitleaks version
-      
+
       - name: Run Gitleaks with Config
         run: |
           echo "Running Gitleaks with custom config..."
@@ -45,7 +45,7 @@ jobs:
   # PHASE 2: Static Analysis (No Build Required)
   # ═══════════════════════════════════════════════════════════════
   s1-compliance:
-    name: 'S1 Environment Verification'
+    name: "S1 Environment Verification"
     runs-on: ubuntu-latest
     needs: [secret-scan]
     steps:
@@ -81,7 +81,7 @@ jobs:
           fi
 
   security-audit-lint:
-    name: 'Security Audit & Linting (Strict)'
+    name: "Security Audit & Linting (Strict)"
     runs-on: ubuntu-latest
     needs: [secret-scan]
     steps:
@@ -119,7 +119,7 @@ jobs:
           fi
 
   db-schema-validation:
-    name: 'Drizzle Schema Integrity Check'
+    name: "Drizzle Schema Integrity Check"
     runs-on: ubuntu-latest
     needs: [secret-scan]
     steps:
@@ -139,7 +139,7 @@ jobs:
   # PHASE 3: Extended Static Analysis
   # ═══════════════════════════════════════════════════════════════
   dependency-boundary-check:
-    name: 'Dependency Boundary Check (Rule 1.1)'
+    name: "Dependency Boundary Check (Rule 1.1)"
     runs-on: ubuntu-latest
     needs: [security-audit-lint]
     steps:
@@ -183,7 +183,7 @@ jobs:
           echo "✅ PASS: Apps only import from packages/* (Clean Architecture)"
 
   biome-ignore-detection:
-    name: 'Biome Ignore Detection (Rule: No Bypass)'
+    name: "Biome Ignore Detection (Rule: No Bypass)"
     runs-on: ubuntu-latest
     needs: [security-audit-lint]
     steps:
@@ -210,7 +210,7 @@ jobs:
           fi
 
   zod-schema-lockdown:
-    name: 'Zod Schema Lockdown (Rule 5.1)'
+    name: "Zod Schema Lockdown (Rule 5.1)"
     runs-on: ubuntu-latest
     needs: [security-audit-lint]
     steps:
@@ -245,9 +245,9 @@ jobs:
   # PHASE 4: Build Gateway
   # ═══════════════════════════════════════════════════════════════
   build:
-    name: 'Turborepo Build'
+    name: "Turborepo Build"
     runs-on: ubuntu-latest
-    needs: 
+    needs:
       - s1-compliance
       - security-audit-lint
       - dependency-boundary-check
@@ -284,7 +284,7 @@ jobs:
   # PHASE 5: Integration Tests (Parallel)
   # ═══════════════════════════════════════════════════════════════
   test-api-integration:
-    name: 'API Integration Tests'
+    name: "API Integration Tests"
     runs-on: ubuntu-latest
     needs: [build]
     services:
@@ -316,7 +316,7 @@ jobs:
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: '1.0.0'
+          bun-version: "1.0.0"
       - name: Install dependencies
         run: bun install
       - name: Download Build Artifacts
@@ -348,7 +348,7 @@ jobs:
           path: apps/api/coverage/
 
   s1-fail-fast-test:
-    name: 'S1 Fail-Fast Protocol Test'
+    name: "S1 Fail-Fast Protocol Test"
     runs-on: ubuntu-latest
     needs: [s1-compliance, build]
     services:
@@ -395,7 +395,7 @@ jobs:
           DATABASE_URL: postgresql://apex:apex@localhost:5432/test
 
   s2-data-isolation-check:
-    name: 'S2 Data Isolation Check'
+    name: "S2 Data Isolation Check"
     runs-on: ubuntu-latest
     needs: [db-schema-validation, s1-fail-fast-test]
     services:
@@ -428,20 +428,7 @@ jobs:
           else
             echo "⚠️ S2 isolation checker script not found, skipping"
           fi
-      - name: Check SQL Queries for Tenant Isolation (S2)
-        run: |
-          echo "🔍 Scanning SQL queries for S2 Compliance..."
-          violations=""
-          public_refs=$(grep -r "public\." packages/db/src --include="*.ts" --include="*.sql" 2>/dev/null | grep -v "\.test\." | grep -v "// " | grep -v "search_path" | grep -v "information_schema" || true)
-          if [ -n "$public_refs" ]; then
-            violations="$violations\n❌ Direct 'public.' schema reference found:\n$public_refs"
-          fi
-          if [ -n "$violations" ]; then
-            echo "🚨 S2 VIOLATION DETECTED: Tenant Isolation Breach!"
-            echo -e "$violations"
-            exit 1
-          fi
-          echo "✅ PASS: No S2 isolation violations found"
+      # Redundant Grep Check Removed (Covered by check-s2-isolation.ts)
       - name: Run Post-Migration Tenant Isolation Test
         run: |
           echo "🧪 Running Post-Migration S2 Isolation Test..."
@@ -454,7 +441,7 @@ jobs:
           DATABASE_URL: postgresql://apex:apex@localhost:5432/test
 
   provisioning-smoke-test:
-    name: 'Provisioning Smoke Test (<60s)'
+    name: "Provisioning Smoke Test (<60s)"
     runs-on: ubuntu-latest
     needs: [build]
     services:
@@ -477,7 +464,7 @@ jobs:
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: '1.0.0'
+          bun-version: "1.0.0"
       - name: Install dependencies
         run: bun install
       - name: Download Build Artifacts
@@ -506,7 +493,7 @@ jobs:
           # MINIO_ENDPOINT: localhost
 
   docker-health:
-    name: 'Docker Stack E2E Ready Verification'
+    name: "Docker Stack E2E Ready Verification"
     runs-on: ubuntu-latest
     needs: [build]
     steps:
@@ -533,7 +520,7 @@ jobs:
   # PHASE 6: Coverage Gates
   # ═══════════════════════════════════════════════════════════════
   coverage-gate:
-    name: 'Coverage Gate (30% Phase 1)'
+    name: "Coverage Gate (30% Phase 1)"
     runs-on: ubuntu-latest
     needs: [test-api-integration]
     if: always() && (needs.test-api-integration.result == 'success' || needs.test-api-integration.result == 'skipped')
@@ -579,16 +566,16 @@ jobs:
         uses: davelosert/vitest-coverage-report-action@v2
         if: always() && github.event_name == 'pull_request'
         with:
-          json-summary-path: './coverage/coverage-summary.json'
-          json-final-path: './coverage/coverage-final.json'
+          json-summary-path: "./coverage/coverage-summary.json"
+          json-final-path: "./coverage/coverage-final.json"
           file-coverage-mode: all
-          name: 'Apex v2 Coverage Report'
+          name: "Apex v2 Coverage Report"
 
   # ═══════════════════════════════════════════════════════════════
   # PHASE 7: Extended Coverage Checks
   # ═══════════════════════════════════════════════════════════════
   uncovered-files-check:
-    name: 'Uncovered Files Detection (Rule 4.1 Strict)'
+    name: "Uncovered Files Detection (Rule 4.1 Strict)"
     runs-on: ubuntu-latest
     needs: [coverage-gate]
     steps:
@@ -630,7 +617,7 @@ jobs:
   # PHASE 8: Violation Detection (On Failure)
   # ═══════════════════════════════════════════════════════════════
   violation-detection-cross-app:
-    name: 'Cross-App Import Violation Report'
+    name: "Cross-App Import Violation Report"
     runs-on: ubuntu-latest
     needs: [dependency-boundary-check]
     if: failure() && !cancelled()
@@ -649,7 +636,7 @@ jobs:
           exit 1
 
   coverage-threshold-enforcement:
-    name: 'Coverage Threshold Violation Report'
+    name: "Coverage Threshold Violation Report"
     runs-on: ubuntu-latest
     needs: [coverage-gate]
     if: failure() && !cancelled()
@@ -676,7 +663,7 @@ jobs:
           exit 1
 
   s2-violation-detection:
-    name: 'S2 Data Isolation Violation Report'
+    name: "S2 Data Isolation Violation Report"
     runs-on: ubuntu-latest
     needs: [s2-data-isolation-check]
     if: failure() && !cancelled()

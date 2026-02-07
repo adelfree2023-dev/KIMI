@@ -27,11 +27,13 @@ export default defineConfig({
         __dirname,
         './packages/middleware/src/index.ts'
       ),
+      '@apex/auth': path.resolve(__dirname, './packages/auth/src/index.ts'),
     },
   },
   test: {
     globals: true,
     environment: 'node',
+    setupFiles: ['./vitest.setup.mts'],
     coverage: {
       provider: 'v8',
       all: true,

@@ -1,16 +1,56 @@
 import { AuditService } from '@apex/audit';
+import { publicPool } from '@apex/db';
+import * as provisioning from '@apex/provisioning';
+import {
+  ConflictException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { Test, type TestingModule } from '@nestjs/testing';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { ProvisioningService } from './provisioning.service.js';
+import {
+  type ProvisioningOptions,
+  ProvisioningService,
+} from './provisioning.service.js';
+
+// Mock the @apex/provisioning module
+vi.mock('@apex/provisioning', () => ({
+  createTenantSchema: vi.fn(),
+  runTenantMigrations: vi.fn(),
+  createTenantBucket: vi.fn(),
+  seedTenantData: vi.fn(),
+  dropTenantSchema: vi.fn(),
+}));
+
+// Mock @apex/db
+vi.mock('@apex/db', () => ({
+  publicPool: {
+    connect: vi.fn(),
+  },
+}));
 
 describe('ProvisioningService', () => {
   let service: ProvisioningService;
+  let _audit: AuditService;
 
   const mockAuditService = {
     log: vi.fn(),
   };
 
+  const mockClient = {
+    query: vi.fn(),
+    release: vi.fn(),
+  };
+
+  const options: ProvisioningOptions = {
+    subdomain: 'test-store',
+    adminEmail: 'admin@test.com',
+    storeName: 'Test Store',
+    plan: 'basic',
+  };
+
   beforeEach(async () => {
+    vi.clearAllMocks();
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ProvisioningService,
@@ -22,13 +62,146 @@ describe('ProvisioningService', () => {
     }).compile();
 
     service = module.get<ProvisioningService>(ProvisioningService);
+    _audit = module.get<AuditService>(AuditService);
+
+    // Default mock behavior for database
+    vi.mocked(publicPool.connect).mockResolvedValue(mockClient as any);
   });
 
-  it('should be defined', () => {
-    expect(service).toBeDefined();
+  describe('provision', () => {
+    it('should successfully provision a store', async () => {
+      vi.mocked(provisioning.createTenantSchema).mockResolvedValue(
+        undefined as any
+      );
+      vi.mocked(provisioning.runTenantMigrations).mockResolvedValue(
+        undefined as any
+      );
+      vi.mocked(provisioning.createTenantBucket).mockResolvedValue(
+        undefined as any
+      );
+      vi.mocked(provisioning.seedTenantData).mockResolvedValue({
+        adminId: 'admin-123',
+      } as any);
+
+      const result = await service.provision(options);
+
+      expect(result.success).toBe(true);
+      expect(result.subdomain).toBe('test-store');
+      expect(result.adminId).toBe('admin-123');
+      expect(mockAuditService.log).toHaveBeenCalledWith(
+        expect.objectContaining({
+          action: 'STORE_PROVISIONED',
+          entityId: 'test-store',
+        })
+      );
+      expect(mockClient.query).toHaveBeenCalled();
+    });
+
+    it('should throw ConflictException if resource already exists', async () => {
+      vi.mocked(provisioning.createTenantSchema).mockRejectedValue(
+        new Error('schema "tenant_test-store" already exists')
+      );
+
+      await expect(service.provision(options)).rejects.toThrow(
+        ConflictException
+      );
+      expect(provisioning.dropTenantSchema).not.toHaveBeenCalled();
+    });
+
+    it('should rollback and throw InternalServerErrorException on step failure', async () => {
+      // Step 0 succeeds
+      vi.mocked(provisioning.createTenantSchema).mockResolvedValue(
+        undefined as any
+      );
+      // Step 1 fails
+      vi.mocked(provisioning.runTenantMigrations).mockRejectedValue(
+        new Error('Migration failed')
+      );
+
+      await expect(service.provision(options)).rejects.toThrow(
+        InternalServerErrorException
+      );
+
+      // Rollback should be called for step 0
+      expect(provisioning.dropTenantSchema).toHaveBeenCalledWith('test-store');
+    });
+
+    it('should handle rollback failure gracefully', async () => {
+      vi.mocked(provisioning.createTenantSchema).mockResolvedValue(
+        undefined as any
+      );
+      vi.mocked(provisioning.runTenantMigrations).mockRejectedValue(
+        new Error('Fail')
+      );
+      vi.mocked(provisioning.dropTenantSchema).mockRejectedValue(
+        new Error('Rollback Fail')
+      );
+
+      await expect(service.provision(options)).rejects.toThrow(
+        InternalServerErrorException
+      );
+      // Even if dropTenantSchema fails, InternalServerErrorException should still be thrown for the original error
+    });
+
+    it('should proceed with rollback if multiple steps succeeded before failure', async () => {
+      vi.mocked(provisioning.createTenantSchema).mockResolvedValue(
+        undefined as any
+      );
+      vi.mocked(provisioning.runTenantMigrations).mockResolvedValue(
+        undefined as any
+      );
+      vi.mocked(provisioning.createTenantBucket).mockRejectedValue(
+        new Error('Bucket Fail')
+      );
+
+      await expect(service.provision(options)).rejects.toThrow(
+        InternalServerErrorException
+      );
+      expect(provisioning.dropTenantSchema).toHaveBeenCalledWith('test-store');
+    });
+
+    it('should throw InternalServerErrorException if seeding fails', async () => {
+      vi.mocked(provisioning.createTenantSchema).mockResolvedValue(
+        undefined as any
+      );
+      vi.mocked(provisioning.runTenantMigrations).mockResolvedValue(
+        undefined as any
+      );
+      vi.mocked(provisioning.createTenantBucket).mockResolvedValue(
+        undefined as any
+      );
+      vi.mocked(provisioning.seedTenantData).mockRejectedValue(
+        new Error('Seed Fail')
+      );
+
+      await expect(service.provision(options)).rejects.toThrow(
+        InternalServerErrorException
+      );
+      expect(provisioning.dropTenantSchema).toHaveBeenCalledWith('test-store');
+    });
   });
 
-  it('should have a provision method', () => {
-    expect(service.provision).toBeDefined();
+  describe('registerTenant', () => {
+    it('should release client even if query fails', async () => {
+      vi.mocked(provisioning.createTenantSchema).mockResolvedValue(
+        undefined as any
+      );
+      vi.mocked(provisioning.runTenantMigrations).mockResolvedValue(
+        undefined as any
+      );
+      vi.mocked(provisioning.createTenantBucket).mockResolvedValue(
+        undefined as any
+      );
+      vi.mocked(provisioning.seedTenantData).mockResolvedValue({
+        adminId: 'admin-123',
+      } as any);
+
+      mockClient.query.mockRejectedValue(new Error('DB Query Fail'));
+
+      await expect(service.provision(options)).rejects.toThrow(
+        InternalServerErrorException
+      );
+      expect(mockClient.release).toHaveBeenCalled();
+    });
   });
 });

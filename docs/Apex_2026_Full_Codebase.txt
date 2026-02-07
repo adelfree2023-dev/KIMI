@@ -5,10 +5,10 @@
 #  📊 STATISTICS SUMMARY:
 #  ---------------------
 #  📂 Total Files : 126
-#  📝 Total Lines : 10,174
-#  🔤 Total Words : 27,467
-#  🧮 Total Chars : 288,647
-#  🪙 Est. Tokens : 72,162 (Approx. for LLM Context)
+#  📝 Total Lines : 10,408
+#  🔤 Total Words : 28,411
+#  🧮 Total Chars : 297,397
+#  🪙 Est. Tokens : 74,349 (Approx. for LLM Context)
 #
 ################################################################################
 
@@ -1137,8 +1137,17 @@ export const ProvisionRequestSchema = z.object({
 
   /**
    * Optional Super Admin secret key
+   * S3 Validation: Must be 32-128 chars, alphanumeric + hyphen/underscore only
    */
-  superAdminKey: z.string().optional(),
+  superAdminKey: z
+    .string()
+    .min(32, 'Super Admin key must be at least 32 characters')
+    .max(128, 'Super Admin key too long (max 128)')
+    .regex(
+      /^[A-Za-z0-9-_]+$/,
+      'Super Admin key must be alphanumeric with hyphens/underscores only'
+    )
+    .optional()
 });
 
 export class ProvisionRequestDto extends createZodDto(ProvisionRequestSchema) {}
@@ -2924,11 +2933,14 @@ export class AuditService {
     );
 
     // 2. Persistent Logging (S4 Protocol)
-    // In S4, we insert into public.audit_logs which has triggers
-    // to prevent any UPDATE or DELETE operations.
+    // CRITICAL FIX (S2): Explicitly set search_path to public before query
+    // to prevent context leakage from tenant schemas
     const client = await publicPool.connect();
 
     try {
+      // 🔒 S2 Enforcement: Reset search_path to public before audit query
+      await client.query('SET search_path TO public');
+      
       await client.query(
         `
         INSERT INTO public.audit_logs (
@@ -2961,6 +2973,10 @@ export class AuditService {
       // In high-security mode, we might want to crash the process here
       // throw new Error('Audit Persistence Failure');
     } finally {
+      // 🔒 S2 Enforcement: Reset search_path before releasing to pool
+      await client.query('SET search_path TO public').catch(() => {
+        // Ignore errors during cleanup
+      });
       client.release();
     }
   }
@@ -3931,11 +3947,31 @@ export class EncryptionService {
 
   constructor() {
     this.masterKey = process.env.ENCRYPTION_MASTER_KEY || '';
-    if (!this.masterKey && process.env.NODE_ENV === 'production') {
-      throw new Error('S1 Violation: ENCRYPTION_MASTER_KEY is required in production');
+    
+    // S7 FIX: Always validate key length (not just in production)
+    // Empty keys allowed only in test environment with explicit flag
+    const isTestMode = process.env.NODE_ENV === 'test' || process.env.SKIP_ENCRYPTION === 'true';
+    
+    if (!this.masterKey) {
+      if (isTestMode) {
+        // Generate deterministic test key for tests only
+        this.masterKey = 'test-encryption-key-32-chars-long!';
+        console.warn('⚠️ S7: Using test encryption key - NEVER use in production');
+      } else {
+        throw new Error('S1 Violation: ENCRYPTION_MASTER_KEY is required');
+      }
     }
+    
+    // Always enforce minimum key length
     if (this.masterKey.length < 32) {
       throw new Error('S1 Violation: ENCRYPTION_MASTER_KEY must be at least 32 characters');
+    }
+    
+    // Additional validation for production
+    if (process.env.NODE_ENV === 'production') {
+      if (this.masterKey.includes('test') || this.masterKey.includes('default')) {
+        throw new Error('S1 Violation: ENCRYPTION_MASTER_KEY appears to be a test/default value');
+      }
     }
   }
 
@@ -5184,7 +5220,8 @@ export function createTimestamp(): string {
   },
   "dependencies": {
     "@apex/config": "workspace:*",
-    "@apex/db": "workspace:*"
+    "@apex/db": "workspace:*",
+    "redis": "^4.6.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
@@ -5840,7 +5877,31 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     if (statusCode === 500) {
       return 'An unexpected error occurred';
     }
-    return message;
+    
+    // S5 FIX: Also sanitize potential internal details from 4xx errors
+    // Database table names, column names, internal paths
+    const internalPatterns = [
+      /table\s+['"]?\w+['"]?/gi,
+      /column\s+['"]?\w+['"]?/gi,
+      /relation\s+['"]?\w+['"]?/gi,
+      /schema\s+['"]?\w+['"]?/gi,
+      /database\s+['"]?\w+['"]?/gi,
+      /constraint\s+['"]?\w+['"]?/gi,
+      /\/.*\/packages\//g,
+      /\/.*\/node_modules\//g,
+    ];
+    
+    let sanitized = message;
+    for (const pattern of internalPatterns) {
+      if (pattern.test(sanitized)) {
+        // If message contains internal details, return generic message
+        if (statusCode >= 400 && statusCode < 500) {
+          return 'Invalid request';
+        }
+      }
+    }
+    
+    return sanitized;
   }
 
   private getErrorName(status: number): string {
@@ -6073,10 +6134,12 @@ describe('RateLimitConfig type', () => {
  * S6: Rate Limiting Service
  * Constitution Reference: architecture.md (S6 Protocol)
  * Purpose: Dynamic rate limits per tenant tier + DDoS protection
+ * CRITICAL FIX: Using Redis for distributed rate limiting (multi-instance support)
  */
 
 import { Injectable, CanActivate, ExecutionContext, HttpException, HttpStatus } from '@nestjs/common';
 import { Request } from 'express';
+import { createClient, RedisClientType } from 'redis';
 
 // Rate limit tiers per plan
 const RATE_LIMIT_TIERS = {
@@ -6086,22 +6149,178 @@ const RATE_LIMIT_TIERS = {
   enterprise: { requests: 5000, windowMs: 60_000 }, // 5000 req/min
 } as const;
 
-// In-memory store (use Redis in production)
-interface RateLimitStore {
-  [key: string]: {
-    count: number;
-    resetTime: number;
-    violations: number;
-  };
-}
-
-const store: RateLimitStore = {};
-
 export interface RateLimitConfig {
   requests: number;
   windowMs: number;
   blockDurationMs?: number;
 }
+
+/**
+ * Redis Rate Limit Store
+ * CRITICAL: Supports distributed deployments (Docker/K8s multi-instance)
+ */
+class RedisRateLimitStore {
+  private client: RedisClientType | null = null;
+  private connecting = false;
+  private fallbackToMemory = false;
+  
+  // Fallback in-memory store (only used if Redis unavailable)
+  private memoryStore: Map<string, { count: number; resetTime: number; violations: number }> = new Map();
+
+  async getClient(): Promise<RedisClientType | null> {
+    if (this.client?.isOpen) {
+      return this.client;
+    }
+    
+    if (this.connecting) {
+      return null; // Still connecting
+    }
+
+    // Try to connect to Redis
+    if (!this.client && !this.fallbackToMemory) {
+      await this.connect();
+    }
+    
+    return this.client;
+  }
+
+  private async connect(): Promise<void> {
+    const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
+    
+    try {
+      this.connecting = true;
+      this.client = createClient({ url: redisUrl });
+      
+      this.client.on('error', () => {
+        // Silent error - will fallback to memory
+        this.fallbackToMemory = true;
+      });
+
+      await this.client.connect();
+      this.fallbackToMemory = false;
+    } catch {
+      // Redis unavailable - fallback to memory (with warning)
+      console.warn('⚠️ S6: Redis unavailable, falling back to in-memory rate limiting (NOT for production multi-instance)');
+      this.fallbackToMemory = true;
+    } finally {
+      this.connecting = false;
+    }
+  }
+
+  async increment(key: string, windowMs: number): Promise<{ count: number; ttl: number }> {
+    const client = await this.getClient();
+    
+    if (client) {
+      // Redis implementation (distributed)
+      const multi = client.multi();
+      multi.incr(key);
+      multi.ttl(key);
+      
+      const results = await multi.exec();
+      const count = results[0] as number;
+      let ttl = results[1] as number;
+      
+      // Set expiry on first request
+      if (count === 1 || ttl === -1) {
+        await client.expire(key, Math.ceil(windowMs / 1000));
+        ttl = Math.ceil(windowMs / 1000);
+      }
+      
+      return { count, ttl };
+    } else {
+      // Memory fallback (single instance only)
+      const now = Date.now();
+      const existing = this.memoryStore.get(key);
+      
+      if (!existing || now > existing.resetTime) {
+        const newRecord = { count: 1, resetTime: now + windowMs, violations: 0 };
+        this.memoryStore.set(key, newRecord);
+        return { count: 1, ttl: Math.ceil(windowMs / 1000) };
+      }
+      
+      existing.count++;
+      return { count: existing.count, ttl: Math.ceil((existing.resetTime - now) / 1000) };
+    }
+  }
+
+  async getViolations(key: string): Promise<number> {
+    const violationKey = `${key}:violations`;
+    const client = await this.getClient();
+    
+    if (client) {
+      const violations = await client.get(violationKey);
+      return violations ? parseInt(violations, 10) : 0;
+    } else {
+      const record = this.memoryStore.get(key);
+      return record?.violations || 0;
+    }
+  }
+
+  async incrementViolations(key: string, blockDurationMs: number): Promise<number> {
+    const violationKey = `${key}:violations`;
+    const client = await this.getClient();
+    
+    if (client) {
+      const violations = await client.incr(violationKey);
+      // Set expiry for violation counter (longer than rate limit window)
+      await client.expire(violationKey, Math.ceil(blockDurationMs / 1000) * 5);
+      return violations;
+    } else {
+      const record = this.memoryStore.get(key);
+      if (record) {
+        record.violations++;
+        return record.violations;
+      }
+      return 1;
+    }
+  }
+
+  async isBlocked(key: string, blockDurationMs: number): Promise<{ blocked: boolean; retryAfter: number }> {
+    const blockKey = `${key}:blocked`;
+    const client = await this.getClient();
+    
+    if (client) {
+      const ttl = await client.ttl(blockKey);
+      if (ttl > 0) {
+        return { blocked: true, retryAfter: ttl };
+      }
+      return { blocked: false, retryAfter: 0 };
+    } else {
+      const record = this.memoryStore.get(key);
+      if (record && record.violations >= 5) {
+        const now = Date.now();
+        const blocked = now < record.resetTime;
+        return { 
+          blocked, 
+          retryAfter: blocked ? Math.ceil((record.resetTime - now) / 1000) : 0 
+        };
+      }
+      return { blocked: false, retryAfter: 0 };
+    }
+  }
+
+  async block(key: string, blockDurationMs: number): Promise<void> {
+    const blockKey = `${key}:blocked`;
+    const client = await this.getClient();
+    
+    if (client) {
+      await client.setEx(blockKey, Math.ceil(blockDurationMs / 1000), '1');
+    } else {
+      const record = this.memoryStore.get(key);
+      if (record) {
+        record.resetTime = Date.now() + blockDurationMs;
+      }
+    }
+  }
+
+  async getRemaining(key: string, limit: number): Promise<number> {
+    const { count } = await this.increment(key, 0); // Just get count without incrementing
+    return Math.max(0, limit - count + 1); // +1 because we already incremented
+  }
+}
+
+// Singleton store instance
+const rateLimitStore = new RedisRateLimitStore();
 
 @Injectable()
 export class RateLimitGuard implements CanActivate {
@@ -6124,61 +6343,46 @@ export class RateLimitGuard implements CanActivate {
     const key = `ratelimit:${identifier}`;
     const now = Date.now();
     
-    // Check if currently blocked
-    const record = store[key];
-    if (record) {
-      if (record.violations >= 5 && now < record.resetTime) {
-        throw new HttpException({
-          statusCode: HttpStatus.TOO_MANY_REQUESTS,
-          message: 'IP blocked due to repeated violations',
-          retryAfter: Math.ceil((record.resetTime - now) / 1000),
-        }, HttpStatus.TOO_MANY_REQUESTS);
+    // Check if currently blocked (IP blacklist after 5 violations)
+    const { blocked, retryAfter } = await rateLimitStore.isBlocked(key, this.defaultConfig.blockDurationMs || 300_000);
+    if (blocked) {
+      throw new HttpException({
+        statusCode: HttpStatus.TOO_MANY_REQUESTS,
+        message: 'IP blocked due to repeated violations',
+        retryAfter,
+      }, HttpStatus.TOO_MANY_REQUESTS);
+    }
+    
+    // Increment request count
+    const { count } = await rateLimitStore.increment(key, tierConfig.windowMs);
+    
+    // Check if limit exceeded
+    if (count > tierConfig.requests) {
+      // Increment violations
+      const violations = await rateLimitStore.incrementViolations(
+        key, 
+        this.defaultConfig.blockDurationMs || 300_000
+      );
+      
+      // Block after 5 violations
+      if (violations >= 5) {
+        await rateLimitStore.block(key, this.defaultConfig.blockDurationMs || 300_000);
       }
       
-      // Reset if window expired
-      if (now > record.resetTime) {
-        store[key] = {
-          count: 1,
-          resetTime: now + tierConfig.windowMs,
-          violations: record.violations > 0 ? record.violations - 1 : 0, // Decay violations
-        };
-        return true;
-      }
-      
-      // Increment count
-      record.count++;
-      
-      if (record.count > tierConfig.requests) {
-        // Violation detected
-        record.violations++;
-        
-        // Block after 5 violations
-        if (record.violations >= 5) {
-          record.resetTime = now + (this.defaultConfig.blockDurationMs || 300_000);
-        }
-        
-        throw new HttpException({
-          statusCode: HttpStatus.TOO_MANY_REQUESTS,
-          message: 'Rate limit exceeded',
-          limit: tierConfig.requests,
-          window: '1 minute',
-          retryAfter: Math.ceil((record.resetTime - now) / 1000),
-        }, HttpStatus.TOO_MANY_REQUESTS);
-      }
-    } else {
-      // First request
-      store[key] = {
-        count: 1,
-        resetTime: now + tierConfig.windowMs,
-        violations: 0,
-      };
+      throw new HttpException({
+        statusCode: HttpStatus.TOO_MANY_REQUESTS,
+        message: 'Rate limit exceeded',
+        limit: tierConfig.requests,
+        window: '1 minute',
+        retryAfter: Math.ceil(tierConfig.windowMs / 1000),
+      }, HttpStatus.TOO_MANY_REQUESTS);
     }
     
     // Add rate limit headers
     const response = context.switchToHttp().getResponse();
     response.setHeader('X-RateLimit-Limit', tierConfig.requests);
-    response.setHeader('X-RateLimit-Remaining', Math.max(0, tierConfig.requests - store[key].count));
-    response.setHeader('X-RateLimit-Reset', Math.ceil(store[key].resetTime / 1000));
+    response.setHeader('X-RateLimit-Remaining', Math.max(0, tierConfig.requests - count));
+    response.setHeader('X-RateLimit-Reset', Math.ceil((now + tierConfig.windowMs) / 1000));
     
     return true;
   }
@@ -6463,9 +6667,10 @@ export class SecurityHeadersMiddleware implements NestMiddleware {
 
 /**
  * CORS configuration per tenant
+ * S8 FIX: origin can be a function for dynamic whitelist
  */
 export interface CorsConfig {
-  origin: string | string[] | boolean;
+  origin: string | string[] | boolean | ((origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => void);
   methods: string[];
   allowedHeaders: string[];
   exposedHeaders: string[];
@@ -6473,11 +6678,40 @@ export interface CorsConfig {
   maxAge: number;
 }
 
+/**
+ * S8 FIX: Changed from `origin: false` to dynamic whitelist
+ * origin: false breaks all cross-origin requests
+ * origin: true allows all (unsafe)
+ * This uses a whitelist approach with localhost fallback for dev
+ */
 export const defaultCorsConfig: CorsConfig = {
-  origin: false, // Disable by default
+  // Use whitelist pattern - by default only same-origin
+  // In production, configure with actual domains
+  origin: (origin, callback) => {
+    // Allow requests with no origin (mobile apps, curl, etc.)
+    if (!origin) return callback(null, true);
+    
+    // Development whitelist
+    const devOrigins = [
+      'http://localhost:3000',
+      'http://localhost:3001',
+      'http://localhost:5173',
+      'http://127.0.0.1:3000',
+    ];
+    
+    // Production should set ALLOWED_ORIGINS env var
+    const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [];
+    const whitelist = [...devOrigins, ...allowedOrigins];
+    
+    if (whitelist.includes(origin) || process.env.NODE_ENV === 'development') {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-ID'],
-  exposedHeaders: ['X-RateLimit-Limit', 'X-RateLimit-Remaining'],
+  exposedHeaders: ['X-RateLimit-Limit', 'X-RateLimit-Remaining', 'X-RateLimit-Reset'],
   credentials: true,
   maxAge: 86400, // 24 hours
 };

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { cn, buttonStyles, inputStyles, theme } from './index';
+import { cn, buttonStyles, inputStyles, theme } from './index.js';
 
 describe('UI Package', () => {
   describe('cn helper', () => {

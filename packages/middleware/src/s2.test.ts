@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 import { describe, expect, it, vi } from 'vitest';
-import { tenantStorage } from './tenant-context';
-import { extractSubdomain, resolveTenant } from './tenant-resolution';
+import { tenantStorage } from './tenant-context.js';
+import { extractSubdomain, resolveTenant } from './tenant-resolution.js';
 
 describe('S2 Middleware: Tenant Resolution', () => {
   it('should extract subdomain from host header', () => {

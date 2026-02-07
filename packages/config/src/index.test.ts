@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { enforceS1Compliance, validateEnv } from './index';
+import { enforceS1Compliance, validateEnv, ConfigService, env } from './index.js';
 
 describe('S1: Environment Verification Protocol', () => {
   const originalEnv = process.env;
@@ -79,6 +79,45 @@ describe('S1: Environment Verification Protocol', () => {
 
       expect(() => enforceS1Compliance()).toThrow('process.exit called');
       expect(process.exit).toHaveBeenCalledWith(1);
+    });
+  });
+
+  describe('ConfigService', () => {
+    beforeEach(() => {
+      process.env.JWT_SECRET = 'valid_secret_key_32_chars_long_1234';
+      process.env.DATABASE_URL = 'postgresql://user:pass@localhost:5432/db';
+      process.env.MINIO_ACCESS_KEY = 'minioadmin';
+      process.env.MINIO_SECRET_KEY = 'minioadmin123';
+    });
+
+    it('should create ConfigService instance', () => {
+      const configService = new ConfigService();
+      expect(configService).toBeDefined();
+    });
+
+    it('should get config values', () => {
+      const configService = new ConfigService();
+      expect(configService.get('JWT_SECRET')).toBe('valid_secret_key_32_chars_long_1234');
+      expect(configService.get('DATABASE_URL')).toBe('postgresql://user:pass@localhost:5432/db');
+    });
+
+    it('should get values with default', () => {
+      const configService = new ConfigService();
+      expect(configService.getWithDefault('JWT_EXPIRES_IN', '7d')).toBe('7d');
+    });
+  });
+
+  describe('env export', () => {
+    beforeEach(() => {
+      process.env.JWT_SECRET = 'valid_secret_key_32_chars_long_1234';
+      process.env.DATABASE_URL = 'postgresql://user:pass@localhost:5432/db';
+      process.env.MINIO_ACCESS_KEY = 'minioadmin';
+      process.env.MINIO_SECRET_KEY = 'minioadmin123';
+    });
+
+    it('should export env config', () => {
+      expect(env).toBeDefined();
+      expect(env.JWT_SECRET).toBeDefined();
     });
   });
 });

@@ -6,7 +6,7 @@ import {
   createEventId,
   createCorrelationId,
   createTimestamp,
-} from './index';
+} from './index.js';
 
 describe('Event Bus', () => {
   describe('InMemoryEventBus', () => {

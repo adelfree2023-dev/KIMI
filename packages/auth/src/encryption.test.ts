@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll } from 'vitest';
-import { encrypt, decrypt, hashApiKey, generateApiKey, maskSensitive } from './encryption';
+import { encrypt, decrypt, hashApiKey, generateApiKey, maskSensitive } from './encryption.js';
 
 describe('Encryption Service', () => {
   const testMasterKey = 'test-secret-key-32-chars-longgggg';

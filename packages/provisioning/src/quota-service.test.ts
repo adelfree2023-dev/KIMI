@@ -9,6 +9,7 @@ import {
   getPlanLimits,
   isFeatureAllowed,
   validateSubdomainAvailability,
+  checkQuota,
 } from './quota-service.js';
 
 describe('QuotaService', () => {
@@ -83,6 +84,43 @@ describe('QuotaService', () => {
     it('should reject invalid formats', async () => {
       const result = await validateSubdomainAvailability('invalid_format');
       expect(result.available).toBe(false);
+    });
+  });
+
+  describe('checkQuota', () => {
+    it('should allow when under limit', () => {
+      const result = checkQuota(5, 'free', 'maxProducts');
+      expect(result).toBe(true);
+    });
+
+    it('should deny when at limit', () => {
+      const result = checkQuota(10, 'free', 'maxProducts');
+      expect(result).toBe(false);
+    });
+
+    it('should deny when over limit', () => {
+      const result = checkQuota(15, 'free', 'maxProducts');
+      expect(result).toBe(false);
+    });
+
+    it('should check storage quota correctly', () => {
+      const result = checkQuota(50, 'free', 'maxStorageMb');
+      expect(result).toBe(true);
+    });
+
+    it('should check users quota correctly', () => {
+      const result = checkQuota(0, 'free', 'maxUsers');
+      expect(result).toBe(true);
+    });
+
+    it('should respect pro plan limits', () => {
+      const result = checkQuota(500, 'pro', 'maxProducts');
+      expect(result).toBe(true);
+    });
+
+    it('should deny when exceeding pro plan limits', () => {
+      const result = checkQuota(1000, 'pro', 'maxProducts');
+      expect(result).toBe(false);
     });
   });
 });

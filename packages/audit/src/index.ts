@@ -9,4 +9,4 @@ export {
   logProvisioning,
   logSecurityEvent,
   query,
-} from './audit.service';
+} from './audit.service.js';

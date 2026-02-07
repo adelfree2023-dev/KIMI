@@ -20,7 +20,8 @@
         "passport": "^0.7.0",
         "passport-jwt": "^4.0.0",
         "@apex/config": "workspace:*",
-        "@apex/db": "workspace:*"
+        "@apex/db": "workspace:*",
+        "@apex/middleware": "workspace:*"
     },
     "devDependencies": {
         "@types/passport-jwt": "^3.0.0",

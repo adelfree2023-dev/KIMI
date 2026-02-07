@@ -12,6 +12,7 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
+import { getTenantContext } from '@apex/middleware';
 
 export interface AuthenticatedRequest extends Request {
     user: {
@@ -45,18 +46,22 @@ export class TenantScopedGuard implements CanActivate {
             throw new UnauthorizedException('Invalid token');
         }
 
-        // 3. S2: Extract and validate tenant context
-        const requestedTenantId = this.extractTenantId(request);
-
-        if (!requestedTenantId) {
-            throw new ForbiddenException('S2 Violation: Tenant context required');
+        // 3. S2: Retrieve verified tenant context from middleware
+        // This ensures the middleware has already validated the tenant
+        let tenantContext;
+        try {
+            tenantContext = getTenantContext();
+        } catch (e) {
+            throw new ForbiddenException('S2 Violation: No active tenant context found');
         }
+
+        const requestedTenantId = tenantContext.tenantId;
 
         // 4. S2: Strict Tenant Isolation Check
         // User can ONLY access their own tenant (unless impersonating as Super Admin)
-        if (payload.tenantId !== requestedTenantId && !payload.impersonating) {
+        if (request.user.tenantId !== requestedTenantId && !request.user.impersonating) {
             // Log security event (S4 Audit)
-            console.error(`🚨 S2 Violation: User ${payload.userId} from tenant ${payload.tenantId} attempted to access tenant ${requestedTenantId}`);
+            console.error(`🚨 S2 Violation: User ${request.user.userId} from tenant ${request.user.tenantId} attempted to access tenant ${requestedTenantId}`);
 
             throw new ForbiddenException(
                 'S2 Isolation Violation: Cross-tenant access denied'
@@ -78,22 +83,6 @@ export class TenantScopedGuard implements CanActivate {
 
         // Check httpOnly cookie
         return request.cookies?.jwt;
-    }
-
-    private extractTenantId(request: Request): string | undefined {
-        // Priority 1: X-Tenant-ID header
-        const headerTenant = request.headers['x-tenant-id'];
-        if (headerTenant) return headerTenant as string;
-
-        // Priority 2: Subdomain (e.g., tenant1.apex.com)
-        const host = request.headers.host || '';
-        const subdomain = host.split('.')[0];
-        if (subdomain && subdomain !== 'www' && subdomain !== 'apex') {
-            return subdomain;
-        }
-
-        // Priority 3: Query param (for development)
-        return request.query.tenantId as string;
     }
 }
 

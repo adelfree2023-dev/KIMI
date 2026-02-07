@@ -19,23 +19,30 @@ export const publicPool = new Pool({
 export const publicDb = drizzle(publicPool);
 
 /**
- * Get tenant-specific database connection
- * Sets search_path to isolate tenant data
+ * Execute operation within tenant context using shared pool
+ * 1. Acquires client from global pool
+ * 2. Sets search_path to isolated tenant schema
+ * 3. Executes callback
+ * 4. Resets search_path and releases client
  */
-export function getTenantDb(tenantId: string) {
-    const tenantSchema = `tenant_${tenantId}`;
+export async function withTenantConnection<T>(
+    tenantId: string,
+    operation: (db: ReturnType<typeof drizzle>) => Promise<T>
+): Promise<T> {
+    const client = await publicPool.connect();
 
-    const pool = new Pool({
-        connectionString: env.DATABASE_URL,
-        ssl: env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
-    });
+    try {
+        // 🔒 S2 Enforcement: Switch to tenant context
+        await client.query(`SET search_path TO "tenant_${tenantId}", public`);
 
-    // Set search path for this connection
-    pool.on('connect', (client) => {
-        client.query(`SET search_path TO ${tenantSchema}, public`);
-    });
-
-    return drizzle(pool);
+        const db = drizzle(client);
+        const result = await operation(db);
+        return result;
+    } finally {
+        // 🧹 Cleanup: Reset context before returning to pool
+        await client.query('SET search_path TO public');
+        client.release();
+    }
 }
 
 /**

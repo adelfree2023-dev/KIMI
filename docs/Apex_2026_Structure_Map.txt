@@ -1,0 +1,46 @@
+﻿========================================================
+🗺️  PROJECT STRUCTURE MAP
+========================================================
+📅 Generated: 2026-02-07 06:55
+📂 Files Included: 15
+🚫 Noise Filtered: Lockfiles, Logs, Assets
+🔒 Security Filter: ACTIVE
+========================================================
+
+├── 📂 .github
+│   └── 📂 workflows
+│       └── 📄 s1-compliance.yml
+├── 📂 .turbo
+│   ├── 📂 cookies
+│   └── 📂 daemon
+├── 📂 apps
+│   ├── 📂 admin
+│   ├── 📂 storefront
+│   ├── 📂 super-admin
+│   └── 📂 web
+├── 📂 docker
+├── 📂 packages
+│   ├── 📂 auth
+│   │   ├── 📂 src
+│   │   │   └── 📄 index.ts ➤ Authentication & Authorization Module
+│   │   └── 📄 package.json
+│   ├── 📂 config
+│   │   ├── 📂 src
+│   │   │   ├── 📄 index.test.ts
+│   │   │   └── 📄 index.ts ➤ S1: Environment Verification Protocol
+│   │   └── 📄 package.json
+│   ├── 📂 db
+│   │   ├── 📂 src
+│   │   │   └── 📄 index.ts ➤ S2: Tenant Isolation Protocol
+│   │   ├── 📄 drizzle.config.ts
+│   │   └── 📄 package.json
+│   ├── 📂 events
+│   └── 📂 ui
+├── 📂 scripts
+│   ├── 📄 deploy.sh ➤ !/bin/bash
+│   ├── 📄 server-setup.sh ➤ !/bin/bash
+│   └── 📄 test-s1.ts ➤ !/usr/bin/env bun
+├── 📄 biome.json
+├── 📄 docker-compose.yml ➤ PostgreSQL with pgvector extension
+├── 📄 package.json
+└── 📄 turbo.json

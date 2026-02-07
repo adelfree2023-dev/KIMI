@@ -31,9 +31,12 @@ export async function resolveTenant(
   tenantStorage.run(
     {
       tenantId: mockTenant.id,
+      schemaName: `tenant_${mockTenant.id}`,
       subdomain: mockTenant.subdomain,
       plan: mockTenant.plan,
       features: mockTenant.enabledFeatures,
+      isActive: true,
+      createdAt: new Date(),
     },
     () => {
       next();
@@ -66,4 +69,35 @@ export function extractSubdomain(host: string): string | null {
   }
 
   return null;
+}
+
+/**
+ * Strategy pattern for tenant resolution
+ */
+export interface TenantResolutionStrategy {
+  resolve(req: Request): string | null;
+}
+
+/**
+ * Extracts tenant from Host header (subdomain)
+ */
+export function extractTenantFromHost(req: Request): string | null {
+  const host = req.headers.host || '';
+  return extractSubdomain(host);
+}
+
+/**
+ * Extracts tenant from X-Tenant-ID header
+ */
+export function extractTenantFromHeader(req: Request): string | null {
+  const tenantId = req.headers['x-tenant-id'];
+  if (Array.isArray(tenantId)) return tenantId[0] || null;
+  return tenantId || null;
+}
+
+/**
+ * Extracts tenant from JWT (mock implementation for now)
+ */
+export function extractTenantFromJWT(_req: Request): string | null {
+  return null; // TODO: Implement JWT extraction
 }

@@ -15,6 +15,8 @@ export interface TenantContext {
   readonly subdomain: string;
   readonly plan: 'free' | 'basic' | 'pro' | 'enterprise';
   readonly features: readonly string[];
+  readonly schemaName: string;
+  readonly isActive: boolean;
   readonly createdAt: Date;
 }
 

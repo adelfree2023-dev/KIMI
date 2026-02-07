@@ -298,7 +298,7 @@ export async function getTenantStats(): Promise<{
     byStatus[tenant.status] = (byStatus[tenant.status] || 0) + 1;
     byPlan[tenant.plan] = (byPlan[tenant.plan] || 0) + 1;
 
-    if (new Date(tenant.createdAt) > sevenDaysAgo) {
+    if (tenant.createdAt && new Date(tenant.createdAt) > sevenDaysAgo) {
       recent++;
     }
   }

@@ -5,7 +5,7 @@
  */
 
 import { onboardingBlueprints } from '@apex/db';
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, and } from 'drizzle-orm';
 import { publicDb } from '@apex/db';
 
 export interface BlueprintTemplate {
@@ -191,8 +191,7 @@ export async function getDefaultBlueprint(plan: string = 'free'): Promise<Bluepr
   const results = await publicDb
     .select()
     .from(onboardingBlueprints)
-    .where(eq(onboardingBlueprints.isDefault, 'true'))
-    .where(eq(onboardingBlueprints.plan, plan))
+    .where(and(eq(onboardingBlueprints.isDefault, 'true'), eq(onboardingBlueprints.plan, plan)))
     .limit(1);
 
   if (results.length === 0) {

@@ -34,6 +34,8 @@ export function runWithTenantContext<T>(
   context: TenantContext,
   callback: () => T | Promise<T>
 ): T | Promise<T> {
+  // 🔒 S2 Enforcement: Ensure context is immutable at runtime
+  Object.freeze(context);
   return tenantStorage.run(context, callback);
 }
 

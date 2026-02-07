@@ -31,9 +31,30 @@ export default defineConfig({
     },
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'json', 'html'],
+      all: true, // Check ALL files, not just tested ones
+      reporter: ['text', 'json', 'html', 'json-summary'],
       include: ['src/**/*.ts'],
-      exclude: ['**/*.spec.ts', '**/*.test.ts'],
+      exclude: ['**/*.spec.ts', '**/*.test.ts', '**/dto/**', '**/node_modules/**'],
+      // Constitution Rule 4.1: Minimum coverage thresholds
+      thresholds: {
+        branches: 80,
+        functions: 80,
+        lines: 80,
+        statements: 80,
+        // Critical modules must have 100% coverage
+        'src/provisioning/**': {
+          branches: 100,
+          functions: 100,
+          lines: 100,
+          statements: 100,
+        },
+        'src/auth/**': {
+          branches: 100,
+          functions: 100,
+          lines: 100,
+          statements: 100,
+        },
+      },
     },
     // Ensure workspace packages are transformed
     server: {

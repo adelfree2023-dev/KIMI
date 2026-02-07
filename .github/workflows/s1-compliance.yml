@@ -245,7 +245,7 @@ jobs:
   build:
     name: Turborepo Build
     runs-on: ubuntu-latest
-    needs: [s1-compliance, security-audit-lint, db-schema-validation, dependency-boundary-check, zod-schema-lockdown]
+    needs: [s1-compliance, security-audit-lint, db-schema-validation, dependency-boundary-check, zod-schema-lockdown, uncovered-files-check]
     steps:
       - uses: actions/checkout@v4
 
@@ -385,17 +385,126 @@ jobs:
           
           # Check 80% overall threshold
           if (( $(echo "$overall_coverage < 80" | bc -l) )); then
-            echo "❌ FAIL: Overall coverage ${overall_coverage}% is below 80% threshold"
+            echo "❌ FAIL: Overall coverage ${overall_coverage}% is below 80% threshold (Rule 4.1)"
             exit 1
           fi
           
           echo "✅ PASS: Overall coverage ${overall_coverage}% meets 80% threshold"
+
+      - name: Verify No Zero-Coverage Files
+        run: |
+          echo "🔍 Checking for Untested Files (Rule 4.1)..."
           
-          # Core modules check (config, auth, middleware should be 90%+)
-          echo "Checking core modules coverage (90% threshold)..."
+          if [ ! -f "coverage/coverage-final.json" ]; then
+            echo "⚠️ Coverage final report not found, skipping zero-coverage check"
+            exit 0
+          fi
           
-          # This would need specific coverage data per module
-          # For now, we assume the overall check is sufficient
+          # Extract files with 0% coverage
+          zero_coverage=$(cat coverage/coverage-final.json | grep -E '".*":\s*\{[^}]*"pct":\s*0' | grep -o '"[^"]*\.ts":' | tr -d '":' || true)
+          
+          if [ -n "$zero_coverage" ]; then
+            echo "❌ FAIL: The following files have ZERO coverage (Rule 4.1 Violation):"
+            echo "$zero_coverage"
+            echo ""
+            echo "Every modified or new file must have tests. Untested code is broken code."
+            exit 1
+          fi
+          
+          echo "✅ PASS: No zero-coverage files found"
+
+      - name: Report Coverage to PR
+        uses: davelosert/vitest-coverage-report-action@v2
+        if: always() && github.event_name == 'pull_request'
+        with:
+          json-summary-path: './coverage/coverage-summary.json'
+          json-final-path: './coverage/coverage-final.json'
+          file-coverage-mode: all
+          name: 'Apex v2 Coverage Report'
+
+  uncovered-files-check:
+    name: Uncovered Files Detection (Rule 4.1 Strict)
+    runs-on: ubuntu-latest
+    needs: [build]
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: apex
+          POSTGRES_PASSWORD: apex
+          POSTGRES_DB: test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Build packages
+        run: bun run turbo run build
+
+      - name: Run All Tests with Full Coverage
+        run: |
+          echo "🧪 Running full test suite with coverage..."
+          bun x vitest run --coverage --reporter=json --reporter=verbose > coverage-report.txt 2>&1 || true
+          cat coverage-report.txt
+        env:
+          DATABASE_URL: postgresql://apex:apex@localhost:5432/test
+          JWT_SECRET: test_secret_key_for_ci_environment_only_32
+
+      - name: Detect Uncovered New/Modified Files
+        run: |
+          echo "🔍 Detecting uncovered files in PR..."
+          
+          # Get list of changed files in this PR
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            changed_files=$(git diff --name-only --diff-filter=AM origin/${{ github.base_ref }}...HEAD | grep -E '\.(ts|tsx)$' | grep -v '\.test\.' | grep -v '\.spec\.' || true)
+          else
+            # For push events, check all source files
+            changed_files=$(find packages/*/src apps/*/src -name '*.ts' -not -name '*.test.ts' -not -name '*.spec.ts' 2>/dev/null || true)
+          fi
+          
+          if [ -z "$changed_files" ]; then
+            echo "✅ No TypeScript files changed in this PR"
+            exit 0
+          fi
+          
+          echo "Changed files to check for coverage:"
+          echo "$changed_files"
+          
+          # Check each changed file for coverage
+          uncovered_files=""
+          for file in $changed_files; do
+            # Check if file exists in coverage report
+            if ! grep -q "$file" coverage/coverage-final.json 2>/dev/null; then
+              # File not in coverage report = not tested
+              uncovered_files="$uncovered_files\n$file"
+            fi
+          done
+          
+          if [ -n "$uncovered_files" ]; then
+            echo "❌ FAIL: The following modified/new files lack test coverage (Rule 4.1):"
+            echo -e "$uncovered_files"
+            echo ""
+            echo "📝 Action Required:"
+            echo "   1. Add unit tests for each uncovered file"
+            echo "   2. Ensure coverage report includes these files"
+            echo "   3. Coverage threshold: 100% for critical modules, 80% for others"
+            exit 1
+          fi
+          
+          echo "✅ PASS: All modified/new files have test coverage"
 
   provisioning-smoke-test:
     name: Provisioning Smoke Test (North Star <60s)

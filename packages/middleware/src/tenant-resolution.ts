@@ -4,7 +4,7 @@ import { tenantStorage } from './tenant-context.js';
 
 export async function resolveTenant(
   req: Request,
-  res: Response,
+  _res: Response,
   next: NextFunction
 ) {
   const host = req.headers.host || '';

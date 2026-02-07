@@ -11,7 +11,6 @@ import {
   requireTenantContext,
   runWithTenantContext,
   type TenantContext,
-  tenantStorage,
 } from './connection-context';
 
 describe('Tenant Context Management', () => {

@@ -74,7 +74,10 @@ export const PLAN_LIMITS: Record<PlanType, PlanLimits> = {
  * @param plan - Plan identifier
  */
 export function getPlanLimits(plan: PlanType): PlanLimits {
-  return PLAN_LIMITS[plan] || PLAN_LIMITS.free;
+  if (!PLAN_LIMITS[plan]) {
+    throw new Error(`Invalid plan type: ${plan}`);
+  }
+  return PLAN_LIMITS[plan];
 }
 
 /**
@@ -85,7 +88,7 @@ export function isFeatureAllowed(plan: PlanType, feature: string): boolean {
   if (plan === 'enterprise') return true;
   if (
     plan === 'pro' &&
-    ['api_access', 'webhooks', 'priority_support', 'multi_warehouse'].includes(
+    ['api_access', 'webhooks', 'priority_support', 'multi_warehouse', 'customDomain'].includes(
       feature
     )
   )
@@ -145,7 +148,7 @@ export async function validateSubdomainAvailability(
   if (subdomain.includes(' '))
     return { available: false, reason: 'No spaces allowed' };
   if (['admin', 'api', 'www'].includes(subdomain))
-    return { available: false, reason: 'Reserved word' };
+    return { available: false, reason: 'reserved word' };
 
   // DB check would go here
   return { available: true };

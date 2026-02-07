@@ -13,7 +13,7 @@ import { Request, Response, NextFunction } from 'express';
 export const securityHeaders = {
   // Strict Transport Security (HSTS)
   'Strict-Transport-Security': 'max-age=31536000; includeSubDomains; preload',
-  
+
   // Content Security Policy
   'Content-Security-Policy': [
     "default-src 'self'",
@@ -26,19 +26,19 @@ export const securityHeaders = {
     "base-uri 'self'",
     "form-action 'self'",
   ].join('; '),
-  
+
   // Prevent clickjacking
   'X-Frame-Options': 'DENY',
-  
+
   // MIME sniffing protection
   'X-Content-Type-Options': 'nosniff',
-  
+
   // XSS protection (legacy but still useful)
   'X-XSS-Protection': '1; mode=block',
-  
+
   // Referrer policy
   'Referrer-Policy': 'strict-origin-when-cross-origin',
-  
+
   // Permissions policy (formerly Feature-Policy)
   'Permissions-Policy': [
     'accelerometer=()',
@@ -59,11 +59,11 @@ export class SecurityHeadersMiddleware implements NestMiddleware {
     for (const [header, value] of Object.entries(securityHeaders)) {
       res.setHeader(header, value);
     }
-    
+
     // Remove headers that leak info
     res.removeHeader('X-Powered-By');
     res.removeHeader('Server');
-    
+
     next();
   }
 }
@@ -93,7 +93,7 @@ export const defaultCorsConfig: CorsConfig = {
   origin: (origin, callback) => {
     // Allow requests with no origin (mobile apps, curl, etc.)
     if (!origin) return callback(null, true);
-    
+
     // Standard development origins (only these are allowed in dev)
     const devOrigins = [
       'http://localhost:3000',
@@ -103,11 +103,11 @@ export const defaultCorsConfig: CorsConfig = {
       'http://127.0.0.1:3001',
       'http://127.0.0.1:5173',
     ];
-    
+
     // Load additional origins from env
     const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',').filter(Boolean) || [];
     const whitelist = [...devOrigins, ...allowedOrigins];
-    
+
     // CRITICAL FIX (S8): Even in development, only allow whitelisted origins
     // This prevents accidental open CORS if NODE_ENV is misconfigured
     if (whitelist.includes(origin)) {
@@ -118,7 +118,7 @@ export const defaultCorsConfig: CorsConfig = {
     }
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-ID'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-ID', 'X-Tenant-ID'],
   exposedHeaders: ['X-RateLimit-Limit', 'X-RateLimit-Remaining', 'X-RateLimit-Reset'],
   credentials: true,
   maxAge: 86400, // 24 hours
@@ -146,11 +146,11 @@ export function getTenantCorsConfig(tenantDomain: string): CorsConfig {
 export class CsrfProtection {
   private readonly tokenName = 'XSRF-TOKEN';
   private readonly headerName = 'X-XSRF-TOKEN';
-  
+
   generateToken(): string {
     return randomBytes(32).toString('hex');
   }
-  
+
   setCookie(res: Response, token: string): void {
     res.cookie(this.tokenName, token, {
       httpOnly: false, // Must be readable by JavaScript
@@ -159,15 +159,15 @@ export class CsrfProtection {
       path: '/',
     });
   }
-  
+
   validate(req: Request): boolean {
     const cookieToken = req.cookies?.[this.tokenName];
     const headerToken = req.headers[this.headerName.toLowerCase()];
-    
+
     if (!cookieToken || !headerToken) {
       return false;
     }
-    
+
     return cookieToken === headerToken;
   }
 }
@@ -182,11 +182,11 @@ import { CanActivate, ExecutionContext } from '@nestjs/common';
 @Injectable()
 export class CsrfGuard implements CanActivate {
   private csrf = new CsrfProtection();
-  
+
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest<Request>();
     const response = context.switchToHttp().getResponse<Response>();
-    
+
     // Skip for GET/HEAD/OPTIONS
     if (['GET', 'HEAD', 'OPTIONS'].includes(request.method)) {
       // Set new token for safe methods
@@ -194,7 +194,7 @@ export class CsrfGuard implements CanActivate {
       this.csrf.setCookie(response, token);
       return true;
     }
-    
+
     // Validate for state-changing methods
     return this.csrf.validate(request);
   }

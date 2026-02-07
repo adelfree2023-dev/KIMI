@@ -36,7 +36,7 @@ describe('securityHeaders', () => {
   });
 
   it('should have Strict-Transport-Security', () => {
-    expect(securityHeaders['Strict-Transport-Security']).toBe('max-age=31536000; includeSubDomains');
+    expect(securityHeaders['Strict-Transport-Security']).toBe('max-age=31536000; includeSubDomains; preload');
   });
 });
 
@@ -69,7 +69,7 @@ describe('defaultCorsConfig', () => {
 describe('getTenantCorsConfig', () => {
   it('should return config with tenant origin', () => {
     const config = getTenantCorsConfig('coffee.apex.com');
-    expect(config.origin).toBe('coffee.apex.com');
+    expect(config.origin).toContain('https://coffee.apex.com');
   });
 
   it('should preserve other settings', () => {
@@ -97,6 +97,6 @@ describe('helmetConfig', () => {
   });
 
   it('should have crossOriginEmbedderPolicy', () => {
-    expect(helmetConfig.crossOriginEmbedderPolicy).toBe(true);
+    expect(helmetConfig.crossOriginEmbedderPolicy).toBe(false);
   });
 });

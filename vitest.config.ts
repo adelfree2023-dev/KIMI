@@ -1,4 +1,5 @@
 import { defineConfig } from 'vitest/config';
+import tsconfigPaths from 'vite-tsconfig-paths';
 
 /**
  * Root Vitest Configuration
@@ -7,6 +8,7 @@ import { defineConfig } from 'vitest/config';
  * Will be increased back to 80% after adding more tests
  */
 export default defineConfig({
+  plugins: [tsconfigPaths()],
   test: {
     globals: true,
     environment: 'node',

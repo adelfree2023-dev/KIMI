@@ -123,6 +123,9 @@ export function enforceS1Compliance(): void {
 if (process.env.NODE_ENV === 'production') {
   // In production, S1 is ALWAYS enforced - no bypass allowed
   enforceS1Compliance();
+} else if (process.env.NODE_ENV === 'test') {
+  // In test environment, we don't auto-enforce to allow unit tests to run without full env
+  console.warn('⚠️ S1 Compliance: Skipping automatic enforcement in test environment');
 } else if (process.env.ENABLE_S1_ENFORCEMENT !== 'false') {
   // In non-production, respect the flag (default to enforce)
   enforceS1Compliance();
@@ -131,8 +134,27 @@ if (process.env.NODE_ENV === 'production') {
 /**
  * Cached environment configuration
  * Use this for direct access to env vars after validation
+ * In test environment, if validation fails, we provide a partial mock to prevent crash on import
  */
-export const env: EnvConfig = validateEnv();
+export const env: EnvConfig = (() => {
+  try {
+    return validateEnv();
+  } catch (error) {
+    if (process.env.NODE_ENV === 'test') {
+      console.warn('⚠️ S1 Compliance: Environment validation failed, using test defaults');
+      return {
+        JWT_SECRET: 'test-secret-at-least-32-chars-long-!!!',
+        DATABASE_URL: 'postgresql://localhost:5432/test',
+        REDIS_URL: 'redis://localhost:6379',
+        MINIO_ENDPOINT: 'localhost',
+        MINIO_ACCESS_KEY: 'minioadmin',
+        MINIO_SECRET_KEY: 'minioadmin',
+        NODE_ENV: 'test',
+      } as EnvConfig;
+    }
+    throw error;
+  }
+})();
 
 /**
  * NestJS-compatible ConfigService

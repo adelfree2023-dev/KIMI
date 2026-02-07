@@ -16,7 +16,14 @@ import {
 const mockJson = vi.fn();
 const mockStatus = vi.fn().mockReturnValue({ json: mockJson });
 const mockGetResponse = vi.fn().mockReturnValue({ status: mockStatus });
-const mockGetRequest = vi.fn().mockReturnValue({ url: '/test' });
+const mockGetRequest = vi.fn().mockReturnValue({
+  url: '/test',
+  method: 'GET',
+  ip: '127.0.0.1',
+  headers: {
+    'user-agent': 'test-agent'
+  }
+});
 const mockGetStatus = vi.fn();
 const mockHost = {
   switchToHttp: () => ({
@@ -39,9 +46,9 @@ describe('GlobalExceptionFilter', () => {
 
   it('should handle generic errors', () => {
     const error = new Error('Test error');
-    
+
     filter.catch(error, mockHost as any);
-    
+
     expect(mockStatus).toHaveBeenCalledWith(500);
   });
 });

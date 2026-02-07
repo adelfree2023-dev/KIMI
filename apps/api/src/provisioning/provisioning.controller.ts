@@ -21,7 +21,7 @@ export class ProvisioningController {
 
   constructor(
     private readonly provisioningService: ProvisioningService,
-    private readonly audit: AuditService
+    readonly _audit: AuditService
   ) {}
 
   /**

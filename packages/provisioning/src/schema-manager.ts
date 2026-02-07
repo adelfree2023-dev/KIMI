@@ -178,7 +178,7 @@ export function sanitizeSchemaName(subdomain: string): string {
     throw new Error('Invalid subdomain');
   }
 
-  // PG identifiers can't start with numbers (but we prefix with tenant_ so it's usually safe, 
+  // PG identifiers can't start with numbers (but we prefix with tenant_ so it's usually safe,
   // but let's keep the internal logic consistent)
   const sanitized = clean.replace(/^[0-9]/, '_$&');
 

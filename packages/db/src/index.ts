@@ -6,6 +6,7 @@
 import { validateEnv } from '@apex/config';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import pkg from 'pg';
+
 const { Pool } = pkg;
 
 export * from './schema.js';

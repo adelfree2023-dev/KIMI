@@ -4,9 +4,9 @@
  */
 
 export {
-  getTenantContext,
   getCurrentTenantContext,
   getCurrentTenantId,
+  getTenantContext,
   hasTenantContext,
   requireTenantContext,
   runWithTenantContext,

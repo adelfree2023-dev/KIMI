@@ -30,7 +30,7 @@ export interface ProvisioningOptions {
 export class ProvisioningService {
   private readonly logger = new Logger(ProvisioningService.name);
 
-  constructor(private readonly audit: AuditService) { }
+  constructor(private readonly audit: AuditService) {}
 
   /**
    * Provision a new store in under 60 seconds

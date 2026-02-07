@@ -9,8 +9,6 @@ import {
   createTenantSchema,
   dropTenantSchema,
   listTenantSchemas,
-  type SchemaCreationResult,
-  type SchemaVerificationResult,
   sanitizeSchemaName,
   verifySchemaExists,
 } from './schema-manager.js';

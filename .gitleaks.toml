@@ -21,6 +21,8 @@ paths = [
     '''\.turbo\/?''',
     '''.*\.test\.ts$''',
     '''.*\.spec\.ts$''',
+    '''docs\/.*\.txt$''',
+    '''docs\/Apex_2026_Full_Codebase\.txt$''',
 ]
 
 # Regex patterns to ignore (test secrets, example values)

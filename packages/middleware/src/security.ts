@@ -54,11 +54,11 @@ export const securityHeaders = {
 
 @Injectable()
 export class SecurityHeadersMiddleware implements NestMiddleware {
-  use(req: Request, res: Response, next: NextFunction): void {
+  use(_req: Request, res: Response, next: NextFunction): void {
     // Apply security headers
-    Object.entries(securityHeaders).forEach(([header, value]) => {
+    for (const [header, value] of Object.entries(securityHeaders)) {
       res.setHeader(header, value);
-    });
+    }
     
     // Remove headers that leak info
     res.removeHeader('X-Powered-By');

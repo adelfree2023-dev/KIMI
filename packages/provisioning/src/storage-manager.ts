@@ -205,7 +205,9 @@ export async function getStorageStats(subdomain: string): Promise<StorageStats> 
     let quotaBytes = PLAN_QUOTAS.free;
     try {
       const tags = await client.getBucketTagging(bucketName);
-      const plan = tags.plan || 'free';
+      // Tags is Tag[] array, find the plan tag
+      const planTag = tags.find((t) => t.Key === 'plan');
+      const plan = (planTag?.Value as keyof typeof PLAN_QUOTAS) || 'free';
       quotaBytes = PLAN_QUOTAS[plan] || PLAN_QUOTAS.free;
     } catch {
       // Ignore tagging errors, use default quota

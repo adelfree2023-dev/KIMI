@@ -121,3 +121,38 @@ export function enforceS1Compliance(): void {
 if (process.env.ENABLE_S1_ENFORCEMENT !== 'false') {
   enforceS1Compliance();
 }
+
+/**
+ * Cached environment configuration
+ * Use this for direct access to env vars after validation
+ */
+export const env: EnvConfig = validateEnv();
+
+/**
+ * NestJS-compatible ConfigService
+ * Provides typed access to environment variables
+ */
+export class ConfigService {
+  private readonly config: EnvConfig;
+
+  constructor() {
+    this.config = env;
+  }
+
+  /**
+   * Get a configuration value by key
+   */
+  get<K extends keyof EnvConfig>(key: K): EnvConfig[K] {
+    return this.config[key];
+  }
+
+  /**
+   * Get a configuration value with a default fallback
+   */
+  getWithDefault<K extends keyof EnvConfig>(
+    key: K,
+    defaultValue: EnvConfig[K]
+  ): EnvConfig[K] {
+    return this.config[key] ?? defaultValue;
+  }
+}

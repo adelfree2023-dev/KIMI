@@ -67,9 +67,17 @@ class RedisRateLimitStore {
       await this.client.connect();
       this.fallbackToMemory = false;
     } catch {
-      // Redis unavailable - fallback to memory (with warning)
-      console.warn('⚠️ S6: Redis unavailable, falling back to in-memory rate limiting (NOT for production multi-instance)');
-      this.fallbackToMemory = true;
+      // CRITICAL FIX (S6): In production, reject requests if Redis unavailable
+      // In non-production, fallback to memory with warning
+      const isProduction = process.env.NODE_ENV === 'production';
+      if (isProduction) {
+        console.error('❌ S6 CRITICAL: Redis unavailable in production. Rate limiting cannot function securely.');
+        // Don't set fallbackToMemory - this will cause canActivate to throw
+        this.fallbackToMemory = false;
+      } else {
+        console.warn('⚠️ S6: Redis unavailable, falling back to in-memory rate limiting (NOT for production multi-instance)');
+        this.fallbackToMemory = true;
+      }
     } finally {
       this.connecting = false;
     }
@@ -77,6 +85,17 @@ class RedisRateLimitStore {
 
   async increment(key: string, windowMs: number): Promise<{ count: number; ttl: number }> {
     const client = await this.getClient();
+    
+    // CRITICAL FIX (S6): In production, reject if Redis unavailable
+    if (!client && process.env.NODE_ENV === 'production') {
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.SERVICE_UNAVAILABLE,
+          message: 'Rate limiting service unavailable',
+        },
+        HttpStatus.SERVICE_UNAVAILABLE
+      );
+    }
     
     if (client) {
       // Redis implementation (distributed)
@@ -96,7 +115,7 @@ class RedisRateLimitStore {
       
       return { count, ttl };
     } else {
-      // Memory fallback (single instance only)
+      // Memory fallback (single instance only) - non-production only
       const now = Date.now();
       const existing = this.memoryStore.get(key);
       

@@ -94,10 +94,15 @@ export class AuditService {
       // throw new Error('Audit Persistence Failure');
     } finally {
       // 🔒 S2 Enforcement: Reset search_path before releasing to pool
-      await client.query('SET search_path TO public').catch(() => {
-        // Ignore errors during cleanup
-      });
-      client.release();
+      try {
+        await client.query('SET search_path TO public');
+        client.release();
+      } catch (cleanupError) {
+        // CRITICAL FIX (S2): If cleanup fails, destroy the connection instead of releasing to pool
+        // This prevents context contamination
+        console.error('S2 CRITICAL: Failed to reset search_path, destroying connection');
+        client.release(true); // true = destroy connection
+      }
     }
   }
 

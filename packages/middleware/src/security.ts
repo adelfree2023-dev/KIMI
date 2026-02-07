@@ -85,30 +85,35 @@ export interface CorsConfig {
  * S8 FIX: Changed from `origin: false` to dynamic whitelist
  * origin: false breaks all cross-origin requests
  * origin: true allows all (unsafe)
- * This uses a whitelist approach with localhost fallback for dev
+ * This uses a whitelist approach with explicit configuration
  */
 export const defaultCorsConfig: CorsConfig = {
   // Use whitelist pattern - by default only same-origin
-  // In production, configure with actual domains
+  // In production, configure with actual domains via ALLOWED_ORIGINS
   origin: (origin, callback) => {
     // Allow requests with no origin (mobile apps, curl, etc.)
     if (!origin) return callback(null, true);
     
-    // Development whitelist
+    // Standard development origins (only these are allowed in dev)
     const devOrigins = [
       'http://localhost:3000',
       'http://localhost:3001',
       'http://localhost:5173',
       'http://127.0.0.1:3000',
+      'http://127.0.0.1:3001',
+      'http://127.0.0.1:5173',
     ];
     
-    // Production should set ALLOWED_ORIGINS env var
-    const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [];
+    // Load additional origins from env
+    const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',').filter(Boolean) || [];
     const whitelist = [...devOrigins, ...allowedOrigins];
     
-    if (whitelist.includes(origin) || process.env.NODE_ENV === 'development') {
+    // CRITICAL FIX (S8): Even in development, only allow whitelisted origins
+    // This prevents accidental open CORS if NODE_ENV is misconfigured
+    if (whitelist.includes(origin)) {
       callback(null, true);
     } else {
+      console.warn(`S8: CORS blocked request from origin: ${origin}`);
       callback(new Error('Not allowed by CORS'));
     }
   },

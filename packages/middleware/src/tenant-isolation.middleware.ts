@@ -6,6 +6,8 @@
 
 import { Injectable, NestMiddleware, UnauthorizedException } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
+import { publicDb, tenants } from '@apex/db';
+import { eq } from 'drizzle-orm';
 import { tenantStorage, TenantContext } from './connection-context.js';
 
 export interface TenantRequest extends Request {
@@ -40,26 +42,53 @@ function extractSubdomain(host: string): string | null {
 
 /**
  * Validates tenant exists and is active
+ * CRITICAL FIX (S2): Replaced mock data with real DB query
  */
 async function validateTenant(subdomain: string): Promise<TenantContext> {
-  // TODO: Query database
-  // const tenant = await db.query.tenants.findFirst({
-  //   where: eq(tenants.subdomain, subdomain)
-  // });
-  
-  // Mock for now - will be replaced with DB query
-  if (subdomain === 'invalid') {
-    throw new UnauthorizedException('Tenant not found');
+  try {
+    // Query database for tenant
+    const result = await publicDb
+      .select({
+        id: tenants.id,
+        subdomain: tenants.subdomain,
+        plan: tenants.plan,
+        status: tenants.status,
+      })
+      .from(tenants)
+      .where(eq(tenants.subdomain, subdomain))
+      .limit(1);
+
+    if (result.length === 0) {
+      throw new UnauthorizedException('Tenant not found');
+    }
+
+    const tenant = result[0];
+
+    // Check tenant status
+    if (tenant.status === 'suspended') {
+      throw new UnauthorizedException('Tenant is suspended');
+    }
+
+    if (tenant.status !== 'active') {
+      throw new UnauthorizedException('Tenant is not active');
+    }
+
+    return {
+      tenantId: tenant.id,
+      schemaName: `tenant_${tenant.id.replace(/-/g, '_')}`,
+      subdomain: tenant.subdomain,
+      plan: tenant.plan as 'free' | 'basic' | 'pro' | 'enterprise',
+      isActive: true,
+    };
+  } catch (error) {
+    // If it's already an UnauthorizedException, re-throw it
+    if (error instanceof UnauthorizedException) {
+      throw error;
+    }
+    // Log the error but don't expose internal details
+    console.error(`S2 Error validating tenant ${subdomain}:`, error);
+    throw new UnauthorizedException('Tenant validation failed');
   }
-  
-  return {
-    tenantId: `tenant_${subdomain}`,
-    schemaName: `tenant_${subdomain}`,
-    subdomain,
-    plan: 'pro',
-    isActive: true,
-  };
-}
 
 @Injectable()
 export class TenantIsolationMiddleware implements NestMiddleware {

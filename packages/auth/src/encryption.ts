@@ -107,9 +107,10 @@ export class EncryptionService {
   constructor() {
     this.masterKey = process.env.ENCRYPTION_MASTER_KEY || '';
     
-    // S7 FIX: Always validate key length (not just in production)
-    // Empty keys allowed only in test environment with explicit flag
-    const isTestMode = process.env.NODE_ENV === 'test' || process.env.SKIP_ENCRYPTION === 'true';
+    // CRITICAL FIX (S7): Strict enforcement for production
+    // In production, test keys are NEVER allowed, regardless of environment variables
+    const isProduction = process.env.NODE_ENV === 'production';
+    const isTestMode = process.env.NODE_ENV === 'test' && !isProduction;
     
     if (!this.masterKey) {
       if (isTestMode) {
@@ -126,10 +127,24 @@ export class EncryptionService {
       throw new Error('S1 Violation: ENCRYPTION_MASTER_KEY must be at least 32 characters');
     }
     
-    // Additional validation for production
-    if (process.env.NODE_ENV === 'production') {
-      if (this.masterKey.includes('test') || this.masterKey.includes('default')) {
-        throw new Error('S1 Violation: ENCRYPTION_MASTER_KEY appears to be a test/default value');
+    // CRITICAL FIX (S7): In production, explicitly reject any key containing 'test' or 'default'
+    if (isProduction) {
+      const forbiddenPatterns = ['test', 'default', 'example', 'sample', '123456', 'password'];
+      const keyLower = this.masterKey.toLowerCase();
+      for (const pattern of forbiddenPatterns) {
+        if (keyLower.includes(pattern)) {
+          throw new Error(`S1 Violation: ENCRYPTION_MASTER_KEY contains forbidden pattern '${pattern}'. Production keys must be cryptographically random.`);
+        }
+      }
+      
+      // Additional check: ensure key has high entropy (mix of chars)
+      const hasUpper = /[A-Z]/.test(this.masterKey);
+      const hasLower = /[a-z]/.test(this.masterKey);
+      const hasNumber = /[0-9]/.test(this.masterKey);
+      const hasSpecial = /[^A-Za-z0-9]/.test(this.masterKey);
+      
+      if (!(hasUpper && hasLower && hasNumber && hasSpecial)) {
+        throw new Error('S1 Violation: ENCRYPTION_MASTER_KEY must contain uppercase, lowercase, numbers, and special characters');
       }
     }
   }

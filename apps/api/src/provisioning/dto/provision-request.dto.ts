@@ -34,18 +34,21 @@ export const ProvisionRequestSchema = z.object({
   plan: z.enum(['free', 'basic', 'pro', 'enterprise']).default('free'),
 
   /**
-   * Optional Super Admin secret key
+   * Super Admin secret key (REQUIRED)
    * S3 Validation: Must be 32-128 chars, alphanumeric + hyphen/underscore only
+   * CRITICAL FIX (S3): Removed .optional() - key is now mandatory
    */
   superAdminKey: z
-    .string()
+    .string({
+      required_error: 'Super Admin key is required',
+      invalid_type_error: 'Super Admin key must be a string'
+    })
     .min(32, 'Super Admin key must be at least 32 characters')
     .max(128, 'Super Admin key too long (max 128)')
     .regex(
       /^[A-Za-z0-9-_]+$/,
       'Super Admin key must be alphanumeric with hyphens/underscores only'
     )
-    .optional()
 });
 
 export class ProvisionRequestDto extends createZodDto(ProvisionRequestSchema) {}

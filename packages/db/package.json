@@ -5,11 +5,12 @@
   "exports": {
     ".": {
       "import": "./dist/index.js",
+      "require": "./dist/index.cjs",
       "types": "./dist/index.d.ts"
     }
   },
   "scripts": {
-    "build": "bun build ./src/index.ts --outdir ./dist --target node",
+    "build": "bun build ./src/index.ts --outdir ./dist --target node && bun build ./src/index.ts --outfile ./dist/index.cjs --target node",
     "db:generate": "drizzle-kit generate:pg",
     "db:migrate": "bun run src/migrate.ts",
     "db:studio": "drizzle-kit studio",

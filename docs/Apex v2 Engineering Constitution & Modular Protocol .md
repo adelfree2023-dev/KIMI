@@ -28,6 +28,23 @@ This Constitution is the **single source of truth**. Violation of any clause inv
 
 **RULE 1.1:** `apps/*` **MUST NEVER** import from another `apps/*`. All cross-app communication occurs via `packages/events` or API contracts.  
 **RULE 1.2:** `packages/*` **MUST** be versioned internally. Breaking changes require `MAJOR` bump in `package.json` and Turborepo cache invalidation.  
+**RULE 1.5:** Internal packages (e.g., `@apex/audit`) **MUST** provide dual-module support (ESM and CJS) in `package.json` to ensure resolution consistency across Vitest (ESM) and NestJS (CJS context).
+
+---
+
+## 🏥 PILLAR 6: S9 SYSTEM HEALTH & RESILIENCE
+*A "running" service is not necessarily a "healthy" service.*
+
+### 🔷 Protocol S9: Proactive Health Monitoring
+All deployable applications **MUST** implement `/health` and `/ready` endpoints using NestJS Terminus or equivalent.
+- **Liveness:** Application is up and responding.
+- **Readiness:** Application is connected to all downstream dependencies (PostgreSQL, Redis, MinIO).
+
+**RULE 6.1:** Traefik and CI pipelines **MUST** wait for the Readiness check to pass before routing production traffic or marking a deployment as successful.
+
+---
+
+## ⚖️ CONSTITUTIONAL AMENDMENTS
 
 ### 🔷 Service Isolation (Modular Monolith Boundaries)  
 Each domain module **MUST** be encapsulated as a NestJS module with strict boundaries:  

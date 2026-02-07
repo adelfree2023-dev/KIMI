@@ -112,6 +112,13 @@ Security is not an add-on; it is baked into the core architecture.
     *   CORS configured dynamically per Tenant domain.
     *   CSRF protection for cookie-based sessions.
 
+### **S9: System Health & Readiness** 🏥
+*   **Tool**: **@nestjs/terminus**.
+*   **Implementation**:
+    *   **Liveness Probe**: `/health` (Basic availability).
+    *   **Readiness Probe**: `/ready` (DB, Redis, MinIO connectivity).
+    *   **Automation**: Traefik stops routing to unhealthy instances.
+
 ---
 
 ## 🛠️ 3. Development Workflow (DevOps)

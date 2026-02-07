@@ -20,7 +20,7 @@ export interface TenantContext {
 
 /**
  * AsyncLocalStorage instance for tenant context
- * Usage: tenantStorage.run(context, () => { /* your code here */ });
+ * Usage: tenantStorage.run(context, () => { // your code here });
  */
 export const tenantStorage = new AsyncLocalStorage<TenantContext>();
 

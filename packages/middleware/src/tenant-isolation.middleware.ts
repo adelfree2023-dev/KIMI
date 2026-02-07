@@ -53,6 +53,7 @@ async function validateTenant(subdomain: string): Promise<TenantContext> {
         subdomain: tenants.subdomain,
         plan: tenants.plan,
         status: tenants.status,
+        createdAt: tenants.createdAt,
       })
       .from(tenants)
       .where(eq(tenants.subdomain, subdomain))

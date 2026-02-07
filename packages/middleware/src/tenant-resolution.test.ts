@@ -6,7 +6,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { Request, Response } from 'express';
 import { extractSubdomain, resolveTenant } from './tenant-resolution.js';
-import { tenantStorage } from './tenant-context.js';
+import { tenantStorage } from './connection-context.js';
 
 describe('extractSubdomain', () => {
   it('should extract subdomain from apex.com domain', () => {

@@ -1,0 +1,64 @@
+name: 'Verify Compliance Rule'
+description: 'Verify a specific compliance rule and report violations'
+
+inputs:
+  rule-name:
+    description: 'Name of the rule being checked'
+    required: true
+  rule-id:
+    description: 'Rule ID (e.g., S1, Rule-1.1)'
+    required: true
+  check-command:
+    description: 'Command to run for verification'
+    required: true
+  failure-message:
+    description: 'Message to display on failure'
+    required: true
+  remediation-steps:
+    description: 'Steps to fix the violation'
+    required: true
+  severity:
+    description: 'Severity level (CRITICAL, HIGH, MEDIUM, LOW)'
+    required: false
+    default: 'CRITICAL'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Run Compliance Check
+      id: check
+      shell: bash
+      run: |
+        echo "🔍 Checking ${{ inputs.rule-name }} (${{ inputs.rule-id }})..."
+        
+        set +e
+        ${{ inputs.check-command }}
+        exit_code=$?
+        set -e
+        
+        if [ $exit_code -ne 0 ]; then
+          echo "result=failed" >> $GITHUB_OUTPUT
+          exit 1
+        fi
+        
+        echo "result=passed" >> $GITHUB_OUTPUT
+        echo "✅ ${{ inputs.rule-name }} check passed"
+
+    - name: Report Violation
+      if: failure() && steps.check.outputs.result == 'failed'
+      shell: bash
+      run: |
+        echo ""
+        echo "🚨 ${{ inputs.severity }} VIOLATION DETECTED: ${{ inputs.rule-id }}"
+        echo "═══════════════════════════════════════════════════════════════"
+        echo ""
+        echo "❌ ${{ inputs.failure-message }}"
+        echo ""
+        echo "📋 Rule: ${{ inputs.rule-name }}"
+        echo ""
+        echo "📝 Remediation Steps:"
+        echo "${{ inputs.remediation-steps }}"
+        echo ""
+        echo "🛑 Build rejected. Fix violation before merging."
+        echo "═══════════════════════════════════════════════════════════════"
+        exit 1

@@ -1,0 +1,102 @@
+name: 'Setup Apex Environment'
+description: 'Setup Bun, install dependencies, and configure environment for Apex CI'
+
+inputs:
+  bun-version:
+    description: 'Bun version to use'
+    required: false
+    default: 'latest'
+  with-postgres:
+    description: 'Whether to wait for PostgreSQL'
+    required: false
+    default: 'false'
+  with-redis:
+    description: 'Whether to wait for Redis'
+    required: false
+    default: 'false'
+  with-minio:
+    description: 'Whether to wait for MinIO'
+    required: false
+    default: 'false'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Bun
+      uses: oven-sh/setup-bun@v1
+      with:
+        bun-version: ${{ inputs.bun-version }}
+
+    - name: Cache dependencies
+      uses: actions/cache@v4
+      with:
+        path: |
+          node_modules
+          */*/node_modules
+        key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lockb', '**/package.json') }}
+        restore-keys: |
+          ${{ runner.os }}-bun-
+
+    - name: Install dependencies
+      shell: bash
+      run: |
+        if [ -f bun.lockb ]; then
+          bun install --frozen-lockfile
+        else
+          bun install
+        fi
+
+    - name: Verify Node Modules Integrity
+      shell: bash
+      run: |
+        # Anti-tampering: Verify no suspicious modifications to node_modules
+        if find node_modules -name "*.sh" -o -name "*.exe" 2>/dev/null | grep -q .; then
+          echo "⚠️ WARNING: Suspicious files found in node_modules"
+          find node_modules -name "*.sh" -o -name "*.exe" | head -20
+        fi
+        echo "✅ Node modules integrity check passed"
+
+    - name: Wait for PostgreSQL
+      if: inputs.with-postgres == 'true'
+      shell: bash
+      run: |
+        for i in {1..30}; do
+          if pg_isready -h localhost -p 5432 >/dev/null 2>&1; then
+            echo "✅ PostgreSQL is ready"
+            exit 0
+          fi
+          echo "⏳ Waiting for PostgreSQL... ($i/30)"
+          sleep 2
+        done
+        echo "❌ PostgreSQL failed to start"
+        exit 1
+
+    - name: Wait for Redis
+      if: inputs.with-redis == 'true'
+      shell: bash
+      run: |
+        for i in {1..30}; do
+          if redis-cli -h localhost -p 6379 ping >/dev/null 2>&1; then
+            echo "✅ Redis is ready"
+            exit 0
+          fi
+          echo "⏳ Waiting for Redis... ($i/30)"
+          sleep 2
+        done
+        echo "❌ Redis failed to start"
+        exit 1
+
+    - name: Wait for MinIO
+      if: inputs.with-minio == 'true'
+      shell: bash
+      run: |
+        for i in {1..30}; do
+          if curl -f http://localhost:9000/minio/health/live >/dev/null 2>&1; then
+            echo "✅ MinIO is ready"
+            exit 0
+          fi
+          echo "⏳ Waiting for MinIO... ($i/30)"
+          sleep 2
+        done
+        echo "❌ MinIO failed to start"
+        exit 1

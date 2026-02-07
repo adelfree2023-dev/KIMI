@@ -164,7 +164,15 @@ export class ConfigService {
   private readonly config: EnvConfig;
 
   constructor() {
-    this.config = env;
+    if (process.env.NODE_ENV === 'test') {
+      try {
+        this.config = validateEnv();
+      } catch {
+        this.config = env;
+      }
+    } else {
+      this.config = env;
+    }
   }
 
   /**

@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: read
+  security-events: write
+
 env:
   JWT_SECRET: test_secret_key_for_ci_environment_only_32
   DATABASE_URL: postgresql://test:test@localhost:5432/test
@@ -14,6 +18,18 @@ env:
   MINIO_ENDPOINT: localhost
 
 jobs:
+  secret-scan:
+    name: Secret Scanning (Gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   s1-compliance:
     name: S1 Environment Verification
     runs-on: ubuntu-latest
@@ -54,9 +70,10 @@ jobs:
             exit 1
           fi
 
-  lint-and-format:
-    name: Security Audit & Linting
+  security-audit-lint:
+    name: Security Audit & Linting (Strict)
     runs-on: ubuntu-latest
+    needs: [secret-scan]
     steps:
       - uses: actions/checkout@v4
 
@@ -68,16 +85,16 @@ jobs:
       - name: Install dependencies
         run: bun install
 
-      - name: Security Audit (S1)
+      - name: Security Audit (S1 - Critical/High)
         run: bun audit
 
-      - name: TypeScript Check
+      - name: TypeScript Check (Type Safety)
         run: bun x tsc --noEmit
 
       - name: Check Biome formatting
         run: bun run biome check .
 
-      - name: Verify no console.log (S4 Audit preparation)
+      - name: Verify no console.log (S4 Compliance)
         run: |
           if grep -r "console.log" packages/*/src/*.ts --include="*.ts" | grep -v "console.warn" | grep -v "console.error"; then
             echo "❌ FAIL: console.log found. Use structured logging instead (S4)."
@@ -95,16 +112,16 @@ jobs:
           bun-version: latest
       - name: Install dependencies
         run: bun install
-      - name: Validate Drizzle Schema
+      - name: Validate Drizzle Schema (Drift Check)
         run: |
           cd packages/db
-          # Check for schema drift vs migrations
-          bunx drizzle-kit check:pg || (echo "❌ Schema drift detected" && exit 1)
+          # Ensure schema matches migrations (prevents accidental data loss)
+          bunx drizzle-kit check:pg || (echo "❌ Schema drift detected! Run db:generate locally." && exit 1)
 
   build:
     name: Turborepo Build
     runs-on: ubuntu-latest
-    needs: [s1-compliance, lint-and-format, db-schema-validation]
+    needs: [s1-compliance, security-audit-lint, db-schema-validation]
     steps:
       - uses: actions/checkout@v4
 

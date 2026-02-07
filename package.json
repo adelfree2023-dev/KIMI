@@ -19,6 +19,14 @@
     "@biomejs/biome": "^1.5.0",
     "turbo": "^1.11.0"
   },
+  "overrides": {
+    "glob": "^10.4.5",
+    "rimraf": "^5.0.5",
+    "lodash": "^4.17.21",
+    "fast-xml-parser": "^4.4.0",
+    "esbuild": "^0.24.2",
+    "micromatch": "^4.0.8"
+  },
   "packageManager": "bun@1.0.0",
   "engines": {
     "bun": ">=1.0.0",

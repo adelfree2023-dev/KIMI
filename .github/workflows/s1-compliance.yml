@@ -169,6 +169,197 @@ jobs:
           
           echo "✅ PASS: Apps only import from packages/* (Clean Architecture)"
 
+  violation-detection-cross-app:
+    name: 🚨 Violation Detection - Cross-App Import (Rule 1.1)
+    runs-on: ubuntu-latest
+    needs: [dependency-boundary-check]
+    if: failure()
+    steps:
+      - name: Report Cross-App Import Violation
+        run: |
+          echo "🚨 CRITICAL VIOLATION DETECTED: Rule 1.1 (App Isolation)"
+          echo ""
+          echo "❌ A cross-app import was detected!"
+          echo ""
+          echo "📋 Violation Details:"
+          echo "   - Rule: No app in apps/* can import from another app"
+          echo "   - Solution: Move shared code to packages/*"
+          echo ""
+          echo "🛑 Build rejected. Fix the import before merging."
+          exit 1
+
+  biome-ignore-detection:
+    name: 🚨 Violation Detection - Biome Ignore Comments
+    runs-on: ubuntu-latest
+    needs: [security-audit-lint]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Detect // biome-ignore Comments
+        run: |
+          echo "🔍 Scanning for // biome-ignore comments (Rule: No Bypassing Lint)..."
+          
+          # Find all // biome-ignore comments in source files (excluding tests)
+          ignore_comments=$(grep -r "// biome-ignore" packages/*/src apps/*/src --include="*.ts" --include="*.tsx" | grep -v "\.test\." | grep -v "\.spec\." || true)
+          
+          if [ -n "$ignore_comments" ]; then
+            echo "🚨 VIOLATION DETECTED: // biome-ignore comments found!"
+            echo ""
+            echo "❌ The following files contain lint bypass comments:"
+            echo "$ignore_comments"
+            echo ""
+            echo "📋 Why this is dangerous:"
+            echo "   - biome-ignore disables code quality checks"
+            echo "   - May hide security vulnerabilities"
+            echo "   - Violates project coding standards"
+            echo ""
+            echo "📝 Action Required:"
+            echo "   1. Remove the // biome-ignore comment"
+            echo "   2. Fix the underlying issue properly"
+            echo "   3. If absolutely necessary, get architect approval"
+            exit 1
+          fi
+          
+          echo "✅ PASS: No // biome-ignore comments found in source code"
+
+      - name: Detect eslint-disable Comments
+        run: |
+          echo "🔍 Scanning for eslint-disable comments..."
+          
+          # Find eslint-disable comments (excluding console.error/warn)
+          eslint_disables=$(grep -r "eslint-disable" packages/*/src apps/*/src --include="*.ts" --include="*.tsx" | grep -v "eslint-disable-next-line no-console" | grep -v "\.test\." || true)
+          
+          if [ -n "$eslint_disables" ]; then
+            echo "⚠️ WARNING: eslint-disable comments found:"
+            echo "$eslint_disables"
+            echo ""
+            echo "Review these to ensure they're justified."
+            # Don't fail, just warn
+          else
+            echo "✅ PASS: No eslint-disable comments found"
+          fi
+
+  s1-fail-fast-test:
+    name: 🚨 Violation Detection - S1 Fail-Fast Protocol
+    runs-on: ubuntu-latest
+    needs: [s1-compliance]
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: apex
+          POSTGRES_PASSWORD: apex
+          POSTGRES_DB: test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Test S1 Fail-Fast - Invalid JWT_SECRET
+        run: |
+          echo "🧪 Testing S1 Fail-Fast Protocol..."
+          echo ""
+          
+          # Test 1: App must crash with invalid JWT_SECRET
+          echo "Test 1: Invalid JWT_SECRET should cause immediate crash"
+          
+          set +e
+          output=$(JWT_SECRET="invalid" bun run packages/config/src/index.ts 2>&1)
+          exit_code=$?
+          set -e
+          
+          if [ $exit_code -eq 0 ]; then
+            echo "🚨 VIOLATION DETECTED: S1 Protocol Failure!"
+            echo ""
+            echo "❌ App did NOT crash with invalid JWT_SECRET"
+            echo "   Expected: Process exit with error"
+            echo "   Got: Process continued running"
+            echo ""
+            echo "🔒 Security Risk: App may run with insecure configuration"
+            exit 1
+          fi
+          
+          if echo "$output" | grep -q "S1 Violation"; then
+            echo "✅ Test 1 PASS: App crashed with S1 Violation message"
+          else
+            echo "⚠️ Test 1 PARTIAL: App crashed but without S1 Violation message"
+          fi
+          
+          # Test 2: App must crash with missing required env vars
+          echo ""
+          echo "Test 2: Missing DATABASE_URL should cause crash"
+          
+          set +e
+          output=$(JWT_SECRET="valid_secret_key_32_chars_longgg" DATABASE_URL="" bun run packages/config/src/index.ts 2>&1)
+          exit_code=$?
+          set -e
+          
+          if [ $exit_code -eq 0 ]; then
+            echo "🚨 VIOLATION DETECTED: S1 Protocol Failure!"
+            echo ""
+            echo "❌ App did NOT crash with missing DATABASE_URL"
+            exit 1
+          fi
+          
+          echo "✅ Test 2 PASS: App crashed as expected"
+          
+          echo ""
+          echo "✅ S1 Fail-Fast Protocol verified - App crashes on invalid config"
+        env:
+          DATABASE_URL: postgresql://apex:apex@localhost:5432/test
+
+      - name: Test S1 Success - Valid Configuration
+        run: |
+          echo "🧪 Testing S1 with valid configuration..."
+          
+          output=$(bun run packages/config/src/index.ts 2>&1)
+          
+          if echo "$output" | grep -q "S1 Compliance"; then
+            echo "✅ S1 Compliance verified with valid config"
+          else
+            echo "⚠️ S1 Compliance message not found in output"
+          fi
+
+  coverage-threshold-enforcement:
+    name: 🚨 Violation Detection - Coverage Threshold (Rule 4.1)
+    runs-on: ubuntu-latest
+    needs: [coverage-gate]
+    if: failure()
+    steps:
+      - name: Report Coverage Violation
+        run: |
+          echo "🚨 CRITICAL VIOLATION DETECTED: Rule 4.1 (Test Coverage)"
+          echo ""
+          echo "❌ Coverage threshold NOT met!"
+          echo ""
+          echo "📋 Required Thresholds:"
+          echo "   - Global Minimum: 80% (lines, functions, branches, statements)"
+          echo "   - Critical Modules: 100%"
+          echo "      * packages/provisioning/**"
+          echo "      * packages/auth/**"
+          echo "      * packages/middleware/**"
+          echo ""
+          echo "📝 Action Required:"
+          echo "   1. Add tests for uncovered lines"
+          echo "   2. Verify all new files have tests"
+          echo "   3. Check coverage report in PR artifacts"
+          echo ""
+          echo "🛑 Build rejected. Increase coverage before merging."
+          exit 1
+
   zod-schema-lockdown:
     name: Zod Schema Lockdown (Rule 5.1)
     runs-on: ubuntu-latest
@@ -245,7 +436,7 @@ jobs:
   build:
     name: Turborepo Build
     runs-on: ubuntu-latest
-    needs: [s1-compliance, security-audit-lint, db-schema-validation, dependency-boundary-check, zod-schema-lockdown, uncovered-files-check]
+    needs: [s1-compliance, security-audit-lint, db-schema-validation, dependency-boundary-check, zod-schema-lockdown, uncovered-files-check, s1-fail-fast-test, biome-ignore-detection]
     steps:
       - uses: actions/checkout@v4
 

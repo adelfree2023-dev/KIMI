@@ -16,7 +16,7 @@ import {
 vi.mock('@apex/provisioning', () => ({
   createTenantSchema: vi.fn(),
   runTenantMigrations: vi.fn(),
-  createTenantBucket: vi.fn(),
+  createStorageBucket: vi.fn(),
   seedTenantData: vi.fn(),
   dropTenantSchema: vi.fn(),
 }));

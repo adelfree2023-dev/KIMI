@@ -37,7 +37,7 @@ describe('Audit Service (S4 Protocol)', () => {
       release: vi.fn(),
     };
     vi.mocked(publicPool.connect).mockResolvedValue(mockClient as any);
-    vi.spyOn(console, 'log').mockImplementation(() => {});
+    vi.spyOn(console, 'log').mockImplementation(() => { });
   });
 
   describe('log', () => {
@@ -45,18 +45,17 @@ describe('Audit Service (S4 Protocol)', () => {
       const entry: AuditLogEntry = {
         timestamp: new Date('2026-01-01T00:00:00Z'),
         action: 'TENANT_PROVISIONED',
-        actor: {
-          type: 'api_key',
-          id: 'key-123',
-          ipAddress: '192.168.1.1',
+        userId: 'key-123',
+        entityType: 'tenant',
+        entityId: 'test-tenant',
+        tenantId: 'test-tenant',
+        ipAddress: '192.168.1.1',
+        metadata: {
+          plan: 'basic',
+          subdomain: 'test',
+          actorType: 'api_key'
         },
-        target: {
-          type: 'tenant',
-          id: 'test-tenant',
-          tenantId: 'test-tenant',
-        },
-        metadata: { plan: 'basic', subdomain: 'test' },
-        severity: 'MEDIUM',
+        severity: 'INFO',
         result: 'SUCCESS',
       };
 

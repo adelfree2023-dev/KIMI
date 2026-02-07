@@ -34,7 +34,7 @@ describe('Quota Service', () => {
     it('should have correct limits for free plan', () => {
       const limits = PLAN_LIMITS.free;
       expect(limits.maxProducts).toBe(50);
-      expect(limits.maxStorageGB).toBe(1);
+      expect(limits.maxStorageMb).toBe(100);
       expect(limits.maxStaffUsers).toBe(1);
       expect(limits.maxTenants).toBe(1);
       expect(limits.allowedFeatures).toContain('products');
@@ -43,16 +43,16 @@ describe('Quota Service', () => {
 
     it('should have correct limits for basic plan', () => {
       const limits = PLAN_LIMITS.basic;
-      expect(limits.maxProducts).toBe(1000);
-      expect(limits.maxStorageGB).toBe(10);
-      expect(limits.maxOrdersPerMonth).toBe(1000);
+      expect(limits.maxProducts).toBe(100);
+      expect(limits.maxStorageMb).toBe(1000);
+      expect(limits.maxOrdersPerMonth).toBe(500);
       expect(limits.allowedFeatures).toContain('coupons');
     });
 
     it('should have correct limits for pro plan', () => {
       const limits = PLAN_LIMITS.pro;
-      expect(limits.maxProducts).toBe(10000);
-      expect(limits.maxStorageGB).toBe(100);
+      expect(limits.maxProducts).toBe(1000);
+      expect(limits.maxStorageMb).toBe(10000);
       expect(limits.maxStaffUsers).toBe(10);
       expect(limits.allowedFeatures).toContain('api_access');
       expect(limits.allowedFeatures).toContain('webhooks');
@@ -154,7 +154,7 @@ describe('Quota Service', () => {
       expect(free.maxProducts).toBe(50);
 
       const basic = getPlanLimits('basic');
-      expect(basic.maxStorageGB).toBe(10);
+      expect(basic.maxStorageMb).toBe(1000);
 
       const pro = getPlanLimits('pro');
       expect(pro.maxStaffUsers).toBe(10);

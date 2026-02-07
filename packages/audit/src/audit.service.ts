@@ -7,6 +7,18 @@ import { publicPool } from '@apex/db';
 import { getCurrentTenantId } from '@apex/middleware';
 import { Injectable, Logger } from '@nestjs/common';
 
+// Define types missing in original file but required by index/tests
+export type AuditAction = string;
+export type AuditSeverity = 'INFO' | 'HIGH' | 'CRITICAL';
+
+export interface AuditQueryOptions {
+  tenantId?: string;
+  action?: string;
+  severity?: string;
+  limit?: number;
+  offset?: number;
+}
+
 export interface AuditLogEntry {
   action: string;
   entityType: string;
@@ -16,6 +28,10 @@ export interface AuditLogEntry {
   metadata?: Record<string, any>;
   ipAddress?: string;
   userAgent?: string;
+  timestamp?: Date; // Added for test compatibility
+  severity?: AuditSeverity; // Added for strict typing
+  result?: string; // Added for strict typing
+  errorMessage?: string; // Added for strict typing
 }
 
 @Injectable()

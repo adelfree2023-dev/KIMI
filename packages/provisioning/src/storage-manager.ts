@@ -5,17 +5,18 @@
 
 import { validateEnv } from '@apex/config';
 import * as Minio from 'minio';
+import { Buffer } from 'node:buffer';
 
 // Initialize client from environment
 // Initialize client from environment
 export const minioClient = (() => {
   const env = validateEnv();
   return new Minio.Client({
-    endPoint: env.S3_ENDPOINT,
-    port: env.S3_PORT,
-    useSSL: env.S3_USE_SSL,
-    accessKey: env.S3_ACCESS_KEY,
-    secretKey: env.S3_SECRET_KEY,
+    endPoint: env.MINIO_ENDPOINT,
+    port: parseInt(env.MINIO_PORT),
+    useSSL: env.MINIO_USE_SSL === 'true',
+    accessKey: env.MINIO_ACCESS_KEY,
+    secretKey: env.MINIO_SECRET_KEY,
   });
 })();
 

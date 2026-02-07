@@ -27,7 +27,7 @@ export interface AuthenticatedRequest extends Request {
 
 @Injectable()
 export class TenantScopedGuard implements CanActivate {
-  constructor(private jwtService: JwtService) {}
+  constructor(private jwtService: JwtService) { }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
@@ -50,7 +50,9 @@ export class TenantScopedGuard implements CanActivate {
     // This ensures the middleware has already validated the tenant
     let tenantContext: TenantContext;
     try {
-      tenantContext = getCurrentTenantContext();
+      const context = getCurrentTenantContext();
+      if (!context) throw new Error('No context');
+      tenantContext = context;
     } catch {
       throw new ForbiddenException(
         'S2 Violation: No active tenant context found'

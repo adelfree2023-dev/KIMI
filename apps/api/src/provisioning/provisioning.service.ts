@@ -6,7 +6,7 @@
 import type { AuditService } from '@apex/audit';
 import { publicPool } from '@apex/db';
 import {
-  createTenantBucket,
+  createStorageBucket,
   createTenantSchema,
   dropTenantSchema,
   runTenantMigrations,
@@ -30,7 +30,7 @@ export interface ProvisioningOptions {
 export class ProvisioningService {
   private readonly logger = new Logger(ProvisioningService.name);
 
-  constructor(private readonly audit: AuditService) {}
+  constructor(private readonly audit: AuditService) { }
 
   /**
    * Provision a new store in under 60 seconds
@@ -58,7 +58,7 @@ export class ProvisioningService {
       steps[1].status = 'done';
 
       // 3. S3 Protocol: Create Isolated Storage Bucket
-      await createTenantBucket(options.subdomain);
+      await createStorageBucket(options.subdomain);
       steps[2].status = 'done';
 
       // 4. Data Seeding: Create Admin User & Default Settings

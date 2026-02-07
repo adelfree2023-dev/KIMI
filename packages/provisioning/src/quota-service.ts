@@ -11,6 +11,10 @@ export interface PlanLimits {
   maxUsers: number;
   customDomain: boolean;
   prioritySupport: boolean;
+  maxStaffUsers: number;
+  maxTenants: number;
+  allowedFeatures: string[];
+  maxOrdersPerMonth: number;
 }
 
 export const PLAN_LIMITS: Record<PlanType, PlanLimits> = {
@@ -20,6 +24,10 @@ export const PLAN_LIMITS: Record<PlanType, PlanLimits> = {
     maxUsers: 1,
     customDomain: false,
     prioritySupport: false,
+    maxStaffUsers: 1,
+    maxTenants: 1,
+    allowedFeatures: [],
+    maxOrdersPerMonth: 50,
   },
   basic: {
     maxProducts: 100,
@@ -27,6 +35,10 @@ export const PLAN_LIMITS: Record<PlanType, PlanLimits> = {
     maxUsers: 3,
     customDomain: true,
     prioritySupport: false,
+    maxStaffUsers: 3,
+    maxTenants: 1,
+    allowedFeatures: ['coupons'],
+    maxOrdersPerMonth: 500,
   },
   pro: {
     maxProducts: 1000,
@@ -34,6 +46,10 @@ export const PLAN_LIMITS: Record<PlanType, PlanLimits> = {
     maxUsers: 10,
     customDomain: true,
     prioritySupport: true,
+    maxStaffUsers: 10,
+    maxTenants: 3,
+    allowedFeatures: ['api_access', 'webhooks', 'priority_support', 'multi_warehouse'],
+    maxOrdersPerMonth: 5000,
   },
   enterprise: {
     maxProducts: 999999,
@@ -41,6 +57,10 @@ export const PLAN_LIMITS: Record<PlanType, PlanLimits> = {
     maxUsers: 99,
     customDomain: true,
     prioritySupport: true,
+    maxStaffUsers: 99,
+    maxTenants: 10,
+    allowedFeatures: ['all'],
+    maxOrdersPerMonth: 999999,
   },
 };
 

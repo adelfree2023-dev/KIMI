@@ -8,4 +8,5 @@ export {
   logProvisioning,
   logSecurityEvent,
   query,
-} from './audit.service'; // شيلنا الـ .js
+  AuditService, // Added missing export
+} from './audit.service';

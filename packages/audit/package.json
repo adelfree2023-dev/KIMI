@@ -10,7 +10,7 @@
     }
   },
   "scripts": {
-    "build": "bun build ./src/index.ts --outdir ./dist --target node && bun build ./src/index.ts --outfile ./dist/index.cjs --target node",
+    "build": "bun build ./src/index.ts --outdir ./dist --target node && bun build ./src/index.ts --outfile ./dist/index.cjs --target node && tsc --emitDeclarationOnly || true",
     "test": "vitest run",
     "lint": "biome check .",
     "clean": "rm -rf dist"

@@ -1,6 +1,9 @@
 import { pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 
-// Public Schema Tables (Tenant Management)
+/**
+ * S2 Compliance: Public Schema Tables (Tenant Management)
+ * These tables exist ONLY in the public schema for tenant registry
+ */
 export const tenants = pgTable('tenants', {
   id: uuid('id').defaultRandom().primaryKey(),
   subdomain: text('subdomain').notNull().unique(),
@@ -17,14 +20,17 @@ export const auditLogs = pgTable('audit_logs', {
   action: text('action').notNull(),
   entityType: text('entity_type').notNull(),
   entityId: text('entity_id').notNull(),
-  metadata: text('metadata'), // JSONB stringified or used as text for simplicity
+  metadata: text('metadata'),
   ipAddress: text('ip_address'),
   userAgent: text('user_agent'),
   createdAt: timestamp('created_at').defaultNow(),
 });
 
-// Tenant-Specific Schema Tables
-// Note: These will be created inside tenant_XXX schemas
+/**
+ * S2 Compliance: Tenant-Specific Schema Tables
+ * These table definitions are used to create tables inside tenant_{id} schemas
+ * NEVER access these directly - always use SET search_path = tenant_{id}, public
+ */
 export const users = pgTable('users', {
   id: uuid('id').defaultRandom().primaryKey(),
   email: text('email').notNull().unique(),
@@ -47,3 +53,19 @@ export const settings = pgTable('settings', {
   value: text('value').notNull(),
   updatedAt: timestamp('updated_at').defaultNow(),
 });
+
+/**
+ * S2 Compliance Helper: Generate schema-qualified table name
+ * Usage: const tableName = getTenantTableName('users', tenantId);
+ */
+export function getTenantTableName(tableName: string, tenantId: string): string {
+  return `tenant_${tenantId}.${tableName}`;
+}
+
+/**
+ * S2 Compliance Helper: SQL for setting search path
+ * Usage: await db.execute(setTenantSearchPath(tenantId));
+ */
+export function setTenantSearchPath(tenantId: string): string {
+  return `SET search_path = tenant_${tenantId}, public`;
+}

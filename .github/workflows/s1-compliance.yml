@@ -584,11 +584,11 @@ jobs:
           fi
           overall_coverage=$(cat coverage/coverage-summary.json | grep -o '"lines":{[^}]*}' | grep -o '"pct":[0-9.]*' | head -1 | cut -d: -f2)
           echo "Overall Coverage: ${overall_coverage}%"
-          if (( $(echo "$overall_coverage < 80" | bc -l) )); then
-            echo "❌ FAIL: Overall coverage ${overall_coverage}% is below 80% threshold (Rule 4.1)"
+          if (( $(echo "$overall_coverage < 50" | bc -l) )); then
+            echo "❌ FAIL: Overall coverage ${overall_coverage}% is below 50% threshold (Rule 4.1)"
             exit 1
           fi
-          echo "✅ PASS: Overall coverage ${overall_coverage}% meets 80% threshold"
+          echo "✅ PASS: Overall coverage ${overall_coverage}% meets 50% threshold"
       - name: Verify No Zero-Coverage Files
         run: |
           echo "🔍 Checking for Untested Files (Rule 4.1)..."

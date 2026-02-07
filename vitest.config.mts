@@ -1,3 +1,4 @@
+import path from 'node:path';
 import { defineConfig } from 'vitest/config';
 import tsconfigPaths from 'vite-tsconfig-paths';
 
@@ -9,6 +10,21 @@ import tsconfigPaths from 'vite-tsconfig-paths';
  */
 export default defineConfig({
   plugins: [tsconfigPaths()],
+  resolve: {
+    alias: {
+      '@apex/audit': path.resolve(__dirname, './packages/audit/src/index.ts'),
+      '@apex/db': path.resolve(__dirname, './packages/db/src/index.ts'),
+      '@apex/config': path.resolve(__dirname, './packages/config/src/index.ts'),
+      '@apex/provisioning': path.resolve(
+        __dirname,
+        './packages/provisioning/src/index.ts'
+      ),
+      '@apex/middleware': path.resolve(
+        __dirname,
+        './packages/middleware/src/index.ts'
+      ),
+    },
+  },
   test: {
     globals: true,
     environment: 'node',

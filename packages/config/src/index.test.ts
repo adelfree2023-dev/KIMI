@@ -47,6 +47,7 @@ describe('S1: Environment Verification Protocol', () => {
     it('should pass with valid JWT_SECRET (32+ chars, alphanumeric)', () => {
       process.env.JWT_SECRET = 'valid_secret_key_32_chars_long_1234';
       process.env.DATABASE_URL = 'postgresql://user:pass@localhost:5432/db';
+      process.env.MINIO_ENDPOINT = 'localhost';
       process.env.MINIO_ACCESS_KEY = 'minioadmin';
       process.env.MINIO_SECRET_KEY = 'minioadmin123';
 
@@ -56,9 +57,10 @@ describe('S1: Environment Verification Protocol', () => {
 
   describe('Production Security Checks', () => {
     it('should crash in production with default JWT_SECRET', () => {
-      process.env.NODE_ENV = 'production';
+      (process.env as any).NODE_ENV = 'production';
       process.env.JWT_SECRET = 'default_secret_key_32_chars_long_123';
       process.env.DATABASE_URL = 'postgresql://user:pass@localhost:5432/db';
+      process.env.MINIO_ENDPOINT = 'localhost';
       process.env.MINIO_ACCESS_KEY = 'minioadmin';
       process.env.MINIO_SECRET_KEY = 'minioadmin123';
 
@@ -67,9 +69,10 @@ describe('S1: Environment Verification Protocol', () => {
     });
 
     it('should crash in production with localhost DB without SSL', () => {
-      process.env.NODE_ENV = 'production';
+      (process.env as any).NODE_ENV = 'production';
       process.env.JWT_SECRET = 'valid_production_secret_32_chars_long';
       process.env.DATABASE_URL = 'postgresql://user:pass@localhost:5432/db';
+      process.env.MINIO_ENDPOINT = 'localhost';
       process.env.MINIO_ACCESS_KEY = 'minioadmin';
       process.env.MINIO_SECRET_KEY = 'minioadmin123';
 
@@ -91,6 +94,7 @@ describe('S1: Environment Verification Protocol', () => {
     beforeEach(() => {
       process.env.JWT_SECRET = 'valid_secret_key_32_chars_long_1234';
       process.env.DATABASE_URL = 'postgresql://user:pass@localhost:5432/db';
+      process.env.MINIO_ENDPOINT = 'localhost';
       process.env.MINIO_ACCESS_KEY = 'minioadmin';
       process.env.MINIO_SECRET_KEY = 'minioadmin123';
     });
@@ -120,6 +124,7 @@ describe('S1: Environment Verification Protocol', () => {
     beforeEach(() => {
       process.env.JWT_SECRET = 'valid_secret_key_32_chars_long_1234';
       process.env.DATABASE_URL = 'postgresql://user:pass@localhost:5432/db';
+      process.env.MINIO_ENDPOINT = 'localhost';
       process.env.MINIO_ACCESS_KEY = 'minioadmin';
       process.env.MINIO_SECRET_KEY = 'minioadmin123';
     });

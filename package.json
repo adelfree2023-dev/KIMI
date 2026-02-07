@@ -17,7 +17,8 @@
   },
   "devDependencies": {
     "@biomejs/biome": "1.5.3",
-    "turbo": "latest"
+    "turbo": "latest",
+    "vite-tsconfig-paths": "^6.1.0"
   },
   "packageManager": "npm@10.2.4",
   "overrides": {

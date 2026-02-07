@@ -7,7 +7,6 @@ import { describe, expect, it } from 'vitest';
 import {
   AuditLogSchema,
   CreateAuditLogSchema,
-  type AuditLogDto,
   type CreateAuditLogDto,
 } from './audit.schema.js';
 

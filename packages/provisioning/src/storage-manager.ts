@@ -1,211 +1,180 @@
-/**
- * Storage Manager
- * Handles multi-tenant bucket isolation using MinIO/S3 (S3 Protocol)
- */
-
-import { Buffer } from 'node:buffer';
-import { validateEnv } from '@apex/config';
+import { env } from '@apex/shared-config';
 import * as Minio from 'minio';
+import { logger } from '@apex/logger';
+import type { BucketCreationResult, StorageStats } from './types.js';
 
-// Initialize client from environment
-// Initialize client from environment
-export const minioClient = (() => {
-  const env = validateEnv();
-  return new Minio.Client({
-    endPoint: env.MINIO_ENDPOINT,
-    port: parseInt(env.MINIO_PORT, 10),
-    useSSL: env.MINIO_USE_SSL === 'true',
-    accessKey: env.MINIO_ACCESS_KEY,
-    secretKey: env.MINIO_SECRET_KEY,
-  });
-})();
+let minioClient: Minio.Client | null = null;
 
-export interface BucketCreationResult {
-  bucketName: string;
-  region: string;
-  createdAt: Date;
-  quotaBytes?: number; // Added for compatibility with test expectations if needed
-  durationMs?: number;
+function getMinioClient(): Minio.Client {
+  if (!minioClient) {
+    minioClient = new Minio.Client({
+      endPoint: env.MINIO_ENDPOINT,
+      port: Number.parseInt(env.MINIO_PORT, 10),
+      useSSL: env.MINIO_USE_SSL === 'true',
+      accessKey: env.MINIO_ACCESS_KEY,
+      secretKey: env.MINIO_SECRET_KEY,
+    });
+  }
+  return minioClient;
 }
 
-/**
- * Create a new isolated storage bucket for a tenant
- * @param subdomain - Tenant subdomain (used as bucket name basis)
- * @returns Bucket creation metadata
- * @throws Error if bucket creation fails
- */
+function sanitizeBucketName(subdomain: string): string {
+  return `tenant-${subdomain.toLowerCase().replace(/[^a-z0-9-]/g, '-')}`;
+}
+
 export async function createStorageBucket(
   subdomain: string,
-  plan: string = 'free' // Added plan parameter
+  plan = 'free'
 ): Promise<BucketCreationResult> {
   const start = Date.now();
   const bucketName = sanitizeBucketName(subdomain);
-  const region = 'us-east-1'; // Default region
-
-  // Quota mapping (simple logic for now)
-  const quotaMap: Record<string, number> = {
-    free: 1024 * 1024 * 1024,
-    basic: 10 * 1024 * 1024 * 1024,
-    pro: 100 * 1024 * 1024 * 1024,
-    enterprise: 1000 * 1024 * 1024 * 1024,
-  };
-  const quotaBytes = quotaMap[plan] || quotaMap.free;
+  const client = getMinioClient();
 
   try {
-    const exists = await minioClient.bucketExists(bucketName);
-
+    const exists = await client.bucketExists(bucketName);
     if (exists) {
-      throw new Error(`Bucket '${bucketName}' already exists`);
+      return {
+        success: false,
+        error: 'Bucket already exists',
+        bucketName,
+      };
     }
 
-    await minioClient.makeBucket(bucketName, region);
+    await client.makeBucket(bucketName, env.MINIO_REGION || 'us-east-1');
 
-    // Simulate setting versioning, policy, tagging, initial folders as per test
-    await minioClient.setBucketVersioning(bucketName, { Status: 'Enabled' });
+    // Set bucket policy based on plan
+    const policy = plan === 'free'
+      ? { version: '2012-10-17', statement: [] }
+      : await getPublicReadPolicy(bucketName);
 
-    // Public read policy
-    const policy = {
-      Version: '2012-10-17',
-      Statement: [
-        {
-          Effect: 'Allow',
-          Principal: '*',
-          Action: ['s3:GetObject'],
-          Resource: [`arn:aws:s3:::${bucketName}/public/*`],
-        },
-      ],
-    };
-    await minioClient.setBucketPolicy(bucketName, JSON.stringify(policy));
+    await client.setBucketPolicy(bucketName, JSON.stringify(policy));
 
-    // Create folders
-    await minioClient.putObject(
+    logger.info(`Bucket created for tenant: ${subdomain}`, {
       bucketName,
-      'public/products/.keep',
-      Buffer.from('')
-    );
-    await minioClient.putObject(
-      bucketName,
-      'private/exports/.keep',
-      Buffer.from('')
-    );
+      plan,
+      duration: Date.now() - start,
+    });
 
     return {
+      success: true,
       bucketName,
-      region,
-      createdAt: new Date(),
-      quotaBytes,
-      durationMs: Date.now() - start,
+      endpoint: `${env.MINIO_USE_SSL === 'true' ? 'https' : 'http'}://${env.MINIO_ENDPOINT}:${env.MINIO_PORT}/${bucketName}`,
     };
   } catch (error) {
-    console.error(`Bucket creation failed for ${bucketName}:`, error);
-    throw new Error(
-      `Storage Provisioning Failure: ${error instanceof Error ? error.message : 'Unknown error'}`
-    );
+    logger.error('Failed to create storage bucket', { subdomain, error });
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+      bucketName,
+    };
   }
 }
 
-/**
- * Delete a tenant's storage bucket (WARNING: Destructive)
- * @param subdomain - Tenant subdomain
- */
 export async function deleteStorageBucket(
   subdomain: string,
-  force: boolean = false
+  force = false
 ): Promise<boolean> {
   const bucketName = sanitizeBucketName(subdomain);
+  const client = getMinioClient();
 
   try {
-    const exists = await minioClient.bucketExists(bucketName);
-    if (!exists) return false;
-
-    // Check if empty
-    const objects = minioClient.listObjects(bucketName, '', true);
-    let isEmpty = true;
-    for await (const _ of objects) {
-      isEmpty = false;
-      break;
+    if (!force) {
+      const objects = await client.listObjects(bucketName, '', true).toArray();
+      if (objects.length > 0) {
+        throw new Error('Bucket not empty. Use force=true to delete anyway.');
+      }
     }
 
-    if (!isEmpty && !force) {
-      throw new Error(`Bucket '${bucketName}' is not empty`);
-    }
-
-    // Note: Standard S3 requires bucket to be empty before deletion
-    // For this engine, we'd either force recursive delete or throw
-    // Mocking recursive delete if force is true not fully implemented here but implied
-
-    await minioClient.removeBucket(bucketName);
+    await client.removeBucket(bucketName);
+    logger.info(`Bucket deleted: ${bucketName}`);
     return true;
   } catch (error) {
-    throw new Error(
-      `Storage Deletion Failure: ${error instanceof Error ? error.message : 'Unknown error'}`
-    );
+    logger.error('Failed to delete bucket', { bucketName, error });
+    return false;
   }
 }
 
-/**
- * Sanitize subdomain to valid S3 bucket name
- * Rules: 3-63 chars, lowercase, numbers, hyphens only
- * @param subdomain - Raw subdomain
- * @returns Valid bucket name (apex-{sanitized})
- */
-export function sanitizeBucketName(subdomain: string): string {
-  const sanitized = subdomain
-    .toLowerCase()
-    .replace(/[^a-z0-9-]/g, '-')
-    .replace(/^-+|-+$/g, ''); // Remove leading/trailing hyphens
-
-  if (sanitized.length < 3) {
-    throw new Error(
-      `Invalid bucket name basis '${subdomain}': too short after sanitization`
-    );
-  }
-
-  const finalName = `tenant-${sanitized.replace(/-/g, '')}-assets`; // Match test expectation: tenant-{uuid}-assets
-
-  if (finalName.length > 63) {
-    return finalName.substring(0, 63);
-  }
-
-  return finalName;
-}
-
-/**
- * Get bucket usage statistics
- * @param subdomain - Tenant subdomain
- */
-export async function getStorageUsage(subdomain: string) {
-  const bucketName = sanitizeBucketName(subdomain);
-
-  let totalSize = 0;
-  let objectCount = 0;
-
-  try {
-    const stream = minioClient.listObjects(bucketName, '', true);
-    for await (const obj of stream) {
-      totalSize += obj.size;
-      objectCount++;
-    }
-  } catch (_e) {
-    // return 0 if bucket doesn't exist or other error involved in listing
-  }
-
-  // Mock quota for result
-  const quotaBytes = 10 * 1024 * 1024 * 1024;
-
-  return {
-    usedBytes: totalSize,
-    objectCount,
-    quotaBytes,
-    usagePercent: (totalSize / quotaBytes) * 100,
-  };
-}
-
-export async function getPresignedUploadUrl(
+export async function getSignedUploadUrl(
   subdomain: string,
   objectName: string,
-  expiry: number = 3600
+  expiry = 3600
 ): Promise<string> {
   const bucketName = sanitizeBucketName(subdomain);
-  return await minioClient.presignedPutObject(bucketName, objectName, expiry);
+  const client = getMinioClient();
+
+  try {
+    const url = await client.presignedPutObject(bucketName, objectName, expiry);
+    return url;
+  } catch (error) {
+    logger.error('Failed to generate upload URL', { bucketName, objectName, error });
+    throw new Error('Failed to generate upload URL');
+  }
+}
+
+export async function getSignedDownloadUrl(
+  subdomain: string,
+  objectName: string,
+  expiry = 3600
+): Promise<string> {
+  const bucketName = sanitizeBucketName(subdomain);
+  const client = getMinioClient();
+
+  try {
+    const url = await client.presignedGetObject(bucketName, objectName, expiry);
+    return url;
+  } catch (error) {
+    logger.error('Failed to generate download URL', { bucketName, objectName, error });
+    throw new Error('Failed to generate download URL');
+  }
+}
+
+export async function deleteObject(
+  subdomain: string,
+  objectName: string
+): Promise<boolean> {
+  const bucketName = sanitizeBucketName(subdomain);
+  const client = getMinioClient();
+
+  try {
+    await client.removeObject(bucketName, objectName);
+    return true;
+  } catch (error) {
+    logger.error('Failed to delete object', { bucketName, objectName, error });
+    return false;
+  }
+}
+
+export async function getStorageStats(subdomain: string): Promise<StorageStats> {
+  const bucketName = sanitizeBucketName(subdomain);
+  const client = getMinioClient();
+
+  try {
+    const objects = await client.listObjects(bucketName, '', true).toArray();
+    const totalSize = objects.reduce((acc, obj) => acc + (obj.size || 0), 0);
+
+    return {
+      totalObjects: objects.length,
+      totalSize,
+      lastModified: objects.length > 0
+        ? new Date(Math.max(...objects.map(o => new Date(o.lastModified || 0).getTime())))
+        : null,
+    };
+  } catch (error) {
+    logger.error('Failed to get storage stats', { bucketName, error });
+    return { totalObjects: 0, totalSize: 0, lastModified: null };
+  }
+}
+
+async function getPublicReadPolicy(bucketName: string): Promise<unknown> {
+  return {
+    version: '2012-10-17',
+    statement: [
+      {
+        effect: 'Allow',
+        principal: '*',
+        action: ['s3:GetObject'],
+        resource: [`arn:aws:s3:::${bucketName}/*`],
+      },
+    ],
+  };
 }

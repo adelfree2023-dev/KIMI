@@ -1,0 +1,24 @@
+import { describe, it, expect } from 'vitest';
+import * as db from './index.js';
+
+describe('DB Module Exports', () => {
+  it('should export tenants', () => {
+    expect(db.tenants).toBeDefined();
+  });
+
+  it('should export users', () => {
+    expect(db.users).toBeDefined();
+  });
+
+  it('should export stores', () => {
+    expect(db.stores).toBeDefined();
+  });
+
+  it('should export settings', () => {
+    expect(db.settings).toBeDefined();
+  });
+
+  it('should export auditLogs', () => {
+    expect(db.auditLogs).toBeDefined();
+  });
+});

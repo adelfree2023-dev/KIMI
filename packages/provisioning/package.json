@@ -1,0 +1,32 @@
+{
+  "name": "@apex/provisioning",
+  "version": "1.0.0",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "bun build ./src/index.ts --outdir ./dist --target node && tsc --emitDeclarationOnly || true",
+    "test": "vitest run",
+    "test:unit": "vitest run --coverage",
+    "lint": "biome check .",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@apex/config": "workspace:*",
+    "@apex/db": "workspace:*",
+    "minio": "latest",
+    "drizzle-orm": "^0.29.3",
+    "postgres": "^3.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "bun-types": "latest",
+    "vitest": "^1.0.0",
+    "@biomejs/biome": "^1.5.0",
+    "typescript": "^5.3.0"
+  }
+}

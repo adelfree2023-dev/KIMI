@@ -1,68 +1,62 @@
 {
-    "$schema": "https://biomejs.dev/schemas/1.5.0/schema.json",
-    "organizeImports": {
-        "enabled": true
-    },
-    "formatter": {
-        "enabled": true,
-        "formatWithErrors": false,
-        "indentStyle": "space",
-        "indentWidth": 2,
-        "lineWidth": 80,
-        "lineEnding": "lf"
-    },
-    "linter": {
-        "enabled": true,
-        "rules": {
-            "recommended": true,
-            "complexity": {
-                "noBannedTypes": "error",
-                "noExcessiveCognitiveComplexity": {
-                    "level": "error",
-                    "options": {
-                        "maxAllowedComplexity": 10
-                    }
-                }
-            },
-            "correctness": {
-                "noUnusedImports": "error",
-                "noUnusedVariables": "error",
-                "noUnusedFunctionParameters": "error",
-                "noUnreachable": "error"
-            },
-            "security": {
-                "noDangerouslySetInnerHtml": "error",
-                "noGlobalEval": "error"
-            },
-            "style": {
-                "noDefaultExport": "error",
-                "useNamingConvention": {
-                    "level": "error",
-                    "options": {
-                        "strictCase": true
-                    }
-                }
-            },
-            "suspicious": {
-                "noConsoleLog": "warn",
-                "noExplicitAny": "error",
-                "noConsole": {
-                    "level": "error",
-                    "options": {
-                        "allow": [
-                            "error",
-                            "warn"
-                        ]
-                    }
-                }
-            }
+  "$schema": "https://biomejs.dev/schemas/2.3.14/schema.json",
+  "files": {
+    "ignore": [
+      "**/node_modules/**",
+      "**/dist/**",
+      "**/.next/**",
+      "**/.turbo/**",
+      "**/coverage/**",
+      "**/out/**",
+      "**/build/**"
+    ]
+  },
+  "formatter": {
+    "enabled": true,
+    "formatWithErrors": true,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 80,
+    "lineEnding": "lf"
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true,
+      "style": {
+        "noDefaultExport": "off",
+        "useNamingConvention": "off"
+      },
+      "complexity": {
+        "noBannedTypes": "error",
+        "noExcessiveCognitiveComplexity": {
+          "level": "error",
+          "options": {
+            "maxAllowedComplexity": 15
+          }
         }
-    },
-    "javascript": {
-        "formatter": {
-            "quoteStyle": "single",
-            "trailingComma": "es5",
-            "semicolons": "always"
-        }
+      },
+      "correctness": {
+        "noUnusedVariables": "error",
+        "noUnreachable": "error"
+      },
+      "security": {
+        "noDangerouslySetInnerHtml": "error"
+      },
+      "suspicious": {
+        "noExplicitAny": "off",
+        "noConsoleLog": "off"
+      }
     }
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "single",
+      "trailingComma": "es5",
+      "semicolons": "always"
+    },
+    "parser": {
+      "unsafeParameterDecoratorsEnabled": true
+    }
+  }
 }

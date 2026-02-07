@@ -1,0 +1,110 @@
+name: 'Security Scan'
+description: 'Run comprehensive security scans including secrets, dependencies, and code analysis'
+
+inputs:
+  scan-secrets:
+    description: 'Enable secret scanning'
+    required: false
+    default: 'true'
+  scan-dependencies:
+    description: 'Enable dependency audit'
+    required: false
+    default: 'true'
+  scan-code:
+    description: 'Enable code security scanning'
+    required: false
+    default: 'true'
+  fail-on-high:
+    description: 'Fail on high severity findings'
+    required: false
+    default: 'true'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Secret Scanning (Gitleaks)
+      if: inputs.scan-secrets == 'true'
+      uses: gitleaks/gitleaks-action@v2
+      env:
+        GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
+
+    - name: Dependency Audit
+      if: inputs.scan-dependencies == 'true'
+      shell: bash
+      run: |
+        echo "🔍 Running dependency security audit..."
+        bun audit --json > audit-report.json 2>/dev/null || true
+        
+        # Check for high/critical vulnerabilities
+        high_vulns=$(cat audit-report.json | grep -c '"severity":\s*"high"' || echo "0")
+        critical_vulns=$(cat audit-report.json | grep -c '"severity":\s*"critical"' || echo "0")
+        
+        echo "Vulnerabilities found:"
+        echo "  - Critical: $critical_vulns"
+        echo "  - High: $high_vulns"
+        
+        if [ "$critical_vulns" -gt 0 ] || ([ "$high_vulns" -gt 0 ] && [ "${{ inputs.fail-on-high }}" == "true" ]); then
+          echo "❌ Security audit failed due to high/critical vulnerabilities"
+          cat audit-report.json | jq '.advisories[] | select(.severity == "critical" or .severity == "high")' || cat audit-report.json
+          exit 1
+        fi
+        
+        echo "✅ Dependency audit passed"
+
+    - name: Code Security Scan
+      if: inputs.scan-code == 'true'
+      shell: bash
+      run: |
+        echo "🔍 Scanning for security anti-patterns..."
+        
+        findings=""
+        
+        # Check for eval() usage
+        eval_usage=$(grep -r "eval(" packages/*/src apps/*/src --include="*.ts" 2>/dev/null | grep -v "\.test\." | head -10 || true)
+        if [ -n "$eval_usage" ]; then
+          findings="${findings}❌ eval() found (Code Injection risk):\n$eval_usage\n\n"
+        fi
+        
+        # Check for Function constructor
+        func_usage=$(grep -r "new Function(" packages/*/src apps/*/src --include="*.ts" 2>/dev/null | grep -v "\.test\." | head -10 || true)
+        if [ -n "$func_usage" ]; then
+          findings="${findings}❌ new Function() found (Code Injection risk):\n$func_usage\n\n"
+        fi
+        
+        # Check for innerHTML
+        innerhtml_usage=$(grep -r "\.innerHTML\s*=" packages/*/src apps/*/src --include="*.ts" --include="*.tsx" 2>/dev/null | grep -v "\.test\." | head -10 || true)
+        if [ -n "$innerhtml_usage" ]; then
+          findings="${findings}⚠️ innerHTML assignment found (XSS risk):\n$innerhtml_usage\n\n"
+        fi
+        
+        # Check for hardcoded secrets pattern
+        secrets_pattern=$(grep -rn "password\s*=\s*['\"]" packages/*/src apps/*/src --include="*.ts" 2>/dev/null | grep -v "\.test\." | grep -v "process.env" | grep -v "config" | head -10 || true)
+        if [ -n "$secrets_pattern" ]; then
+          findings="${findings}⚠️ Possible hardcoded credentials:\n$secrets_pattern\n\n"
+        fi
+        
+        if [ -n "$findings" ]; then
+          echo "🚨 Security issues found:"
+          echo -e "$findings"
+          exit 1
+        fi
+        
+        echo "✅ Code security scan passed"
+
+    - name: Generate Security Report
+      if: always()
+      shell: bash
+      run: |
+        echo "📊 Security Scan Summary" > security-report.txt
+        echo "=========================" >> security-report.txt
+        echo "Date: $(date)" >> security-report.txt
+        echo "Ref: ${{ github.ref }}" >> security-report.txt
+        echo "SHA: ${{ github.sha }}" >> security-report.txt
+        echo "" >> security-report.txt
+        echo "Scans performed:" >> security-report.txt
+        echo "  - Secret Scanning: ${{ inputs.scan-secrets }}" >> security-report.txt
+        echo "  - Dependency Audit: ${{ inputs.scan-dependencies }}" >> security-report.txt
+        echo "  - Code Security: ${{ inputs.scan-code }}" >> security-report.txt
+        echo "" >> security-report.txt
+        echo "Status: ${{ job.status }}" >> security-report.txt
+        cat security-report.txt

@@ -3,57 +3,55 @@
  * Schema-based isolation using Drizzle ORM
  */
 
-import { drizzle } from 'drizzle-orm/node-postgres';
-import { Pool } from 'pg';
 import { validateEnv } from '@apex/config';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import pkg from 'pg';
+
+const { Pool } = pkg;
+
+export * from './schema.js';
 
 const env = validateEnv();
 
 // Connection pool for public schema (tenant management)
 export const publicPool = new Pool({
-    connectionString: env.DATABASE_URL,
-    ssl: env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+  connectionString: env.DATABASE_URL,
+  ssl: env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
 });
 
 // Drizzle instance for public schema
 export const publicDb = drizzle(publicPool);
 
 /**
- * Get tenant-specific database connection
- * Sets search_path to isolate tenant data
+ * Execute operation within tenant context using shared pool
  */
-export function getTenantDb(tenantId: string) {
-    const tenantSchema = `tenant_${tenantId}`;
+export async function withTenantConnection<T>(
+  tenantId: string,
+  operation: (db: any) => Promise<T>
+): Promise<T> {
+  const client = await publicPool.connect();
 
-    const pool = new Pool({
-        connectionString: env.DATABASE_URL,
-        ssl: env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
-    });
+  try {
+    // 🔒 S2 Enforcement: Switch to tenant context
+    await client.query(`SET search_path TO "tenant_${tenantId}", public`);
 
-    // Set search path for this connection
-    pool.on('connect', (client) => {
-        client.query(`SET search_path TO ${tenantSchema}, public`);
-    });
-
-    return drizzle(pool);
+    const db = drizzle(client);
+    const result = await operation(db);
+    return result;
+  } finally {
+    // 🧹 Cleanup: Reset context before returning to pool
+    await client.query('SET search_path TO public');
+    client.release();
+  }
 }
 
 /**
- * Create tenant schema (used in provisioning)
+ * Create a Drizzle instance for a specific tenant
+ * Note: For production, use withTenantConnection for proper isolation.
+ * This helper is for one-off operations like seeding.
  */
-export async function createTenantSchema(tenantId: string): Promise<void> {
-    const schemaName = `tenant_${tenantId}`;
-
-    await publicPool.query(`
-    CREATE SCHEMA IF NOT EXISTS "${schemaName}";
-    GRANT ALL ON SCHEMA "${schemaName}" TO CURRENT_USER;
-  `);
-}
-
-/**
- * Drop tenant schema (used in deletion/kill switch)
- */
-export async function dropTenantSchema(tenantId: string): Promise<void> {
-    const schemaName = `tenant_${tenantId}`;
-    await publicPool.query(`DROP SCHEMA IF EXISTS "${schemaName}" CASCADE`);
+export function createTenantDb(_tenantId: string) {
+  // In a real implementation, this would return a proxy or handle search_path
+  // For now, we return publicDb but the caller must be aware or use withTenantConnection
+  return publicDb;
 }

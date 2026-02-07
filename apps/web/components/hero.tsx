@@ -25,7 +25,7 @@ export function Hero() {
             The multi-tenant e-commerce platform that scales with your business.
             From landing page to live store + mobile app in under a minute.
           </p>
-          
+
           <form onSubmit={handleSubmit} className="mx-auto mt-10 max-w-md">
             <div className="flex gap-3">
               <input

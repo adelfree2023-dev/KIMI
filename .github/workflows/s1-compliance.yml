@@ -323,6 +323,8 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+          --entrypoint minio
+        command: server /data --console-address ":9001"
     steps:
       - uses: actions/checkout@v4
       - name: Setup Bun
@@ -483,7 +485,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
       minio:
-        image: minio/minio server /data --console-address ":9001"
+        image: minio/minio
         env:
           MINIO_ROOT_USER: test
           MINIO_ROOT_PASSWORD: minioadmin123
@@ -495,6 +497,8 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+          --entrypoint minio
+        command: server /data --console-address ":9001"
     steps:
       - uses: actions/checkout@v4
       - name: Setup Bun

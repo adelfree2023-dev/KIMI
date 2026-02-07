@@ -4,7 +4,10 @@
     "ignore": [
       ".turbo/**",
       "dist/**",
-      "node_modules/**"
+      "node_modules/**",
+      "coverage/**",
+      ".next/**",
+      "out/**"
     ]
   },
   "formatter": {
@@ -21,13 +24,7 @@
       "recommended": true,
       "style": {
         "noDefaultExport": "error",
-        "useNamingConvention": {
-          "level": "error",
-          "options": {
-            "strictCase": false,
-            "requireAscii": true
-          }
-        }
+        "useNamingConvention": "off"
       },
       "complexity": {
         "noBannedTypes": "error",

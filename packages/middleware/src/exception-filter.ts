@@ -106,7 +106,31 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     if (statusCode === 500) {
       return 'An unexpected error occurred';
     }
-    return message;
+    
+    // S5 FIX: Also sanitize potential internal details from 4xx errors
+    // Database table names, column names, internal paths
+    const internalPatterns = [
+      /table\s+['"]?\w+['"]?/gi,
+      /column\s+['"]?\w+['"]?/gi,
+      /relation\s+['"]?\w+['"]?/gi,
+      /schema\s+['"]?\w+['"]?/gi,
+      /database\s+['"]?\w+['"]?/gi,
+      /constraint\s+['"]?\w+['"]?/gi,
+      /\/.*\/packages\//g,
+      /\/.*\/node_modules\//g,
+    ];
+    
+    let sanitized = message;
+    for (const pattern of internalPatterns) {
+      if (pattern.test(sanitized)) {
+        // If message contains internal details, return generic message
+        if (statusCode >= 400 && statusCode < 500) {
+          return 'Invalid request';
+        }
+      }
+    }
+    
+    return sanitized;
   }
 
   private getErrorName(status: number): string {

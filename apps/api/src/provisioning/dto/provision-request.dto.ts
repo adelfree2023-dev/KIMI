@@ -35,8 +35,17 @@ export const ProvisionRequestSchema = z.object({
 
   /**
    * Optional Super Admin secret key
+   * S3 Validation: Must be 32-128 chars, alphanumeric + hyphen/underscore only
    */
-  superAdminKey: z.string().optional(),
+  superAdminKey: z
+    .string()
+    .min(32, 'Super Admin key must be at least 32 characters')
+    .max(128, 'Super Admin key too long (max 128)')
+    .regex(
+      /^[A-Za-z0-9-_]+$/,
+      'Super Admin key must be alphanumeric with hyphens/underscores only'
+    )
+    .optional()
 });
 
 export class ProvisionRequestDto extends createZodDto(ProvisionRequestSchema) {}

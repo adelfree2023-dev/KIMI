@@ -53,11 +53,14 @@ export class AuditService {
     );
 
     // 2. Persistent Logging (S4 Protocol)
-    // In S4, we insert into public.audit_logs which has triggers
-    // to prevent any UPDATE or DELETE operations.
+    // CRITICAL FIX (S2): Explicitly set search_path to public before query
+    // to prevent context leakage from tenant schemas
     const client = await publicPool.connect();
 
     try {
+      // 🔒 S2 Enforcement: Reset search_path to public before audit query
+      await client.query('SET search_path TO public');
+      
       await client.query(
         `
         INSERT INTO public.audit_logs (
@@ -90,6 +93,10 @@ export class AuditService {
       // In high-security mode, we might want to crash the process here
       // throw new Error('Audit Persistence Failure');
     } finally {
+      // 🔒 S2 Enforcement: Reset search_path before releasing to pool
+      await client.query('SET search_path TO public').catch(() => {
+        // Ignore errors during cleanup
+      });
       client.release();
     }
   }

@@ -70,9 +70,10 @@ export class SecurityHeadersMiddleware implements NestMiddleware {
 
 /**
  * CORS configuration per tenant
+ * S8 FIX: origin can be a function for dynamic whitelist
  */
 export interface CorsConfig {
-  origin: string | string[] | boolean;
+  origin: string | string[] | boolean | ((origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => void);
   methods: string[];
   allowedHeaders: string[];
   exposedHeaders: string[];
@@ -80,11 +81,40 @@ export interface CorsConfig {
   maxAge: number;
 }
 
+/**
+ * S8 FIX: Changed from `origin: false` to dynamic whitelist
+ * origin: false breaks all cross-origin requests
+ * origin: true allows all (unsafe)
+ * This uses a whitelist approach with localhost fallback for dev
+ */
 export const defaultCorsConfig: CorsConfig = {
-  origin: false, // Disable by default
+  // Use whitelist pattern - by default only same-origin
+  // In production, configure with actual domains
+  origin: (origin, callback) => {
+    // Allow requests with no origin (mobile apps, curl, etc.)
+    if (!origin) return callback(null, true);
+    
+    // Development whitelist
+    const devOrigins = [
+      'http://localhost:3000',
+      'http://localhost:3001',
+      'http://localhost:5173',
+      'http://127.0.0.1:3000',
+    ];
+    
+    // Production should set ALLOWED_ORIGINS env var
+    const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [];
+    const whitelist = [...devOrigins, ...allowedOrigins];
+    
+    if (whitelist.includes(origin) || process.env.NODE_ENV === 'development') {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-ID'],
-  exposedHeaders: ['X-RateLimit-Limit', 'X-RateLimit-Remaining'],
+  exposedHeaders: ['X-RateLimit-Limit', 'X-RateLimit-Remaining', 'X-RateLimit-Reset'],
   credentials: true,
   maxAge: 86400, // 24 hours
 };

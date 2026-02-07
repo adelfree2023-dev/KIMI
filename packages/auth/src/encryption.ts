@@ -106,11 +106,31 @@ export class EncryptionService {
 
   constructor() {
     this.masterKey = process.env.ENCRYPTION_MASTER_KEY || '';
-    if (!this.masterKey && process.env.NODE_ENV === 'production') {
-      throw new Error('S1 Violation: ENCRYPTION_MASTER_KEY is required in production');
+    
+    // S7 FIX: Always validate key length (not just in production)
+    // Empty keys allowed only in test environment with explicit flag
+    const isTestMode = process.env.NODE_ENV === 'test' || process.env.SKIP_ENCRYPTION === 'true';
+    
+    if (!this.masterKey) {
+      if (isTestMode) {
+        // Generate deterministic test key for tests only
+        this.masterKey = 'test-encryption-key-32-chars-long!';
+        console.warn('⚠️ S7: Using test encryption key - NEVER use in production');
+      } else {
+        throw new Error('S1 Violation: ENCRYPTION_MASTER_KEY is required');
+      }
     }
+    
+    // Always enforce minimum key length
     if (this.masterKey.length < 32) {
       throw new Error('S1 Violation: ENCRYPTION_MASTER_KEY must be at least 32 characters');
+    }
+    
+    // Additional validation for production
+    if (process.env.NODE_ENV === 'production') {
+      if (this.masterKey.includes('test') || this.masterKey.includes('default')) {
+        throw new Error('S1 Violation: ENCRYPTION_MASTER_KEY appears to be a test/default value');
+      }
     }
   }
 

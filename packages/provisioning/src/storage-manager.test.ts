@@ -8,8 +8,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   createStorageBucket,
   deleteStorageBucket,
-  getPresignedUploadUrl,
-  getStorageUsage,
+  getSignedUploadUrl,
+  getStorageStats,
   minioClient,
 } from './storage-manager.js';
 
@@ -25,17 +25,21 @@ vi.mock('minio', () => ({
     putObject: vi.fn(),
     listObjects: vi.fn(),
     presignedPutObject: vi.fn(),
+    getBucketTagging: vi.fn(),
+    presignedGetObject: vi.fn(),
+    removeObject: vi.fn(),
   })),
 }));
 
 vi.mock('@apex/config', () => ({
-  validateEnv: () => ({
+  env: {
     MINIO_ENDPOINT: 'localhost',
     MINIO_PORT: '9000',
     MINIO_USE_SSL: 'false',
     MINIO_ACCESS_KEY: 'test',
     MINIO_SECRET_KEY: 'test',
-  }),
+    MINIO_REGION: 'us-east-1',
+  },
 }));
 
 describe('Storage Manager', () => {
@@ -184,7 +188,7 @@ describe('Storage Manager', () => {
 
       expect(result).toBe(true);
       expect(mockClient.removeBucket).toHaveBeenCalledWith(
-        'tenant-uuid123-assets'
+        'tenant-uuid-123-assets'
       );
     });
 
@@ -217,7 +221,7 @@ describe('Storage Manager', () => {
     });
   });
 
-  describe('getStorageUsage', () => {
+  describe('getStorageStats', () => {
     it('should calculate total usage from all objects', async () => {
       mockClient.listObjects.mockReturnValue(
         (async function* () {
@@ -226,31 +230,37 @@ describe('Storage Manager', () => {
           yield { name: 'file3.jpg', size: 4096 };
         })()
       );
+      mockClient.getBucketTagging.mockResolvedValue({ plan: 'free' });
 
-      const result = await getStorageUsage('uuid-123');
+      const result = await getStorageStats('uuid-123');
 
       expect(result.usedBytes).toBe(7168); // 1024 + 2048 + 4096
+      expect(result.totalSize).toBe(7168);
+      expect(result.totalObjects).toBe(3);
       expect(result.quotaBytes).toBeGreaterThan(0);
       expect(result.usagePercent).toBeGreaterThan(0);
     });
 
     it('should handle empty bucket', async () => {
       mockClient.listObjects.mockReturnValue((async function* () {})());
+      mockClient.getBucketTagging.mockResolvedValue({ plan: 'free' });
 
-      const result = await getStorageUsage('uuid-123');
+      const result = await getStorageStats('uuid-123');
 
       expect(result.usedBytes).toBe(0);
+      expect(result.totalSize).toBe(0);
+      expect(result.totalObjects).toBe(0);
       expect(result.usagePercent).toBe(0);
     });
   });
 
-  describe('getPresignedUploadUrl', () => {
+  describe('getSignedUploadUrl', () => {
     it('should generate presigned URL for direct upload', async () => {
       mockClient.presignedPutObject.mockResolvedValue(
         'https://minio.example.com/bucket/object?X-Amz-Algorithm=AWS4-HMAC-SHA256'
       );
 
-      const url = await getPresignedUploadUrl(
+      const url = await getSignedUploadUrl(
         'uuid-123',
         'products/image.jpg',
         3600
@@ -258,7 +268,7 @@ describe('Storage Manager', () => {
 
       expect(url).toContain('X-Amz-Algorithm');
       expect(mockClient.presignedPutObject).toHaveBeenCalledWith(
-        'tenant-uuid123-assets',
+        'tenant-uuid-123-assets',
         'products/image.jpg',
         3600
       );
@@ -269,7 +279,7 @@ describe('Storage Manager', () => {
         'https://example.com/upload'
       );
 
-      await getPresignedUploadUrl('uuid-123', 'file.txt');
+      await getSignedUploadUrl('uuid-123', 'file.txt');
 
       expect(mockClient.presignedPutObject).toHaveBeenCalledWith(
         expect.any(String),
@@ -295,7 +305,7 @@ describe('Storage Manager', () => {
         throw new Error('Access Denied');
       });
 
-      await expect(getStorageUsage('uuid-123')).rejects.toThrow(
+      await expect(getStorageStats('uuid-123')).rejects.toThrow(
         'Access Denied'
       );
     });

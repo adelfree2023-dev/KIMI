@@ -22,6 +22,8 @@ describe('ConnectionContext', () => {
       tenantId: 'test-tenant',
       subdomain: 'test',
       plan: 'pro',
+      features: [],
+      createdAt: new Date(),
     };
 
     await runWithTenantContext(mockContext, async () => {
@@ -47,12 +49,16 @@ describe('ConnectionContext', () => {
       tenantId: 'outer',
       subdomain: 'outer',
       plan: 'free',
+      features: [],
+      createdAt: new Date(),
     };
 
     const innerContext: TenantContext = {
       tenantId: 'inner',
       subdomain: 'inner',
       plan: 'pro',
+      features: [],
+      createdAt: new Date(),
     };
 
     await runWithTenantContext(outerContext, async () => {

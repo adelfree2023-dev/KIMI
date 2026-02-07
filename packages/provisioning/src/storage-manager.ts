@@ -1,9 +1,37 @@
-import { env } from '@apex/shared-config';
+import { env } from '@apex/config';
 import * as Minio from 'minio';
-import { logger } from '@apex/logger';
-import type { BucketCreationResult, StorageStats } from './types.js';
 
-let minioClient: Minio.Client | null = null;
+// Define types inline since types.ts doesn't exist
+export interface BucketCreationResult {
+  success: boolean;
+  bucketName: string;
+  error?: string;
+  endpoint?: string;
+  quotaBytes?: number;
+  durationMs?: number;
+  createdAt?: Date;
+}
+
+export interface StorageStats {
+  totalObjects: number;
+  totalSize: number;
+  lastModified: Date | null;
+  usedBytes?: number;
+  quotaBytes?: number;
+  usagePercent?: number;
+}
+
+// Simple logger using console
+const logger = {
+  info: (message: string, meta?: Record<string, unknown>) => {
+    console.log(`[INFO] ${message}`, meta ? JSON.stringify(meta) : '');
+  },
+  error: (message: string, meta?: Record<string, unknown>) => {
+    console.error(`[ERROR] ${message}`, meta ? JSON.stringify(meta) : '');
+  },
+};
+
+export let minioClient: Minio.Client | null = null;
 
 function getMinioClient(): Minio.Client {
   if (!minioClient) {
@@ -19,8 +47,15 @@ function getMinioClient(): Minio.Client {
 }
 
 function sanitizeBucketName(subdomain: string): string {
-  return `tenant-${subdomain.toLowerCase().replace(/[^a-z0-9-]/g, '-')}`;
+  return `tenant-${subdomain.toLowerCase().replace(/[^a-z0-9-]/g, '-')}-assets`;
 }
+
+// Plan quotas in bytes
+const PLAN_QUOTAS: Record<string, number> = {
+  free: 1024 * 1024 * 1024, // 1GB
+  basic: 10 * 1024 * 1024 * 1024, // 10GB
+  pro: 100 * 1024 * 1024 * 1024, // 100GB
+};
 
 export async function createStorageBucket(
   subdomain: string,
@@ -33,40 +68,49 @@ export async function createStorageBucket(
   try {
     const exists = await client.bucketExists(bucketName);
     if (exists) {
-      return {
-        success: false,
-        error: 'Bucket already exists',
-        bucketName,
-      };
+      throw new Error('Bucket already exists');
     }
 
     await client.makeBucket(bucketName, env.MINIO_REGION || 'us-east-1');
 
-    // Set bucket policy based on plan
-    const policy = plan === 'free'
-      ? { version: '2012-10-17', statement: [] }
-      : await getPublicReadPolicy(bucketName);
+    // Enable versioning for audit trail
+    await client.setBucketVersioning(bucketName, { Status: 'Enabled' });
 
+    // Set bucket policy based on plan - public read for /public/* paths
+    const policy = await getPublicReadPolicy(bucketName);
     await client.setBucketPolicy(bucketName, JSON.stringify(policy));
+
+    // Set bucket tagging with plan info
+    await client.setBucketTagging(bucketName, {
+      plan,
+      tenant: subdomain,
+    });
+
+    // Create folder structure
+    await client.putObject(bucketName, 'public/products/.keep', Buffer.from(''));
+    await client.putObject(bucketName, 'private/exports/.keep', Buffer.from(''));
+
+    const duration = Date.now() - start;
 
     logger.info(`Bucket created for tenant: ${subdomain}`, {
       bucketName,
       plan,
-      duration: Date.now() - start,
+      duration,
     });
 
     return {
       success: true,
       bucketName,
       endpoint: `${env.MINIO_USE_SSL === 'true' ? 'https' : 'http'}://${env.MINIO_ENDPOINT}:${env.MINIO_PORT}/${bucketName}`,
+      quotaBytes: PLAN_QUOTAS[plan] || PLAN_QUOTAS.free,
+      durationMs: duration,
+      createdAt: new Date(),
     };
   } catch (error) {
     logger.error('Failed to create storage bucket', { subdomain, error });
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
-      bucketName,
-    };
+    throw new Error(
+      `Failed to create storage bucket: ${error instanceof Error ? error.message : 'Unknown error'}`
+    );
   }
 }
 
@@ -78,6 +122,11 @@ export async function deleteStorageBucket(
   const client = getMinioClient();
 
   try {
+    const exists = await client.bucketExists(bucketName);
+    if (!exists) {
+      return false;
+    }
+
     if (!force) {
       const objects = await client.listObjects(bucketName, '', true).toArray();
       if (objects.length > 0) {
@@ -152,28 +201,46 @@ export async function getStorageStats(subdomain: string): Promise<StorageStats> 
     const objects = await client.listObjects(bucketName, '', true).toArray();
     const totalSize = objects.reduce((acc, obj) => acc + (obj.size || 0), 0);
 
+    // Get quota from bucket tags
+    let quotaBytes = PLAN_QUOTAS.free;
+    try {
+      const tags = await client.getBucketTagging(bucketName);
+      const plan = tags.plan || 'free';
+      quotaBytes = PLAN_QUOTAS[plan] || PLAN_QUOTAS.free;
+    } catch {
+      // Ignore tagging errors, use default quota
+    }
+
+    const usagePercent = quotaBytes > 0 ? (totalSize / quotaBytes) * 100 : 0;
+
     return {
       totalObjects: objects.length,
       totalSize,
-      lastModified: objects.length > 0
-        ? new Date(Math.max(...objects.map(o => new Date(o.lastModified || 0).getTime())))
-        : null,
+      usedBytes: totalSize,
+      quotaBytes,
+      usagePercent,
+      lastModified:
+        objects.length > 0
+          ? new Date(Math.max(...objects.map((o) => new Date(o.lastModified || 0).getTime())))
+          : null,
     };
   } catch (error) {
     logger.error('Failed to get storage stats', { bucketName, error });
-    return { totalObjects: 0, totalSize: 0, lastModified: null };
+    throw new Error(
+      `Failed to get storage stats: ${error instanceof Error ? error.message : 'Unknown error'}`
+    );
   }
 }
 
 async function getPublicReadPolicy(bucketName: string): Promise<unknown> {
   return {
-    version: '2012-10-17',
-    statement: [
+    Version: '2012-10-17',
+    Statement: [
       {
-        effect: 'Allow',
-        principal: '*',
-        action: ['s3:GetObject'],
-        resource: [`arn:aws:s3:::${bucketName}/*`],
+        Effect: 'Allow',
+        Principal: '*',
+        Action: ['s3:GetObject'],
+        Resource: [`arn:aws:s3:::${bucketName}/public/*`],
       },
     ],
   };

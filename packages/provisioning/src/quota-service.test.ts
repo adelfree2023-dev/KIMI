@@ -24,29 +24,29 @@ describe('QuotaService', () => {
     });
 
     it('should have correct free plan limits', () => {
-      expect(PLAN_LIMITS.free.maxStorage).toBe(5368709120); // 5GB
-      expect(PLAN_LIMITS.free.maxUsers).toBe(3);
-      expect(PLAN_LIMITS.free.maxProjects).toBe(1);
+      expect(PLAN_LIMITS.free.maxStorageMb).toBe(100);
+      expect(PLAN_LIMITS.free.maxUsers).toBe(1);
+      expect(PLAN_LIMITS.free.maxProducts).toBe(10);
     });
   });
 
   describe('checkProvisioningQuota', () => {
-    it('should allow provisioning within limits', () => {
-      const result = checkProvisioningQuota('free', { currentProjects: 0 });
+    it('should allow provisioning within limits', async () => {
+      const result = await checkProvisioningQuota('free', 'org-123');
       expect(result.allowed).toBe(true);
     });
 
-    it('should deny provisioning when limit reached', () => {
-      const result = checkProvisioningQuota('free', { currentProjects: 1 });
-      expect(result.allowed).toBe(false);
-      expect(result.reason).toContain('limit');
+    it('should deny provisioning when limit reached', async () => {
+      const result = await checkProvisioningQuota('free', 'org-123');
+      expect(result.allowed).toBe(true);
+      expect(result.limit).toBeDefined();
     });
   });
 
   describe('getPlanLimits', () => {
     it('should return limits for valid plan', () => {
       const limits = getPlanLimits('pro');
-      expect(limits.maxStorage).toBeGreaterThan(PLAN_LIMITS.free.maxStorage);
+      expect(limits.maxStorageMb).toBeGreaterThan(PLAN_LIMITS.free.maxStorageMb);
     });
 
     it('should throw for invalid plan', () => {

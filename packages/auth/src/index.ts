@@ -3,7 +3,7 @@
  * S2: Tenant Isolation Enforcement via TenantScopedGuard
  */
 
-import { getCurrentTenantContext, type TenantContext } from '@apex/middleware';
+import { type TenantContext, getCurrentTenantContext } from '@apex/middleware';
 import {
   type CanActivate,
   type ExecutionContext,

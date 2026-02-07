@@ -1,15 +1,5 @@
 {
   "$schema": "https://biomejs.dev/schemas/2.3.14/schema.json",
-  "files": {
-    "ignore": [
-      ".turbo/**",
-      "dist/**",
-      "node_modules/**",
-      "coverage/**",
-      ".next/**",
-      "out/**"
-    ]
-  },
   "formatter": {
     "enabled": true,
     "formatWithErrors": true,
@@ -23,7 +13,7 @@
     "rules": {
       "recommended": true,
       "style": {
-        "noDefaultExport": "error",
+        "noDefaultExport": "off",
         "useNamingConvention": "off"
       },
       "complexity": {

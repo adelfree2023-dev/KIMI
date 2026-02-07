@@ -70,7 +70,7 @@ export class AuditService {
       );
     } catch (error) {
       // Critical failure if audit logging fails
-      this.logger.error(`S4 VIOLATION: Failed to persist audit log!`, error);
+      this.logger.error('S4 VIOLATION: Failed to persist audit log!', error);
       // In high-security mode, we might want to crash the process here
       // throw new Error('Audit Persistence Failure');
     } finally {

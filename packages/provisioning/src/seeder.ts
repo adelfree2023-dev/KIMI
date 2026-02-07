@@ -85,7 +85,7 @@ export async function isSeeded(subdomain: string): Promise<boolean> {
   try {
     const result = await db.select({ count: sql`count(*)` }).from(users);
     return Number(result[0].count) > 0;
-  } catch (e) {
+  } catch (_e) {
     return false;
   }
 }

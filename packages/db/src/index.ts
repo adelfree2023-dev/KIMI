@@ -49,7 +49,7 @@ export async function withTenantConnection<T>(
  * Note: For production, use withTenantConnection for proper isolation.
  * This helper is for one-off operations like seeding.
  */
-export function createTenantDb(tenantId: string) {
+export function createTenantDb(_tenantId: string) {
   // In a real implementation, this would return a proxy or handle search_path
   // For now, we return publicDb but the caller must be aware or use withTenantConnection
   return publicDb;

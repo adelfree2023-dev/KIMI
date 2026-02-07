@@ -11,7 +11,6 @@ import {
   dropTenantSchema,
   runTenantMigrations,
   seedTenantData,
-  verifySchemaExists,
 } from '@apex/provisioning';
 import {
   ConflictException,
@@ -31,7 +30,7 @@ export interface ProvisioningOptions {
 export class ProvisioningService {
   private readonly logger = new Logger(ProvisioningService.name);
 
-  constructor(private readonly audit: AuditService) {}
+  constructor(private readonly audit: AuditService) { }
 
   /**
    * Provision a new store in under 60 seconds
@@ -117,7 +116,7 @@ export class ProvisioningService {
   /**
    * Register tenant in the public.tenants table
    */
-  private async registerTenant(options: ProvisioningOptions, adminId: string) {
+  private async registerTenant(options: ProvisioningOptions, _adminId: string) {
     const client = await publicPool.connect();
     try {
       await client.query(

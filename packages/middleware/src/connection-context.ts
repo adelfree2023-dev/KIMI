@@ -5,7 +5,7 @@
  * Provides request-scoped tenant context for database operations
  */
 
-import { AsyncLocalStorage } from 'async_hooks';
+import { AsyncLocalStorage } from 'node:async_hooks';
 
 /**
  * Tenant context stored per request

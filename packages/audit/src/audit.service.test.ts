@@ -92,8 +92,9 @@ describe('Audit Service (S4 Protocol)', () => {
 
       await log(entry);
 
-      const queryCall = mockClient.query.mock.calls[7];
-      expect(queryCall[1]).toContain('admin@example.com');
+      const queryCall = mockClient.query.mock.calls.find(c => c[0].includes('INSERT INTO public.audit_logs'));
+      expect(queryCall).toBeDefined();
+      expect(queryCall![1]).toContain('admin@example.com');
     });
 
     it('should output structured log to console for monitoring', async () => {
@@ -141,9 +142,10 @@ describe('Audit Service (S4 Protocol)', () => {
 
       await log(entry);
 
-      const queryCall = mockClient.query.mock.calls[7];
-      expect(queryCall[1]).toContain('Database connection failed');
-      expect(queryCall[1]).toContain('FAILURE');
+      const queryCall = mockClient.query.mock.calls.find(c => c[0].includes('INSERT INTO public.audit_logs'));
+      expect(queryCall).toBeDefined();
+      expect(queryCall![1]).toContain('Database connection failed');
+      expect(queryCall![1]).toContain('FAILURE');
     });
 
     it('should serialize metadata as JSON', async () => {
@@ -167,8 +169,9 @@ describe('Audit Service (S4 Protocol)', () => {
 
       await log(entry);
 
-      const queryCall = mockClient.query.mock.calls[7];
-      const metadataJson = queryCall[1].find(
+      const queryCall = mockClient.query.mock.calls.find(c => c[0].includes('INSERT INTO public.audit_logs'));
+      expect(queryCall).toBeDefined();
+      const metadataJson = queryCall![1].find(
         (arg: any) => typeof arg === 'string' && arg.includes('changedFields')
       );
       expect(metadataJson).toContain('changedFields');
@@ -272,11 +275,12 @@ describe('Audit Service (S4 Protocol)', () => {
         true
       );
 
-      const queryCall = mockClient.query.mock.calls[7];
-      expect(queryCall[1]).toContain('TENANT_PROVISIONED');
-      expect(queryCall[1]).toContain('SUCCESS');
-      expect(queryCall[1]).toContain('test-store');
-      expect(queryCall[1][5]).toContain('basic');
+      const queryCall = mockClient.query.mock.calls.find(c => c[0].includes('INSERT INTO public.audit_logs'));
+      expect(queryCall).toBeDefined();
+      expect(queryCall![1]).toContain('TENANT_PROVISIONED');
+      expect(queryCall![1]).toContain('SUCCESS');
+      expect(queryCall![1]).toContain('test-store');
+      expect(queryCall![1][5]).toContain('basic');
     });
 
     it('should log failed provisioning with error', async () => {
@@ -290,10 +294,11 @@ describe('Audit Service (S4 Protocol)', () => {
         error
       );
 
-      const queryCall = mockClient.query.mock.calls[7];
-      expect(queryCall[1]).toContain('FAILURE');
-      expect(queryCall[1][5]).toContain('Schema creation failed');
-      expect(queryCall[1]).toContain('HIGH'); // Failures are HIGH severity
+      const queryCall = mockClient.query.mock.calls.find(c => c[0].includes('INSERT INTO public.audit_logs'));
+      expect(queryCall).toBeDefined();
+      expect(queryCall![1]).toContain('FAILURE');
+      expect(queryCall![1][5]).toContain('Schema creation failed');
+      expect(queryCall![1]).toContain('HIGH'); // Failures are HIGH severity
     });
   });
 
@@ -307,12 +312,13 @@ describe('Audit Service (S4 Protocol)', () => {
         { requestedResource: 'orders', method: 'GET' }
       );
 
-      const queryCall = mockClient.query.mock.calls[7];
-      expect(queryCall[1]).toContain('CRITICAL');
-      expect(queryCall[1]).toContain('CROSS_TENANT_ACCESS_ATTEMPT');
-      expect(queryCall[1]).toContain('attacker-123');
-      expect(queryCall[1]).toContain('victim-tenant');
-      expect(queryCall[1][5]).toContain('requestedResource');
+      const queryCall = mockClient.query.mock.calls.find(c => c[0].includes('INSERT INTO public.audit_logs'));
+      expect(queryCall).toBeDefined();
+      expect(queryCall![1]).toContain('CRITICAL');
+      expect(queryCall![1]).toContain('CROSS_TENANT_ACCESS_ATTEMPT');
+      expect(queryCall![1]).toContain('attacker-123');
+      expect(queryCall![1]).toContain('victim-tenant');
+      expect(queryCall![1][5]).toContain('requestedResource');
     });
 
     it('should always result in FAILURE for security events', async () => {
@@ -323,8 +329,9 @@ describe('Audit Service (S4 Protocol)', () => {
         '10.0.0.1'
       );
 
-      const queryCall = mockClient.query.mock.calls[7];
-      expect(queryCall[1]).toContain('FAILURE');
+      const queryCall = mockClient.query.mock.calls.find(c => c[0].includes('INSERT INTO public.audit_logs'));
+      expect(queryCall).toBeDefined();
+      expect(queryCall![1]).toContain('FAILURE');
     });
   });
 

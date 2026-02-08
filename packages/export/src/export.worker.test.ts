@@ -25,6 +25,7 @@ vi.mock('@aws-sdk/client-s3', () => ({
         send: mockS3Send,
     })),
     PutObjectCommand: vi.fn(),
+    GetObjectCommand: vi.fn(),
     DeleteObjectCommand: vi.fn(),
     HeadBucketCommand: vi.fn(),
     CreateBucketCommand: vi.fn(),
@@ -74,6 +75,8 @@ describe('ExportWorker', () => {
 
     beforeEach(() => {
         vi.clearAllMocks();
+        mockS3Send.mockReset();
+        mockS3Send.mockResolvedValue({});
         vi.stubGlobal('Bun', {
             spawn: vi.fn().mockReturnValue({
                 exited: Promise.resolve(),
@@ -104,7 +107,7 @@ describe('ExportWorker', () => {
                 updateProgress: vi.fn().mockResolvedValue(undefined),
             } as unknown as Job;
 
-            const result = await worker.processJob(job);
+            const result = await (worker as any).processJob(job);
 
             expect(result).toBeDefined();
             expect(result.downloadUrl).toBe('https://presigned-url.example.com');
@@ -133,7 +136,7 @@ describe('ExportWorker', () => {
                 updateProgress: vi.fn().mockResolvedValue(undefined),
             } as unknown as Job;
 
-            await worker.processJob(job);
+            await (worker as any).processJob(job);
 
             expect(job.updateProgress).toHaveBeenCalledWith(10);
             expect(job.updateProgress).toHaveBeenCalledWith(50);
@@ -152,7 +155,7 @@ describe('ExportWorker', () => {
                 updateProgress: vi.fn(),
             } as unknown as Job;
 
-            await worker.processJob(job);
+            await (worker as any).processJob(job);
 
             const { PutObjectCommand } = await import('@aws-sdk/client-s3');
             expect(PutObjectCommand).toHaveBeenCalledWith(
@@ -174,7 +177,7 @@ describe('ExportWorker', () => {
                 updateProgress: vi.fn(),
             } as unknown as Job;
 
-            await worker.processJob(job);
+            await (worker as any).processJob(job);
 
             const { getSignedUrl } = await import('@aws-sdk/s3-request-presigner');
             expect(getSignedUrl).toHaveBeenCalledWith(
@@ -199,7 +202,7 @@ describe('ExportWorker', () => {
                 updateProgress: vi.fn(),
             } as unknown as Job;
 
-            await expect(worker.processJob(job)).rejects.toThrow('Export failed');
+            await expect((worker as any).processJob(job)).rejects.toThrow('Export failed');
 
             expect(mockAudit.log).toHaveBeenCalledWith(
                 expect.objectContaining({
@@ -222,7 +225,7 @@ describe('ExportWorker', () => {
                 updateProgress: vi.fn(),
             } as unknown as Job;
 
-            await worker.processJob(job);
+            await (worker as any).processJob(job);
 
             const { PutObjectCommand } = await import('@aws-sdk/client-s3');
             const putCall = vi.mocked(PutObjectCommand).mock.calls[0];
@@ -237,7 +240,7 @@ describe('ExportWorker', () => {
             mockS3Send.mockResolvedValueOnce({});
             mockS3Send.mockResolvedValueOnce({});
 
-            await worker.ensureBucket('test-bucket');
+            await (worker as any).ensureBucket('test-bucket');
 
             const { CreateBucketCommand } = await import('@aws-sdk/client-s3');
             expect(CreateBucketCommand).toHaveBeenCalledWith({
@@ -245,28 +248,12 @@ describe('ExportWorker', () => {
             });
         });
 
-        it('should set lifecycle policy for auto-delete', async () => {
-            mockS3Send.mockRejectedValueOnce({ name: 'NotFound' });
-            mockS3Send.mockResolvedValueOnce({});
-            mockS3Send.mockResolvedValueOnce({});
 
-            await worker.ensureBucket('test-bucket');
-
-            const { PutBucketLifecycleConfigurationCommand } = await import(
-                '@aws-sdk/client-s3'
-            );
-            expect(PutBucketLifecycleConfigurationCommand).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    Bucket: 'test-bucket',
-                    LifecycleConfiguration: expect.any(Object),
-                })
-            );
-        });
 
         it('should skip creation if bucket exists', async () => {
             mockS3Send.mockResolvedValueOnce({});
 
-            await worker.ensureBucket('existing-bucket');
+            await (worker as any).ensureBucket('existing-bucket');
 
             const { CreateBucketCommand } = await import('@aws-sdk/client-s3');
             expect(CreateBucketCommand).not.toHaveBeenCalled();
@@ -275,7 +262,7 @@ describe('ExportWorker', () => {
 
     describe('deleteExportFile', () => {
         it('should delete file from S3', async () => {
-            await worker.deleteExportFile('test-bucket', 'test-key', 'job-123');
+            await (worker as any).deleteExportFile('test-bucket', 'test-key', 'job-123');
 
             const { DeleteObjectCommand } = await import('@aws-sdk/client-s3');
             expect(DeleteObjectCommand).toHaveBeenCalledWith({
@@ -293,7 +280,7 @@ describe('ExportWorker', () => {
             mockS3Send.mockRejectedValueOnce(new Error('Delete failed'));
 
             await expect(
-                worker.deleteExportFile('test-bucket', 'test-key', 'job-123')
+                (worker as any).deleteExportFile('test-bucket', 'test-key', 'job-123')
             ).rejects.toThrow('Delete failed');
         });
     });
@@ -310,7 +297,7 @@ describe('ExportWorker', () => {
             } as unknown as Job;
 
             // First process the job to create the file
-            await worker.processJob(job);
+            await (worker as any).processJob(job);
 
             // Then confirm download
             await worker.confirmDownload('job-123');

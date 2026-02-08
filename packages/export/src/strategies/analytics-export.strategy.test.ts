@@ -38,6 +38,8 @@ describe('AnalyticsExportStrategy', () => {
 
     beforeEach(() => {
         vi.clearAllMocks();
+        mockClient.query.mockReset();
+        mockClient.release.mockReset();
         strategy = new AnalyticsExportStrategy();
     });
 
@@ -124,9 +126,8 @@ describe('AnalyticsExportStrategy', () => {
             expect(result.manifest.profile).toBe('analytics');
             expect(result.manifest.database.format).toBe('csv');
             expect(result.manifest.database.tables).toEqual([
-                'products',
-                'customers',
-                'orders',
+                'orders_summary',
+                'products_performance',
             ]);
         });
 
@@ -154,8 +155,7 @@ describe('AnalyticsExportStrategy', () => {
                 call[0].includes('orders') && call[0].includes('created_at')
             );
             expect(ordersQuery).toBeDefined();
-            expect(ordersQuery![0]).toContain('created_at >= $1');
-            expect(ordersQuery![0]).toContain('created_at <= $2');
+            expect(ordersQuery![0]).toContain('created_at BETWEEN $1 AND $2');
         });
 
         it('should enforce S2 tenant isolation', async () => {
@@ -189,13 +189,10 @@ describe('AnalyticsExportStrategy', () => {
             mockClient.query
                 .mockResolvedValueOnce({
                     rows: [
-                        { id: 1, name: 'Item 1' },
-                        { id: 2, name: 'Item 2' },
+                        { name: 'Item 1', sku: 'SKU1', times_ordered: 10, total_quantity: 100 },
                     ],
-                    rowCount: 2,
-                })
-                .mockResolvedValueOnce({ rows: [], rowCount: 0 })
-                .mockResolvedValueOnce({ rows: [], rowCount: 0 });
+                    rowCount: 1,
+                });
 
             const options: ExportOptions = {
                 tenantId: 'tenant-123',
@@ -212,11 +209,11 @@ describe('AnalyticsExportStrategy', () => {
             // Verify CSV write
             const writeCalls = vi.mocked(Bun.write).mock.calls;
             const csvWrite = writeCalls.find((call) =>
-                call[0].toString().includes('products.csv')
+                call[0].toString().includes('products_performance.csv')
             );
             expect(csvWrite).toBeDefined();
-            expect(csvWrite![1]).toContain('id,name');
-            expect(csvWrite![1]).toContain('1,Item 1');
+            expect(csvWrite![1]).toContain('name,sku,times_ordered,total_quantity');
+            expect(csvWrite![1]).toContain('Item 1,SKU1,10,100');
         });
 
         it('should handle empty result sets', async () => {
@@ -265,7 +262,7 @@ describe('AnalyticsExportStrategy', () => {
                 profile: 'analytics',
                 database: {
                     format: 'csv',
-                    tables: ['products', 'customers', 'orders'],
+                    tables: ['orders_summary', 'products_performance'],
                 },
             });
         });

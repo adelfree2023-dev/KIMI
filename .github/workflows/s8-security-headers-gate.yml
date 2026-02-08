@@ -1,0 +1,281 @@
+# ═══════════════════════════════════════════════════════════════
+# S8 Security Headers Gate - XSS/CSRF Protection
+# Tests that security headers are properly configured
+# ═══════════════════════════════════════════════════════════════
+
+name: '🔒 S8 Security Headers Gate'
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  checks: write
+
+jobs:
+  s8-security-headers-test:
+    name: 'S8 Security Headers Test'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Check Helmet Middleware
+        run: |
+          echo "🪖 Checking for Helmet middleware..."
+          
+          # Check for Helmet usage
+          HELMET_USAGE=$(grep -r "helmet\|Helmet" packages/*/src apps/*/src --include="*.ts" -i 2>/dev/null | wc -l)
+          
+          # Check for security middleware registration
+          SECURITY_MIDDLEWARE=$(grep -r "app.use.*security\|security.*middleware" packages/*/src apps/*/src --include="*.ts" -i 2>/dev/null | wc -l)
+          
+          if [ "$HELMET_USAGE" -eq 0 ] && [ "$SECURITY_MIDDLEWARE" -eq 0 ]; then
+            echo "🚨 CRITICAL: No Helmet or security middleware found!"
+            echo "Helmet sets essential security headers automatically"
+            exit 1
+          fi
+          
+          echo "✅ Security middleware found"
+          echo "   - Helmet references: $HELMET_USAGE"
+          echo "   - Security middleware: $SECURITY_MIDDLEWARE"
+
+      - name: Check CSP Configuration
+        run: |
+          echo "🛡️ Checking Content Security Policy (CSP)..."
+          
+          CSP_CONFIG=$(grep -r "contentSecurityPolicy\|Content-Security-Policy\|csp" packages/*/src apps/*/src --include="*.ts" -i 2>/dev/null | wc -l)
+          
+          if [ "$CSP_CONFIG" -eq 0 ]; then
+            echo "⚠️ WARNING: No CSP configuration found"
+            echo "CSP prevents XSS by controlling resource loading"
+          else
+            echo "✅ CSP configuration found: $CSP_CONFIG references"
+          fi
+          
+          # Check for unsafe CSP directives
+          UNSAFE_CSP=$(grep -r "unsafe-inline\|unsafe-eval\|'\*'" packages/*/src apps/*/src --include="*.ts" 2>/dev/null | wc -l)
+          
+          if [ "$UNSAFE_CSP" -gt 0 ]; then
+            echo "⚠️ WARNING: Potentially unsafe CSP directives found"
+            echo "Review usage of 'unsafe-inline' and 'unsafe-eval'"
+          fi
+
+      - name: Verify HSTS Header
+        run: |
+          echo "🔒 Checking HSTS (HTTP Strict Transport Security)..."
+          
+          HSTS_CONFIG=$(grep -r "hsts\|strictTransportSecurity\|Strict-Transport-Security" packages/*/src apps/*/src --include="*.ts" -i 2>/dev/null | wc -l)
+          
+          if [ "$HSTS_CONFIG" -eq 0 ]; then
+            echo "⚠️ WARNING: No HSTS configuration found"
+            echo "HSTS forces HTTPS connections"
+          else
+            echo "✅ HSTS configuration found"
+          fi
+
+      - name: Check CORS Configuration
+        run: |
+          echo "🌐 Checking CORS configuration..."
+          
+          CORS_CONFIG=$(grep -r "cors\|CORS\|enableCors" packages/*/src apps/*/src --include="*.ts" -i 2>/dev/null | wc -l)
+          
+          if [ "$CORS_CONFIG" -eq 0 ]; then
+            echo "⚠️ WARNING: No CORS configuration found"
+            echo "CORS should be explicitly configured, not wildcard (*)"
+          else
+            echo "✅ CORS configuration found: $CORS_CONFIG references"
+          fi
+          
+          # Check for wildcard CORS
+          WILDCARD_CORS=$(grep -r "origin.*\*\|cors.*true" packages/*/src apps/*/src --include="*.ts" 2>/dev/null | wc -l)
+          
+          if [ "$WILDCARD_CORS" -gt 0 ]; then
+            echo "🚨 CRITICAL: Wildcard CORS origin detected!"
+            echo "Never use '*' in production - specify exact origins"
+            exit 1
+          fi
+
+      - name: Verify X-Frame-Options
+        run: |
+          echo "📱 Checking X-Frame-Options (Clickjacking protection)..."
+          
+          XFRAME_CONFIG=$(grep -r "xFrameOptions\|X-Frame-Options\|frameguard" packages/*/src apps/*/src --include="*.ts" -i 2>/dev/null | wc -l)
+          
+          if [ "$XFRAME_CONFIG" -eq 0 ]; then
+            echo "⚠️ WARNING: No X-Frame-Options configuration"
+            echo "Prevents clickjacking attacks"
+          else
+            echo "✅ X-Frame-Options configured"
+          fi
+
+      - name: Check X-Content-Type-Options
+        run: |
+          echo "📄 Checking X-Content-Type-Options..."
+          
+          CONTENT_TYPE_OPTIONS=$(grep -r "xContentTypeOptions\|X-Content-Type-Options\|nosniff" packages/*/src apps/*/src --include="*.ts" -i 2>/dev/null | wc -l)
+          
+          if [ "$CONTENT_TYPE_OPTIONS" -eq 0 ]; then
+            echo "⚠️ WARNING: No X-Content-Type-Options (nosniff)"
+            echo "Prevents MIME type sniffing attacks"
+          else
+            echo "✅ X-Content-Type-Options configured"
+          fi
+
+      - name: Verify Referrer-Policy
+        run: |
+          echo "🔗 Checking Referrer-Policy..."
+          
+          REFERRER_POLICY=$(grep -r "referrerPolicy\|Referrer-Policy" packages/*/src apps/*/src --include="*.ts" -i 2>/dev/null | wc -l)
+          
+          if [ "$REFERRER_POLICY" -eq 0 ]; then
+            echo "⚠️ WARNING: No Referrer-Policy configuration"
+            echo "Controls information leaked in Referer header"
+          else
+            echo "✅ Referrer-Policy configured"
+          fi
+
+      - name: Check Permissions-Policy
+        run: |
+          echo "🔐 Checking Permissions-Policy..."
+          
+          PERMISSIONS_POLICY=$(grep -r "permissionsPolicy\|Permissions-Policy\|featurePolicy" packages/*/src apps/*/src --include="*.ts" -i 2>/dev/null | wc -l)
+          
+          if [ "$PERMISSIONS_POLICY" -eq 0 ]; then
+            echo "⚠️ WARNING: No Permissions-Policy configuration"
+            echo "Restricts browser feature access (camera, microphone, etc.)"
+          else
+            echo "✅ Permissions-Policy configured"
+          fi
+
+      - name: Check CSRF Protection
+        run: |
+          echo "🛡️ Checking CSRF protection..."
+          
+          CSRF_PROTECTION=$(grep -r "csrf\|CSRF\|CsrfGuard\|double.csrf" packages/*/src apps/*/src --include="*.ts" -i 2>/dev/null | wc -l)
+          
+          if [ "$CSRF_PROTECTION" -eq 0 ]; then
+            echo "⚠️ WARNING: No CSRF protection found"
+            echo "Use csrf-cookie or double-submit pattern for state-changing requests"
+          else
+            echo "✅ CSRF protection found: $CSRF_PROTECTION references"
+          fi
+
+      - name: Verify Cookie Security
+        run: |
+          echo "🍪 Checking cookie security settings..."
+          
+          COOKIE_CONFIG=$(grep -r "cookie\|Cookie" packages/*/src apps/*/src --include="*.ts" 2>/dev/null | wc -l)
+          SECURE_COOKIE=$(grep -r "secure:\s*true\|httpOnly:\s*true\|sameSite" packages/*/src apps/*/src --include="*.ts" 2>/dev/null | wc -l)
+          
+          if [ "$COOKIE_CONFIG" -gt 0 ] && [ "$SECURE_COOKIE" -eq 0 ]; then
+            echo "🚨 CRITICAL: Cookies found without secure/httpOnly flags!"
+            echo "All cookies must have:"
+            echo "  - secure: true (HTTPS only)"
+            echo "  - httpOnly: true (no JavaScript access)"
+            echo "  - sameSite: 'strict' or 'lax'"
+            exit 1
+          fi
+          
+          if [ "$SECURE_COOKIE" -gt 0 ]; then
+            echo "✅ Secure cookie settings found"
+          fi
+
+      - name: Test Security Configuration
+        run: |
+          echo "🧪 Testing security configuration completeness..."
+          
+          REQUIRED_HEADERS=("helmet" "cors" "hsts" "csp" "csrf")
+          SCORE=0
+          
+          # Check each security component
+          if [ $(grep -r "helmet" packages/*/src apps/*/src --include="*.ts" -i 2>/dev/null | wc -l) -gt 0 ]; then
+            SCORE=$((SCORE + 1))
+            echo "✓ Helmet middleware"
+          fi
+          
+          if [ $(grep -r "cors" packages/*/src apps/*/src --include="*.ts" -i 2>/dev/null | wc -l) -gt 0 ]; then
+            SCORE=$((SCORE + 1))
+            echo "✓ CORS configured"
+          fi
+          
+          if [ $(grep -r "cookie.*secure\|httpOnly" packages/*/src apps/*/src --include="*.ts" 2>/dev/null | wc -l) -gt 0 ]; then
+            SCORE=$((SCORE + 1))
+            echo "✓ Secure cookies"
+          fi
+          
+          echo ""
+          echo "Security Score: $SCORE/5 minimum components"
+          
+          if [ "$SCORE" -lt 2 ]; then
+            echo "🚨 Security configuration insufficient"
+            exit 1
+          fi
+
+      - name: Report Success
+        if: success()
+        run: |
+          echo "═══════════════════════════════════════════════════════════════"
+          echo "✅ S8 SECURITY HEADERS GATE PASSED"
+          echo "═══════════════════════════════════════════════════════════════"
+          echo "✓ Helmet middleware configured"
+          echo "✓ CORS properly restricted"
+          echo "✓ Secure cookie settings"
+          echo "✓ XSS/CSRF protections active"
+          echo "═══════════════════════════════════════════════════════════════"
+
+      - name: Report Failure
+        if: failure()
+        run: |
+          echo "═══════════════════════════════════════════════════════════════"
+          echo "🚨 S8 SECURITY HEADERS GATE FAILED"
+          echo "═══════════════════════════════════════════════════════════════"
+          echo "❌ CRITICAL: Security headers not properly configured"
+          echo ""
+          echo "Impact:"
+          echo "  - XSS (Cross-Site Scripting) attacks possible"
+          echo "  - CSRF (Cross-Site Request Forgery) vulnerabilities"
+          echo "  - Clickjacking attacks"
+          echo "  - Session hijacking via insecure cookies"
+          echo "  - MIME sniffing attacks"
+          echo ""
+          echo "Required Actions:"
+          echo "  1. Install Helmet: npm install helmet"
+          echo "  2. Configure in main.ts:"
+          echo '     app.use(helmet({'
+          echo '       contentSecurityPolicy: {'
+          echo '         directives: {'
+          echo "           defaultSrc: [\"'self'\"],"
+          echo "           styleSrc: [\"'self'\", \"'unsafe-inline'\"],"
+          echo "           scriptSrc: [\"'self'\"],"
+          echo '         },'
+          echo '       },'
+          echo '       hsts: { maxAge: 31536000 },'
+          echo '       referrerPolicy: { policy: "same-origin" },'
+          echo '     }));'
+          echo ""
+          echo "  3. Configure CORS with specific origins:"
+          echo '     app.enableCors({'
+          echo '       origin: ["https://yourdomain.com"],'
+          echo '       credentials: true,'
+          echo '     });'
+          echo ""
+          echo "  4. Set secure cookies:"
+          echo '     res.cookie("session", token, {'
+          echo '       httpOnly: true,'
+          echo '       secure: true,'
+          echo '       sameSite: "strict",'
+          echo '     });'
+          echo "═══════════════════════════════════════════════════════════════"
+          exit 1

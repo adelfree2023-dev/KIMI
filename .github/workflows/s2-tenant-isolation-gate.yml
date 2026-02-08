@@ -1,0 +1,198 @@
+# ═══════════════════════════════════════════════════════════════
+# S2 Tenant Isolation Gate - CRITICAL SECURITY CHECK
+# Tests that Tenant A cannot access Tenant B's data
+# ═══════════════════════════════════════════════════════════════
+
+name: '🔒 S2 Tenant Isolation Gate'
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  checks: write
+
+env:
+  DATABASE_URL: postgresql://test:test@localhost:5432/test
+  JWT_SECRET: test_secret_key_for_ci_environment_only_32
+
+jobs:
+  s2-tenant-isolation-test:
+    name: 'S2 Tenant Isolation Security Test'
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Setup Database Schema
+        run: |
+          echo "🗄️ Setting up tenant isolation test schema..."
+          psql "$DATABASE_URL" -c "
+            -- Create test tenants
+            DROP SCHEMA IF EXISTS tenant_alpha CASCADE;
+            DROP SCHEMA IF EXISTS tenant_beta CASCADE;
+            
+            CREATE SCHEMA tenant_alpha;
+            CREATE SCHEMA tenant_beta;
+            
+            -- Create products table in both schemas
+            CREATE TABLE tenant_alpha.products (
+              id SERIAL PRIMARY KEY,
+              name VARCHAR(255) NOT NULL,
+              price DECIMAL(10,2),
+              secret_data VARCHAR(255)
+            );
+            
+            CREATE TABLE tenant_beta.products (
+              id SERIAL PRIMARY KEY,
+              name VARCHAR(255) NOT NULL,
+              price DECIMAL(10,2),
+              secret_data VARCHAR(255)
+            );
+            
+            -- Insert test data
+            INSERT INTO tenant_alpha.products (name, price, secret_data) 
+            VALUES ('Alpha Product', 99.99, 'ALPHA_SECRET_KEY');
+            
+            INSERT INTO tenant_beta.products (name, price, secret_data) 
+            VALUES ('Beta Product', 49.99, 'BETA_SECRET_KEY');
+          "
+
+      - name: Test Cross-Tenant Data Isolation
+        run: |
+          echo "🔒 Testing S2 Tenant Isolation..."
+          
+          # Test 1: Verify Alpha data exists in Alpha schema
+          echo "Test 1: Verify Alpha tenant data..."
+          ALPHA_DATA=$(psql "$DATABASE_URL" -t -c "SELECT secret_data FROM tenant_alpha.products WHERE name='Alpha Product';" | xargs)
+          if [ "$ALPHA_DATA" != "ALPHA_SECRET_KEY" ]; then
+            echo "❌ FAIL: Cannot read Alpha tenant data"
+            exit 1
+          fi
+          echo "✅ Alpha tenant data accessible"
+          
+          # Test 2: Verify Beta data exists in Beta schema
+          echo "Test 2: Verify Beta tenant data..."
+          BETA_DATA=$(psql "$DATABASE_URL" -t -c "SELECT secret_data FROM tenant_beta.products WHERE name='Beta Product';" | xargs)
+          if [ "$BETA_DATA" != "BETA_SECRET_KEY" ]; then
+            echo "❌ FAIL: Cannot read Beta tenant data"
+            exit 1
+          fi
+          echo "✅ Beta tenant data accessible"
+          
+          # Test 3: CRITICAL - Simulate cross-tenant access attempt
+          echo "Test 3: Simulate malicious cross-tenant query..."
+          
+          # Try to access Alpha data from Beta context (should fail)
+          CROSS_RESULT=$(psql "$DATABASE_URL" -t -c "
+            SET search_path TO tenant_beta, public;
+            SELECT COUNT(*) FROM tenant_alpha.products;
+          " 2>&1 | xargs)
+          
+          if [ "$CROSS_RESULT" != "0" ] && [ "$CROSS_RESULT" != "ERROR:"* ]; then
+            echo "🚨 CRITICAL S2 VIOLATION: Can access Alpha data from Beta context!"
+            echo "Result: $CROSS_RESULT"
+            exit 1
+          fi
+          echo "✅ Cross-tenant access properly blocked"
+
+      - name: Test Row-Level Security (RLS)
+        run: |
+          echo "🛡️ Testing Row-Level Security policies..."
+          
+          # Enable RLS on test tables
+          psql "$DATABASE_URL" -c "
+            ALTER TABLE tenant_alpha.products ENABLE ROW LEVEL SECURITY;
+            ALTER TABLE tenant_beta.products ENABLE ROW LEVEL SECURITY;
+          " || true
+          
+          # Check if RLS is enabled
+          RLS_STATUS=$(psql "$DATABASE_URL" -t -c "
+            SELECT relrowsecurity FROM pg_class WHERE relname = 'products' AND relnamespace = 'tenant_alpha'::regnamespace;
+          " | xargs)
+          
+          if [ "$RLS_STATUS" = "t" ]; then
+            echo "✅ RLS is enabled on tenant tables"
+          else
+            echo "⚠️ RLS not detected (may be handled at application layer)"
+          fi
+
+      - name: Verify Tenant Context Enforcement
+        run: |
+          echo "🔍 Verifying tenant context enforcement..."
+          
+          # Check application code for tenant isolation patterns
+          ISOLATION_PATTERNS=$(grep -r "search_path\|tenant_\|setTenant" packages/*/src apps/*/src --include="*.ts" 2>/dev/null | wc -l)
+          
+          if [ "$ISOLATION_PATTERNS" -eq 0 ]; then
+            echo "🚨 CRITICAL: No tenant isolation patterns found in code!"
+            echo "Expected: SET search_path, tenant_ prefix, or setTenant calls"
+            exit 1
+          fi
+          
+          echo "✅ Found $ISOLATION_PATTERNS tenant isolation patterns"
+
+      - name: Report Success
+        if: success()
+        run: |
+          echo "═══════════════════════════════════════════════════════════════"
+          echo "✅ S2 TENANT ISOLATION GATE PASSED"
+          echo "═══════════════════════════════════════════════════════════════"
+          echo "✓ Tenant Alpha data is isolated"
+          echo "✓ Tenant Beta data is isolated"
+          echo "✓ Cross-tenant access attempts are blocked"
+          echo "✓ Tenant isolation patterns verified in code"
+          echo "═══════════════════════════════════════════════════════════════"
+
+      - name: Report Failure
+        if: failure()
+        run: |
+          echo "═══════════════════════════════════════════════════════════════"
+          echo "🚨 S2 TENANT ISOLATION GATE FAILED"
+          echo "═══════════════════════════════════════════════════════════════"
+          echo "❌ CRITICAL SECURITY VIOLATION DETECTED"
+          echo ""
+          echo "Impact: Cross-tenant data leakage risk"
+          echo "Severity: CRITICAL"
+          echo ""
+          echo "Required Actions:"
+          echo "  1. Verify SET search_path uses correct tenant schema"
+          echo "  2. Check that all queries include tenant context"
+          echo "  3. Review TenantMiddleware implementation"
+          echo "  4. Add Row-Level Security policies if missing"
+          echo "═══════════════════════════════════════════════════════════════"
+          exit 1

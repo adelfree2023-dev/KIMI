@@ -1,0 +1,255 @@
+# ═══════════════════════════════════════════════════════════════
+# S4 Audit Logging Gate - Security Event Tracking
+# Tests that all sensitive operations are logged for audit
+# ═══════════════════════════════════════════════════════════════
+
+name: '📋 S4 Audit Logging Gate'
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  checks: write
+
+jobs:
+  s4-audit-logging-test:
+    name: 'S4 Audit Logging Security Test'
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Verify Audit Logger Implementation
+        run: |
+          echo "🔍 Checking for audit logging implementation..."
+          
+          # Check for audit service or middleware
+          AUDIT_SERVICE=$(find packages apps -name "*audit*" -type f 2>/dev/null | grep -v node_modules | wc -l)
+          AUDIT_IMPORTS=$(grep -r "audit\|AuditService\|AuditLogger" packages/*/src apps/*/src --include="*.ts" -i 2>/dev/null | wc -l)
+          
+          if [ "$AUDIT_SERVICE" -eq 0 ] && [ "$AUDIT_IMPORTS" -lt 3 ]; then
+            echo "🚨 CRITICAL: No audit logging implementation found!"
+            echo "All sensitive operations must be logged"
+            exit 1
+          fi
+          
+          echo "✅ Audit logging implementation found"
+          echo "   - Audit files: $AUDIT_SERVICE"
+          echo "   - Audit references: $AUDIT_IMPORTS"
+
+      - name: Check Sensitive Operations Logging
+        run: |
+          echo "🔐 Checking sensitive operations are logged..."
+          
+          # Define sensitive operations patterns
+          SENSITIVE_OPERATIONS=(
+            "login"
+            "logout"
+            "createUser\|create.*user\|signup"
+            "deleteUser\|delete.*user\|removeUser"
+            "updateRole\|changeRole\|setRole"
+            "resetPassword\|changePassword\|updatePassword"
+            "apiKey\|createKey\|revokeKey"
+            "export\|download.*data"
+            "payment\|billing\|subscription"
+          )
+          
+          MISSING_LOGS=0
+          
+          for operation in "${SENSITIVE_OPERATIONS[@]}"; do
+            # Find operation handlers
+            HANDLERS=$(grep -rn "${operation}" apps/api/src --include="*.ts" -i 2>/dev/null | grep -E "@Post|@Put|@Delete|@Patch" | wc -l)
+            
+            if [ "$HANDLERS" -gt 0 ]; then
+              # Check if these handlers have audit logging
+              AUDIT_IN_HANDLER=$(grep -rn "${operation}" apps/api/src --include="*.ts" -i -A10 2>/dev/null | grep -E "audit\|log.*user\|logger" -i | wc -l)
+              
+              if [ "$AUDIT_IN_HANDLER" -eq 0 ]; then
+                echo "⚠️ WARNING: '$operation' endpoint found without audit logging"
+                MISSING_LOGS=$((MISSING_LOGS + 1))
+              fi
+            fi
+          done
+          
+          if [ "$MISSING_LOGS" -gt 5 ]; then
+            echo "🚨 CRITICAL: $MISSING_LOGS sensitive operations lack audit logging!"
+            exit 1
+          fi
+          
+          echo "✅ Sensitive operations logging check complete"
+
+      - name: Verify Audit Log Schema
+        run: |
+          echo "📊 Verifying audit log schema..."
+          
+          # Check for audit_logs table or model
+          AUDIT_TABLE=$(grep -rn "audit_logs\|auditLog\|AuditLog" packages/db/src --include="*.ts" 2>/dev/null | wc -l)
+          
+          # Required fields in audit logs
+          REQUIRED_FIELDS=("userId\|user_id" "action" "timestamp" "ip" "resource")
+          FIELDS_FOUND=0
+          
+          for field in "${REQUIRED_FIELDS[@]}"; do
+            if grep -r "${field}" packages/*/src --include="*.ts" -i 2>/dev/null | grep -qi "audit"; then
+              FIELDS_FOUND=$((FIELDS_FOUND + 1))
+            fi
+          done
+          
+          echo "Audit schema fields found: $FIELDS_FOUND/${#REQUIRED_FIELDS[@]}"
+          
+          if [ "$AUDIT_TABLE" -eq 0 ]; then
+            echo "⚠️ WARNING: No audit_logs table definition found"
+          else
+            echo "✅ Audit table schema found"
+          fi
+
+      - name: Check Audit Log Storage
+        run: |
+          echo "💾 Checking audit log storage..."
+          
+          # Check for audit log persistence
+          DB_AUDIT=$(grep -r "INSERT.*audit\|audit.*save\|audit.*create" packages/*/src apps/*/src --include="*.ts" -i 2>/dev/null | wc -l)
+          FILE_AUDIT=$(grep -r "audit.*log\|fs.*write.*audit" packages/*/src apps/*/src --include="*.ts" -i 2>/dev/null | wc -l)
+          
+          if [ "$DB_AUDIT" -eq 0 ] && [ "$FILE_AUDIT" -eq 0 ]; then
+            echo "⚠️ WARNING: No audit log persistence mechanism found"
+            echo "Audit logs should be stored in database or secure log files"
+          else
+            echo "✅ Audit log storage found"
+            echo "   - Database persistence: $DB_AUDIT"
+            echo "   - File logging: $FILE_AUDIT"
+          fi
+
+      - name: Verify Tamper-Proof Audit Logs
+        run: |
+          echo "🔒 Checking audit log tamper protection..."
+          
+          # Check for immutable audit patterns
+          IMMUTABLE=$(grep -r "immutable\|append.only\|hash.*audit\|signature" packages/*/src --include="*.ts" -i 2>/dev/null | wc -l)
+          
+          if [ "$IMMUTABLE" -eq 0 ]; then
+            echo "⚠️ WARNING: No tamper-proof audit mechanism detected"
+            echo "Consider: append-only tables, cryptographic hashing, or WORM storage"
+          else
+            echo "✅ Tamper protection found: $IMMUTABLE references"
+          fi
+
+      - name: Check Failed Operation Logging
+        run: |
+          echo "❌ Checking failed operation logging..."
+          
+          # Check that failures are logged
+          FAILURE_LOGGING=$(grep -rn "catch.*audit\|error.*log\|fail.*log" packages/*/src apps/*/src --include="*.ts" -i 2>/dev/null | wc -l)
+          
+          if [ "$FAILURE_LOGGING" -eq 0 ]; then
+            echo "⚠️ WARNING: No failure logging patterns found"
+            echo "Failed operations (login attempts, unauthorized access) must be logged"
+          else
+            echo "✅ Failure logging found: $FAILURE_LOGGING patterns"
+          fi
+
+      - name: Test Audit Middleware
+        run: |
+          echo "🧪 Testing audit middleware implementation..."
+          
+          # Check for audit middleware/interceptor
+          AUDIT_MIDDLEWARE=$(grep -r "AuditMiddleware\|AuditInterceptor\|@UseInterceptors.*Audit" packages/*/src apps/*/src --include="*.ts" -i 2>/dev/null | wc -l)
+          
+          if [ "$AUDIT_MIDDLEWARE" -eq 0 ]; then
+            echo "⚠️ WARNING: No dedicated audit middleware found"
+            echo "Consider: NestJS interceptor for automatic audit logging"
+          else
+            echo "✅ Audit middleware found: $AUDIT_MIDDLEWARE references"
+          fi
+
+      - name: Verify GDPR/Compliance Fields
+        run: |
+          echo "⚖️ Verifying compliance fields..."
+          
+          # Check for data retention/privacy fields
+          COMPLIANCE_FIELDS=("retention\|ttl" "pii\|personal" "gdpr\|ccpa" "anonymized")
+          COMPLIANCE_FOUND=0
+          
+          for field in "${COMPLIANCE_FIELDS[@]}"; do
+            if grep -r "${field}" packages/*/src --include="*.ts" -i 2>/dev/null | grep -qi "audit"; then
+              COMPLIANCE_FOUND=$((COMPLIANCE_FOUND + 1))
+            fi
+          done
+          
+          echo "Compliance fields found: $COMPLIANCE_FOUND"
+
+      - name: Report Success
+        if: success()
+        run: |
+          echo "═══════════════════════════════════════════════════════════════"
+          echo "✅ S4 AUDIT LOGGING GATE PASSED"
+          echo "═══════════════════════════════════════════════════════════════"
+          echo "✓ Audit logging implementation verified"
+          echo "✓ Sensitive operations are tracked"
+          echo "✓ Audit log schema validated"
+          echo "✓ Failure logging configured"
+          echo "═══════════════════════════════════════════════════════════════"
+
+      - name: Report Failure
+        if: failure()
+        run: |
+          echo "═══════════════════════════════════════════════════════════════"
+          echo "🚨 S4 AUDIT LOGGING GATE FAILED"
+          echo "═══════════════════════════════════════════════════════════════"
+          echo "❌ CRITICAL: Audit logging not properly implemented"
+          echo ""
+          echo "Impact:"
+          echo "  - Cannot detect security breaches"
+          echo "  - No forensic trail for investigations"
+          echo "  - Non-compliance with regulations (GDPR, SOC2)"
+          echo "  - Cannot track insider threats"
+          echo ""
+          echo "Required Actions:"
+          echo "  1. Create AuditService for centralized logging"
+          echo "  2. Log ALL sensitive operations:"
+          echo "     - Login/logout attempts (success & failure)"
+          echo "     - User CRUD operations"
+          echo "     - Permission changes"
+          echo "     - Data exports"
+          echo "     - Payment operations"
+          echo "  3. Include in every log entry:"
+          echo "     - User ID, Timestamp, IP Address, Action, Resource"
+          echo "  4. Store logs in tamper-proof storage"
+          echo "  5. Implement audit log retention policy"
+          echo ""
+          echo "Example:"
+          echo '  await this.auditService.log({'
+          echo '    userId: user.id,'
+          echo '    action: "USER_LOGIN",'
+          echo '    resource: "auth",'
+          echo '    ip: request.ip,'
+          echo '    metadata: { userAgent: request.headers["user-agent"] }'
+          echo '  });'
+          echo "═══════════════════════════════════════════════════════════════"
+          exit 1

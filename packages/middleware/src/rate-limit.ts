@@ -6,6 +6,7 @@
  */
 
 import { Injectable, CanActivate, ExecutionContext, HttpException, HttpStatus } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
 import { Request } from 'express';
 import { createClient, RedisClientType } from 'redis';
 
@@ -217,6 +218,8 @@ export class RateLimitGuard implements CanActivate {
     blockDurationMs: 300_000, // 5 minutes block after violations
   };
 
+  constructor(private reflector: Reflector) { }
+
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<Request>();
 
@@ -226,6 +229,16 @@ export class RateLimitGuard implements CanActivate {
     // Get tenant tier (default to free)
     const tenantTier = this.getTenantTier(request);
     const tierConfig = RATE_LIMIT_TIERS[tenantTier] || RATE_LIMIT_TIERS.free;
+
+    // S6 Protocol: Support custom metadata from decorators
+    const customConfig = this.reflector.getAllAndOverride<any>(
+      RATE_LIMIT_KEY,
+      [context.getHandler(), context.getClass()]
+    );
+
+    // Merge configs: customConfig > tierConfig > defaultConfig
+    const requests = customConfig?.limit || customConfig?.requests || tierConfig.requests;
+    const windowMs = (customConfig?.ttl ? customConfig.ttl * 1000 : null) || customConfig?.windowMs || tierConfig.windowMs;
 
     const key = `ratelimit:${identifier}`;
     const now = Date.now();
@@ -241,10 +254,10 @@ export class RateLimitGuard implements CanActivate {
     }
 
     // Increment request count
-    const { count } = await rateLimitStore.increment(key, tierConfig.windowMs);
+    const { count } = await rateLimitStore.increment(key, windowMs);
 
     // Check if limit exceeded
-    if (count > tierConfig.requests) {
+    if (count > requests) {
       // Increment violations
       const violations = await rateLimitStore.incrementViolations(
         key,
@@ -259,17 +272,17 @@ export class RateLimitGuard implements CanActivate {
       throw new HttpException({
         statusCode: HttpStatus.TOO_MANY_REQUESTS,
         message: 'Rate limit exceeded',
-        limit: tierConfig.requests,
+        limit: requests,
         window: '1 minute',
-        retryAfter: Math.ceil(tierConfig.windowMs / 1000),
+        retryAfter: Math.ceil(windowMs / 1000),
       }, HttpStatus.TOO_MANY_REQUESTS);
     }
 
     // Add rate limit headers
     const response = context.switchToHttp().getResponse();
-    response.setHeader('X-RateLimit-Limit', tierConfig.requests);
-    response.setHeader('X-RateLimit-Remaining', Math.max(0, tierConfig.requests - count));
-    response.setHeader('X-RateLimit-Reset', Math.ceil((now + tierConfig.windowMs) / 1000));
+    response.setHeader('X-RateLimit-Limit', requests);
+    response.setHeader('X-RateLimit-Remaining', Math.max(0, requests - count));
+    response.setHeader('X-RateLimit-Reset', Math.ceil((now + windowMs) / 1000));
 
     return true;
   }

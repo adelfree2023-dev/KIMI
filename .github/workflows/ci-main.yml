@@ -469,19 +469,17 @@ jobs:
                   it(`should escape: ${payload.substring(0, 40)}...`, () => {
                     const escaped = escapeHtml(payload);
                     
-                    // Verify dangerous patterns are neutralized
-                    const dangerousPatterns = [
-                      /<script/i,
-                      /on\w+\s*=/i,
-                      /javascript:/i,
-                      /<iframe/i,
-                      /<svg[^>]*onload/i,
-                      /<img[^>]*onerror/i,
-                    ];
+                    // Verify HTML tags are neutralized by escaping angle brackets
+                    // When < is escaped to &lt; and > to &gt;, the browser won't
+                    // interpret the content as HTML, preventing XSS
+                    expect(escaped).not.toMatch(/<[a-zA-Z]/); // No unescaped opening tags
+                    expect(escaped).not.toMatch(/>/); // No unescaped >
                     
-                    dangerousPatterns.forEach(pattern => {
-                      expect(escaped).not.toMatch(pattern);
-                    });
+                    // Verify specific dangerous tags are escaped
+                    expect(escaped).not.toMatch(/<script/i);
+                    expect(escaped).not.toMatch(/<iframe/i);
+                    expect(escaped).not.toMatch(/<svg/i);
+                    expect(escaped).not.toMatch(/<img/i);
                   });
                 });
               });

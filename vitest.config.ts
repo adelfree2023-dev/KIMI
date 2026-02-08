@@ -41,12 +41,12 @@ export default defineConfig({
         '**/node_modules/**',
         '**/dist/**',
       ],
-      // Phase 1: Reduced thresholds - will increase to 80% later
+      // Thresholds set to 90% as required
       thresholds: {
-        branches: 30,
-        functions: 30,
-        lines: 30,
-        statements: 30,
+        branches: 90,
+        functions: 90,
+        lines: 90,
+        statements: 90,
       },
     },
     onConsoleLog: (log, type) => {

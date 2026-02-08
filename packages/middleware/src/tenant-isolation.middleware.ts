@@ -79,6 +79,8 @@ async function validateTenant(subdomain: string): Promise<TenantContext> {
       subdomain: tenant.subdomain,
       plan: tenant.plan as 'free' | 'basic' | 'pro' | 'enterprise',
       isActive: true,
+      features: [],
+      createdAt: new Date(),
     };
   } catch (error) {
     // If it's already an UnauthorizedException, re-throw it

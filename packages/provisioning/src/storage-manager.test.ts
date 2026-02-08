@@ -35,14 +35,18 @@ vi.mock('minio', () => ({
   })),
 }));
 
-const mockEnv = {
-  MINIO_ENDPOINT: 'localhost',
-  MINIO_PORT: '9000',
-  MINIO_USE_SSL: 'false',
-  MINIO_ACCESS_KEY: 'test',
-  MINIO_SECRET_KEY: 'test',
-  MINIO_REGION: 'us-east-1',
-};
+const { mockEnv } = vi.hoisted(() => {
+  return {
+    mockEnv: {
+      MINIO_ENDPOINT: 'localhost',
+      MINIO_PORT: '9000',
+      MINIO_USE_SSL: 'false',
+      MINIO_ACCESS_KEY: 'test',
+      MINIO_SECRET_KEY: 'test',
+      MINIO_REGION: 'us-east-1',
+    },
+  };
+});
 
 vi.mock('@apex/config', () => ({
   env: mockEnv,
@@ -416,20 +420,19 @@ describe('Storage Manager', () => {
     });
   });
   describe('Configuration Edge Cases', () => {
+    const manualMock = {
+      bucketExists: vi.fn().mockResolvedValue(false),
+      makeBucket: vi.fn().mockResolvedValue(undefined),
+      setBucketVersioning: vi.fn().mockResolvedValue(undefined),
+      setBucketPolicy: vi.fn().mockResolvedValue(undefined),
+      setBucketTagging: vi.fn().mockResolvedValue(undefined),
+      putObject: vi.fn().mockResolvedValue(undefined),
+      listObjects: vi.fn().mockReturnValue({ toArray: async () => [] }),
+    };
+
     it('should use HTTPS endpoint when MINIO_USE_SSL is true', async () => {
       mockEnv.MINIO_USE_SSL = 'true';
 
-      const manualMock = {
-        bucketExists: vi.fn().mockResolvedValue(false),
-        makeBucket: vi.fn().mockResolvedValue(undefined),
-        setBucketVersioning: vi.fn().mockResolvedValue(undefined),
-        setBucketPolicy: vi.fn().mockResolvedValue(undefined),
-        setBucketTagging: vi.fn().mockResolvedValue(undefined),
-        putObject: vi.fn().mockResolvedValue(undefined),
-        listObjects: vi.fn().mockReturnValue({ toArray: async () => [] }),
-      };
-
-      console.log('Testing SSL with manual mock');
       const result = await createStorageBucket('ssl-test', 'free', manualMock as any);
 
       expect(result.endpoint).toContain('https://');
@@ -439,9 +442,9 @@ describe('Storage Manager', () => {
     it('should default to us-east-1 when MINIO_REGION is missing', async () => {
       mockEnv.MINIO_REGION = '';
 
-      await createStorageBucket('region-test', 'free', mockClient);
+      await createStorageBucket('region-test', 'free', manualMock as any);
 
-      expect(mockClient.makeBucket).toHaveBeenCalledWith(
+      expect(manualMock.makeBucket).toHaveBeenCalledWith(
         expect.any(String),
         'us-east-1'
       );

@@ -1076,7 +1076,12 @@ jobs:
       - name: Setup Application Stack
         run: |
           # Start application for DAST scanning
-          docker-compose up -d postgres redis minio api
+          # Use 'docker compose' (v2) or install docker-compose if needed
+          if command -v docker-compose &> /dev/null; then
+            docker-compose up -d postgres redis minio api
+          else
+            docker compose up -d postgres redis minio api
+          fi
           sleep 30  # Wait for services
       
       - name: OWASP ZAP Baseline Scan

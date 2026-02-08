@@ -80,7 +80,6 @@ export async function createStorageBucket(
   const start = Date.now();
   const bucketName = sanitizeBucketName(subdomain);
   const client = injectedClient || getMinioClient();
-  console.log(`[DEBUG] createStorageBucket injected: ${!!injectedClient}`);
 
   try {
     const exists = await client.bucketExists(bucketName);

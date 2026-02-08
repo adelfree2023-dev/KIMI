@@ -14,7 +14,12 @@ import Link from 'next/link';
 
 export default function CartPage() {
     // TODO: Replace with actual cart state
-    const cart = {
+    const cart: {
+        items: any[];
+        subtotal: number;
+        discount: number;
+        total: number;
+    } = {
         items: [],
         subtotal: 0,
         discount: 0,

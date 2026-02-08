@@ -85,6 +85,43 @@ describe('QuotaService', () => {
       const result = await validateSubdomainAvailability('invalid_format');
       expect(result.available).toBe(false);
     });
+
+    it('should reject subdomains with spaces', async () => {
+      const result = await validateSubdomainAvailability('valid subdomain');
+      expect(result.available).toBe(false);
+      expect(result.reason).toContain('space');
+    });
+
+    it('should reject subdomains that are too short or too long', async () => {
+      const shortResult = await validateSubdomainAvailability('ab');
+      const longResult = await validateSubdomainAvailability('a'.repeat(31));
+      expect(shortResult.available).toBe(false);
+      expect(longResult.available).toBe(false);
+    });
+
+    it('should handle reserveds words admin, api, www', async () => {
+      expect((await validateSubdomainAvailability('admin')).available).toBe(false);
+      expect((await validateSubdomainAvailability('api')).available).toBe(false);
+      expect((await validateSubdomainAvailability('www')).available).toBe(false);
+    });
+  });
+
+  describe('isFeatureAllowed extra checks', () => {
+    it('should allow pro features for pro plan', () => {
+      expect(isFeatureAllowed('pro', 'api_access')).toBe(true);
+      expect(isFeatureAllowed('pro', 'webhooks')).toBe(true);
+      expect(isFeatureAllowed('pro', 'storage')).toBe(true);
+    });
+
+    it('should allow basic features for basic plan', () => {
+      expect(isFeatureAllowed('basic', 'coupons')).toBe(true);
+      expect(isFeatureAllowed('basic', 'customDomain')).toBe(true);
+    });
+
+    it('should allow base features for all plans', () => {
+      expect(isFeatureAllowed('free', 'products')).toBe(true);
+      expect(isFeatureAllowed('free', 'orders')).toBe(true);
+    });
   });
 
   describe('checkQuota', () => {

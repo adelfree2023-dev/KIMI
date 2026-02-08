@@ -15,7 +15,7 @@ describe('RateLimitGuard', () => {
   // Mock the singleton store methods
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     // Mock the singleton store instance methods
     vi.spyOn(RedisRateLimitStore.prototype, 'isBlocked').mockResolvedValue({ blocked: false, retryAfter: 0 });
     vi.spyOn(RedisRateLimitStore.prototype, 'increment').mockResolvedValue({ count: 1, ttl: 60 });
@@ -40,8 +40,8 @@ describe('RateLimitGuard', () => {
         getRequest: () => mockRequest,
         getResponse: () => mockResponse,
       }),
-      getHandler: () => function testHandler() {},
-      getClass: () => class TestController {},
+      getHandler: () => function testHandler() { },
+      getClass: () => class TestController { },
     } as any;
   });
 
@@ -77,4 +77,29 @@ describe('RateLimitGuard', () => {
     // Identification logic is internal, but passing implies it worked
     expect(mockResponse.setHeader).toHaveBeenCalled();
   });
+
+  it('should throw TOO_MANY_REQUESTS when limit exceeded', async () => {
+    vi.spyOn(RedisRateLimitStore.prototype, 'increment').mockResolvedValue({ count: 101, ttl: 60 });
+    await expect(guard.canActivate(mockContext)).rejects.toThrow(HttpException);
+  });
+
+  it('should throw TOO_MANY_REQUESTS when blocked', async () => {
+    vi.spyOn(RedisRateLimitStore.prototype, 'isBlocked').mockResolvedValue({ blocked: true, retryAfter: 300 });
+    await expect(guard.canActivate(mockContext)).rejects.toThrow('IP blocked');
+  });
+
+  it('should handle missing IP and unidentified caller', async () => {
+    delete mockRequest.ip;
+    mockRequest.headers = {};
+    const result = await guard.canActivate(mockContext);
+    expect(result).toBe(true);
+  });
 });
+
+describe('RateLimit Decorator', () => {
+  it('should set rate limit metadata', () => {
+    const decorator = RateLimit({ requests: 10, windowMs: 1000 });
+    expect(decorator).toBeDefined();
+  });
+});
+

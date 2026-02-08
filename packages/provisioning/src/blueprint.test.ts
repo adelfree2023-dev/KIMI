@@ -63,9 +63,20 @@ vi.mock('@apex/db', () => ({
       }),
     }),
     update: () => ({
-      set: () => ({
+      set: (v: any) => ({
         where: () => ({
-          returning: () => [],
+          returning: () => {
+            const record = {
+              id: 'test-id',
+              name: v.name || 'Updated',
+              blueprint: v.blueprint || JSON.stringify(defaultBlueprintTemplate),
+              isDefault: v.isDefault || 'false',
+              plan: v.plan || 'free',
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            };
+            return [record];
+          },
         }),
       }),
     }),
@@ -76,6 +87,8 @@ vi.mock('@apex/db', () => ({
     }),
   },
 }));
+
+import { initializeDefaultBlueprint } from './blueprint.js';
 
 describe('Blueprint Service', () => {
   beforeEach(() => {
@@ -92,6 +105,30 @@ describe('Blueprint Service', () => {
 
       expect(() => validateBlueprint(validBlueprint)).not.toThrow();
       expect(validateBlueprint(validBlueprint)).toBe(true);
+    });
+
+    it('should reject non-object blueprint', () => {
+      expect(() => validateBlueprint(null)).toThrow('Blueprint must be an object');
+      expect(() => validateBlueprint('not an object')).toThrow('Blueprint must be an object');
+    });
+
+    it('should validate pages if present', () => {
+      const validWithPages: BlueprintTemplate = {
+        version: '1.0',
+        name: 'Test',
+        pages: [{ slug: 'test', title: 'Test Page', content: 'test content' }],
+      };
+      expect(() => validateBlueprint(validWithPages)).not.toThrow();
+    });
+
+    it('should reject invalid pages array', () => {
+      const invalid = { version: '1.0', name: 'Test', pages: 'not an array' };
+      expect(() => validateBlueprint(invalid)).toThrow('pages must be an array');
+    });
+
+    it('should reject page without slug or title', () => {
+      const invalid = { version: '1.0', name: 'Test', pages: [{ content: 'test' }] };
+      expect(() => validateBlueprint(invalid)).toThrow('Page must have slug and title');
     });
 
     it('should reject invalid version', () => {
@@ -179,6 +216,7 @@ describe('Blueprint Service', () => {
       const result = await createBlueprint('My Blueprint', blueprint, {
         description: 'A test blueprint',
         plan: 'pro',
+        isDefault: true,
       });
 
       expect(result).toBeDefined();
@@ -204,10 +242,47 @@ describe('Blueprint Service', () => {
     });
   });
 
+  describe('validateBlueprint edge cases', () => {
+    it('should reject blueprint without name', () => {
+      const bp = { ...defaultBlueprintTemplate, name: undefined };
+      expect(validateBlueprint(bp)).toBe(false);
+    });
+
+    it('should reject blueprint without version', () => {
+      const bp = { ...defaultBlueprintTemplate, version: undefined };
+      expect(validateBlueprint(bp)).toBe(false);
+    });
+
+    it('should reject page without title', () => {
+      const bp = {
+        ...defaultBlueprintTemplate,
+        pages: [{ slug: 'test' }]
+      };
+      expect(validateBlueprint(bp)).toBe(false);
+    });
+  });
+
+
   describe('getBlueprintById', () => {
     it('should return null for non-existent id', async () => {
       const result = await getBlueprintById('non-existent');
       expect(result).toBeNull();
+    });
+
+    it('should return blueprint record if exists', async () => {
+      mockBlueprints.push({
+        id: 'real-id',
+        name: 'Test',
+        description: null,
+        blueprint: JSON.stringify(defaultBlueprintTemplate),
+        isDefault: 'true',
+        plan: 'free',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+      const result = await getBlueprintById('real-id');
+      expect(result).not.toBeNull();
+      expect(result?.id).toBe('real-id');
     });
   });
 
@@ -216,13 +291,35 @@ describe('Blueprint Service', () => {
       const result = await getDefaultBlueprint('free');
       expect(result).toBeNull();
     });
+
+    it('should return a blueprint if no default is found but one exists for plan', async () => {
+      mockBlueprints.push({
+        id: 'bp-1',
+        name: 'Non Default',
+        description: null,
+        blueprint: JSON.stringify(defaultBlueprintTemplate),
+        isDefault: 'false',
+        plan: 'free',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+      const result = await getDefaultBlueprint('free');
+      expect(result).not.toBeNull();
+      expect(result?.name).toBe('Non Default');
+    });
   });
 
   describe('updateBlueprint', () => {
     it('should update blueprint fields', async () => {
-      const result = await updateBlueprint('test-id', { name: 'Updated Name' });
-      // Mock returns null or updated record
-      expect(result === null || result?.name === 'Updated Name').toBeTruthy();
+      const result = await updateBlueprint('test-id', {
+        name: 'Updated Name',
+        isDefault: true,
+        plan: 'pro',
+        blueprint: defaultBlueprintTemplate
+      });
+      expect(result).not.toBeNull();
+      expect(result?.name).toBe('Updated Name');
+      expect(result?.isDefault).toBe(true);
     });
   });
 
@@ -232,4 +329,12 @@ describe('Blueprint Service', () => {
       expect(result).toBe(true);
     });
   });
+
+  describe('initializeDefaultBlueprint', () => {
+    it('should create default if none exists', async () => {
+      await initializeDefaultBlueprint();
+      expect(mockBlueprints.length).toBeGreaterThan(0);
+    });
+  });
 });
+

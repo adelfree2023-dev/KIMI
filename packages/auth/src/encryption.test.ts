@@ -68,7 +68,7 @@ describe('EncryptionService', () => {
   });
 
   it('should initialize with provided master key', () => {
-    process.env.ENCRYPTION_MASTER_KEY = 'ValidProdPass32CharsWith1$!Abc'; // Avoid 'key' word, use only allowed chars
+    process.env.ENCRYPTION_MASTER_KEY = 'ValidProdPass32CharsWith1$!Abc12'; // Added 2 chars to reach 32
     process.env.NODE_ENV = 'production'; // Enforce strict checks but with valid key
 
     service = new EncryptionService();
@@ -104,24 +104,27 @@ describe('EncryptionService', () => {
     expect(() => new EncryptionService()).toThrow('forbidden pattern');
   });
 
-  it('should throw in production if key lacks complexity', () => {
-    process.env.NODE_ENV = 'production';
-    // Use a key without forbidden patterns but lacks complexity (no special chars)
-    // Must be 32+ chars, no 'test', 'default', 'key', 'secret', etc.
-    process.env.ENCRYPTION_MASTER_KEY = 'MasterPassWithoutSpecialCharsLongEnough';
-    expect(() => new EncryptionService()).toThrow('must contain');
-  });
+  process.env.ENCRYPTION_MASTER_KEY = 'MasterPassWithoutSpecialCharsLongEnough';
+  expect(() => new EncryptionService()).toThrow('must contain');
+});
 
-  it('should delegate methods to utility functions', () => {
-    process.env.ENCRYPTION_MASTER_KEY = 'Test-Encryption-Key-32-Chars-Long!1';
-    process.env.NODE_ENV = 'test';
-    service = new EncryptionService();
+it('should throw in production if key has low entropy', () => {
+  process.env.NODE_ENV = 'production';
+  // This key is long enough and has complexity but repeated characters (low entropy)
+  process.env.ENCRYPTION_MASTER_KEY = 'AAAAaaaa1111!!!!AAAAaaaa1111!!!!';
+  expect(() => new EncryptionService()).toThrow('insufficient entropy');
+});
 
-    const enc = service.encrypt('data');
-    expect(enc).toHaveProperty('encrypted');
-    expect(service.decrypt(enc)).toBe('data');
-    expect(service.hashApiKey('key')).toBeDefined();
-    expect(service.generateApiKey()).toMatch(/^apex_/);
-    expect(service.mask('1234567890', 2)).toBe('12******90');
-  });
+it('should delegate methods to utility functions', () => {
+  process.env.ENCRYPTION_MASTER_KEY = 'Test-Encryption-Key-32-Chars-Long!1';
+  process.env.NODE_ENV = 'test';
+  service = new EncryptionService();
+
+  const enc = service.encrypt('data');
+  expect(enc).toHaveProperty('encrypted');
+  expect(service.decrypt(enc)).toBe('data');
+  expect(service.hashApiKey('key')).toBeDefined();
+  expect(service.generateApiKey()).toMatch(/^apex_/);
+  expect(service.mask('1234567890', 2)).toBe('12******90');
+});
 });

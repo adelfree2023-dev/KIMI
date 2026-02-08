@@ -10,6 +10,8 @@ import {
   createStorageBucket,
   deleteStorageBucket,
   getSignedUploadUrl,
+  getSignedDownloadUrl,
+  deleteObject,
   getStorageStats,
   resetMinioClient,
 } from './storage-manager.js';
@@ -301,6 +303,35 @@ describe('Storage Manager', () => {
     });
   });
 
+  describe('getSignedDownloadUrl', () => {
+    it('should generate presigned URL for download', async () => {
+      mockClient.presignedGetObject.mockResolvedValue('https://example.com/download');
+      const url = await getSignedDownloadUrl('uuid-123', 'file.txt');
+      expect(url).toBe('https://example.com/download');
+      expect(mockClient.presignedGetObject).toHaveBeenCalled();
+    });
+
+    it('should throw on error', async () => {
+      mockClient.presignedGetObject.mockRejectedValue(new Error('fail'));
+      await expect(getSignedDownloadUrl('uuid-123', 'file.txt')).rejects.toThrow('Failed to generate download URL');
+    });
+  });
+
+  describe('deleteObject', () => {
+    it('should return true on success', async () => {
+      mockClient.removeObject.mockResolvedValue(undefined);
+      const result = await deleteObject('uuid-123', 'file.txt');
+      expect(result).toBe(true);
+      expect(mockClient.removeObject).toHaveBeenCalled();
+    });
+
+    it('should return false on error', async () => {
+      mockClient.removeObject.mockRejectedValue(new Error('fail'));
+      const result = await deleteObject('uuid-123', 'file.txt');
+      expect(result).toBe(false);
+    });
+  });
+
   describe('Error Handling', () => {
     it('should wrap MinIO errors with context', async () => {
       mockClient.bucketExists.mockRejectedValue(
@@ -321,5 +352,11 @@ describe('Storage Manager', () => {
         'Access Denied'
       );
     });
+
+    it('should throw "Failed to generate upload URL" on presignedPutObject error', async () => {
+      mockClient.presignedPutObject.mockRejectedValue(new Error('fail'));
+      await expect(getSignedUploadUrl('uuid-123', 'file.txt')).rejects.toThrow('Failed to generate upload URL');
+    });
   });
 });
+

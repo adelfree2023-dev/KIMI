@@ -17,11 +17,6 @@ vi.mock('@nestjs/passport', () => ({
   },
   AuthGuard: () => class MockAuthGuard {
     canActivate() { return true; }
-    handleRequest(err: any, user: any) {
-      if (err) throw err;
-      if (!user) throw new Error('User not found');
-      return user;
-    }
   },
 }));
 

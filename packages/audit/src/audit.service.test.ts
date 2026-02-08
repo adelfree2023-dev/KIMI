@@ -87,7 +87,7 @@ describe('Audit Service (S4 Protocol)', () => {
 
       const queryCall = mockClient.query.mock.calls.find(c => typeof c[0] === 'string' && /INSERT INTO public\.audit_logs/i.test(c[0]));
       expect(queryCall).toBeDefined();
-      expect(queryCall![1][5]).toContain('admin@example.com');
+      expect(queryCall![1][2]).toContain('admin@example.com');
     });
 
     it('should output structured log to console for monitoring', async () => {

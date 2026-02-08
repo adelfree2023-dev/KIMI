@@ -106,3 +106,23 @@ describe('resolveTenant', () => {
     expect(next).toHaveBeenCalled();
   });
 });
+
+describe('Tenant Extraction Helpers', () => {
+  it('should extract tenant from host', () => {
+    expect(extractSubdomain('test.apex.com')).toBe('test');
+  });
+
+  it('should extract tenant from header', () => {
+    const req = { headers: { 'x-tenant-id': 'tenant-789' } } as unknown as Request;
+    expect(extractSubdomain(req.headers.host || '')).toBeDefined; // Using extractSubdomain as placeholder if needed
+    // Testing the actual helper
+    const { extractTenantFromHeader } = require('./tenant-resolution.js');
+    expect(extractTenantFromHeader(req)).toBe('tenant-789');
+  });
+
+  it('should return null from extractTenantFromJWT (placeholder)', () => {
+    const { extractTenantFromJWT } = require('./tenant-resolution.js');
+    expect(extractTenantFromJWT({} as any)).toBeNull();
+  });
+});
+

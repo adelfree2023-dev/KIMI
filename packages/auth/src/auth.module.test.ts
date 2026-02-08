@@ -12,15 +12,10 @@ vi.mock('@nestjs/passport', () => ({
   },
   // PassportStrategy is a mixin function that returns a class
   PassportStrategy: () => class MockPassportStrategy {
-    constructor() {}
+    constructor() { }
   },
   AuthGuard: () => class MockAuthGuard {
     canActivate() { return true; }
-    handleRequest(err: any, user: any) {
-      if (err) throw err;
-      if (!user) throw new Error('User not found');
-      return user;
-    }
   },
 }));
 
@@ -28,7 +23,7 @@ vi.mock('@nestjs/jwt', () => ({
   JwtModule: {
     registerAsync: () => ({ module: 'JwtModule' }),
   },
-  JwtService: class MockJwtService {},
+  JwtService: class MockJwtService { },
 }));
 
 vi.mock('@apex/config', () => ({
@@ -48,6 +43,32 @@ describe('AuthModule', () => {
   it('should be a function (class)', async () => {
     const { AuthModule } = await import('./auth.module.js');
     expect(typeof AuthModule).toBe('function');
+  });
+
+  it('should configure JwtModule correctly using ConfigService', async () => {
+    const { AuthModule } = await import('./auth.module.js');
+    const { JwtModule } = await import('@nestjs/jwt');
+    const { ConfigService } = await import('@apex/config');
+
+    // Extract the factory from JwtModule.registerAsync mock
+    const spy = vi.spyOn(JwtModule, 'registerAsync');
+
+    // We need to re-import or trigger the decorator logic
+    // Since it's already executed, we can look at the mock calls if we mocked it early enough
+    // In this case, the mock is at the top of the file.
+
+    expect(spy).toHaveBeenCalled();
+    const config = spy.mock.calls[0][0] as any;
+    expect(config.useFactory).toBeDefined();
+
+    const mockConfigService = {
+      get: vi.fn().mockImplementation((key) => key === 'JWT_SECRET' ? 'secret' : null),
+      getWithDefault: vi.fn().mockReturnValue('7d'),
+    };
+
+    const result = config.useFactory(mockConfigService as any);
+    expect(result.secret).toBe('secret');
+    expect(result.signOptions.expiresIn).toBe('7d');
   });
 });
 

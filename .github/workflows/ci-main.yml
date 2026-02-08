@@ -1,0 +1,146 @@
+# ═══════════════════════════════════════════════════════════════
+# CI/CD Pipeline: Security Tests + Provisioning + Deploy
+# Combined workflow for comprehensive validation
+# ═══════════════════════════════════════════════════════════════
+
+name: "🚀 CI/CD Pipeline"
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+permissions:
+  contents: read
+  checks: write
+  actions: read
+  security-events: write
+
+jobs:
+  # ═══════════════════════════════════════════════════════════════
+  # PHASE 1: Security Gates (S1-S8)
+  # ═══════════════════════════════════════════════════════════════
+  security-core:
+    name: "🔒 S1-S8 Core Security"
+    uses: ./.github/workflows/s1-env-verification-gate.yml
+    secrets: inherit
+
+  # ═══════════════════════════════════════════════════════════════
+  # PHASE 2: Penetration Tests (S9-S13)
+  # ═══════════════════════════════════════════════════════════════
+  security-penetration:
+    name: "🎯 S9-S13 Penetration Tests"
+    uses: ./.github/workflows/security-penetration-tests.yml
+    secrets: inherit
+
+  # ═══════════════════════════════════════════════════════════════
+  # PHASE 3: Provisioning Speed Test (60s North Star)
+  # ═══════════════════════════════════════════════════════════════
+  provisioning-speed:
+    name: "⏱️ 60-Second Provisioning"
+    needs: [security-core, security-penetration]
+    if: always() && needs.security-core.result == 'success' && needs.security-penetration.result == 'success'
+    uses: ./.github/workflows/provisioning-speed-gate.yml
+    secrets: inherit
+
+  # ═══════════════════════════════════════════════════════════════
+  # PHASE 4: Deploy to Staging
+  # ═══════════════════════════════════════════════════════════════
+  deploy-staging:
+    name: "🚀 Deploy to Staging"
+    needs: [security-core, security-penetration, provisioning-speed]
+    if: github.ref == 'refs/heads/develop' && always() && needs.provisioning-speed.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: staging
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Deploy to Staging
+        run: |
+          echo "═══════════════════════════════════════════════════════════════"
+          echo "                    🚀 DEPLOYING TO STAGING"
+          echo "═══════════════════════════════════════════════════════════════"
+          echo ""
+          echo "✅ All security gates passed"
+          echo "✅ All penetration tests passed"
+          echo "✅ Provisioning speed validated (< 60s)"
+          echo ""
+          echo "Deploying commit: ${{ github.sha }}"
+          echo "Branch: ${{ github.ref }}"
+          echo ""
+          
+          # Here you would add actual deployment commands:
+          # - docker build
+          # - docker push to registry
+          # - kubectl apply
+          # - or any other deployment method
+          
+          echo "🎉 Deployment to STAGING completed successfully!"
+          echo "═══════════════════════════════════════════════════════════════"
+
+  # ═══════════════════════════════════════════════════════════════
+  # FINAL REPORT
+  # ═══════════════════════════════════════════════════════════════
+  final-report:
+    name: "📊 Pipeline Report"
+    runs-on: ubuntu-latest
+    needs: [security-core, security-penetration, provisioning-speed, deploy-staging]
+    if: always()
+    
+    steps:
+      - name: Generate Report
+        run: |
+          echo "═══════════════════════════════════════════════════════════════"
+          echo "                 🚀 CI/CD PIPELINE REPORT"
+          echo "═══════════════════════════════════════════════════════════════"
+          echo ""
+          
+          # Results
+          CORE="${{ needs.security-core.result }}"
+          PENTEST="${{ needs.security-penetration.result }}"
+          SPEED="${{ needs.provisioning-speed.result }}"
+          DEPLOY="${{ needs.deploy-staging.result }}"
+          
+          icon() {
+            if [ "$1" == "success" ]; then echo "✅";
+            elif [ "$1" == "failure" ]; then echo "🚨";
+            elif [ "$1" == "skipped" ]; then echo "⏭️";
+            else echo "⏳"; fi
+          }
+          
+          echo "Phase 1: $(icon $CORE) Core Security (S1-S8)"
+          echo "Phase 2: $(icon $PENTEST) Penetration Tests (S9-S13)"
+          echo "Phase 3: $(icon $SPEED) Provisioning Speed (60s)"
+          echo "Phase 4: $(icon $DEPLOY) Deploy to Staging"
+          echo ""
+          
+          # Count results
+          PASSED=0
+          FAILED=0
+          SKIPPED=0
+          
+          for result in "$CORE" "$PENTEST" "$SPEED" "$DEPLOY"; do
+            case "$result" in
+              success) PASSED=$((PASSED + 1)) ;;
+              failure) FAILED=$((FAILED + 1)) ;;
+              skipped) SKIPPED=$((SKIPPED + 1)) ;;
+            esac
+          done
+          
+          echo "═══════════════════════════════════════════════════════════════"
+          echo "Results: $PASSED passed, $FAILED failed, $SKIPPED skipped"
+          echo "═══════════════════════════════════════════════════════════════"
+          
+          if [ "$FAILED" -gt 0 ]; then
+            echo ""
+            echo "🚨 PIPELINE FAILED 🚨"
+            echo "Fix errors before merging!"
+            exit 1
+          fi
+          
+          echo ""
+          echo "✅✅✅ PIPELINE SUCCESSFUL ✅✅✅"

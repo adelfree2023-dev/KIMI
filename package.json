@@ -15,6 +15,7 @@
     "test": "turbo run test",
     "typecheck": "turbo run typecheck",
     "cli": "cd apps/api && bun run cli",
+    "db:push": "echo 'No migrations to push'",
     "postinstall": "echo 'Run: bun install'"
   },
   "devDependencies": {

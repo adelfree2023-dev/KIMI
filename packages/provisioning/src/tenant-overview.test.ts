@@ -136,8 +136,17 @@ describe('Tenant Overview Service', () => {
     });
 
     it('should return null for non-existent id', async () => {
+      // Ensure the mock for this specific case resolves to empty array
+      const { publicDb } = await import('@apex/db');
+      vi.mocked(publicDb.select).mockReturnValueOnce({
+        from: vi.fn().mockReturnValue({
+          where: vi.fn().mockReturnThis(),
+          limit: vi.fn().mockResolvedValue([]),
+        }),
+      } as any);
+
       const result = await getTenantById('non-existent');
-      expect(result).toBeUndefined();
+      expect(result).toBeNull();
     });
   });
 

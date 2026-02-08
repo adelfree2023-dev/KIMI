@@ -21,9 +21,9 @@ export class ProvisioningController {
   private readonly logger = new Logger(ProvisioningController.name);
 
   constructor(
-    @Inject(ProvisioningService)
+    @Inject('PROVISIONING_SERVICE')
     private readonly provisioningService: ProvisioningService,
-    @Inject(AuditService)
+    @Inject('AUDIT_SERVICE')
     readonly _audit: AuditService
   ) { }
 

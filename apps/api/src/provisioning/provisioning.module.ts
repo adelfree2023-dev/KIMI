@@ -5,7 +5,16 @@ import { ProvisioningService } from './provisioning.service.js';
 
 @Module({
   controllers: [ProvisioningController],
-  providers: [ProvisioningService, AuditService],
-  exports: [ProvisioningService],
+  providers: [
+    {
+      provide: 'PROVISIONING_SERVICE',
+      useClass: ProvisioningService,
+    },
+    {
+      provide: 'AUDIT_SERVICE',
+      useClass: AuditService,
+    },
+  ],
+  exports: ['PROVISIONING_SERVICE'],
 })
-export class ProvisioningModule {}
+export class ProvisioningModule { }

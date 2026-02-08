@@ -21,18 +21,18 @@ describe('ProvisioningController', () => {
       controllers: [ProvisioningController],
       providers: [
         {
-          provide: ProvisioningService,
+          provide: 'PROVISIONING_SERVICE',
           useValue: mockProvisioningService,
         },
         {
-          provide: AuditService,
+          provide: 'AUDIT_SERVICE',
           useValue: mockAuditService,
         },
       ],
     }).compile();
 
     controller = module.get<ProvisioningController>(ProvisioningController);
-    service = module.get<ProvisioningService>(ProvisioningService);
+    service = module.get<ProvisioningService>('PROVISIONING_SERVICE');
 
     vi.clearAllMocks();
   });

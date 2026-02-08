@@ -50,28 +50,6 @@ vi.mock('@apex/config', () => ({
 
 // ...
 
-describe('Configuration Edge Cases', () => {
-  it('should use HTTPS endpoint when MINIO_USE_SSL is true', async () => {
-    mockEnv.MINIO_USE_SSL = 'true';
-
-    const result = await createStorageBucket('ssl-test', 'free', mockClient);
-
-    expect(result.endpoint).toContain('https://');
-    mockEnv.MINIO_USE_SSL = 'false'; // Reset
-  });
-
-  it('should default to us-east-1 when MINIO_REGION is missing', async () => {
-    mockEnv.MINIO_REGION = '';
-
-    await createStorageBucket('region-test', 'free', mockClient);
-
-    expect(mockClient.makeBucket).toHaveBeenCalledWith(
-      expect.any(String),
-      'us-east-1'
-    );
-    mockEnv.MINIO_REGION = 'us-east-1'; // Reset
-  });
-});
 
 describe('Storage Manager', () => {
   let mockClient: any;
@@ -439,32 +417,38 @@ describe('Storage Manager', () => {
   });
   describe('Configuration Edge Cases', () => {
     it('should use HTTPS endpoint when MINIO_USE_SSL is true', async () => {
-      vi.stubEnv('MINIO_USE_SSL', 'true');
+      mockEnv.MINIO_USE_SSL = 'true';
 
-      resetMinioClient();
-      setMinioClient(mockClient);
+      const manualMock = {
+        bucketExists: vi.fn().mockResolvedValue(false),
+        makeBucket: vi.fn().mockResolvedValue(undefined),
+        setBucketVersioning: vi.fn().mockResolvedValue(undefined),
+        setBucketPolicy: vi.fn().mockResolvedValue(undefined),
+        setBucketTagging: vi.fn().mockResolvedValue(undefined),
+        putObject: vi.fn().mockResolvedValue(undefined),
+        listObjects: vi.fn().mockReturnValue({ toArray: async () => [] }),
+      };
 
-      const result = await createStorageBucket('ssl-test');
+      console.log('Testing SSL with manual mock');
+      const result = await createStorageBucket('ssl-test', 'free', manualMock as any);
 
       expect(result.endpoint).toContain('https://');
-      vi.unstubAllEnvs();
+      mockEnv.MINIO_USE_SSL = 'false'; // Reset
     });
 
     it('should default to us-east-1 when MINIO_REGION is missing', async () => {
-      vi.stubEnv('MINIO_REGION', '');
+      mockEnv.MINIO_REGION = '';
 
-      resetMinioClient();
-      setMinioClient(mockClient);
-
-      await createStorageBucket('region-test');
+      await createStorageBucket('region-test', 'free', mockClient);
 
       expect(mockClient.makeBucket).toHaveBeenCalledWith(
         expect.any(String),
         'us-east-1'
       );
-      vi.unstubAllEnvs();
+      mockEnv.MINIO_REGION = 'us-east-1'; // Reset
     });
   });
+
 
   describe('Non-Error Exception Handling', () => {
     it('should handle non-Error objects in createStorageBucket', async () => {

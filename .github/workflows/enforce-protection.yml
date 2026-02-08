@@ -1,0 +1,279 @@
+# ═══════════════════════════════════════════════════════════════
+# Branch Protection & Code Owners Enforcement
+# Prevents breaking critical modules without proper review
+# ═══════════════════════════════════════════════════════════════
+
+name: "🛡️ Protection Enforcement"
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches: [main, develop]
+    paths:
+      - 'packages/export/**'
+      - 'packages/middleware/**'
+      - 'packages/auth/**'
+      - 'packages/audit/**'
+      - 'packages/db/**'
+      - '.github/workflows/s*-*.yml'
+      - 'SECURITY.md'
+
+jobs:
+  # ═══════════════════════════════════════════════════════════════
+  # Check CODEOWNERS Review Requirements
+  # ═══════════════════════════════════════════════════════════════
+  codeowners-check:
+    name: "Verify CODEOWNERS Review"
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check Required Reviewers
+        id: check-reviewers
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            
+            // Read CODEOWNERS
+            const codeownersPath = path.join(process.env.GITHUB_WORKSPACE, '.github', 'CODEOWNERS');
+            const codeownersContent = fs.readFileSync(codeownersPath, 'utf8');
+            
+            // Parse CODEOWNERS
+            const rules = codeownersContent
+              .split('\n')
+              .filter(line => line.trim() && !line.startsWith('#'))
+              .map(line => {
+                const [pattern, ...owners] = line.trim().split(/\s+/);
+                return { pattern, owners };
+              });
+            
+            // Get changed files in this PR
+            const prNumber = context.issue.number;
+            const { data: files } = await github.rest.pulls.listFiles({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber,
+            });
+            
+            const changedFiles = files.map(f => f.filename);
+            
+            // Find required reviewers
+            const requiredReviewers = new Set();
+            
+            for (const file of changedFiles) {
+              for (const rule of rules) {
+                const pattern = rule.pattern
+                  .replace(/\*\*/g, '.*')
+                  .replace(/\*/g, '[^/]*')
+                  .replace(/\?/g, '.');
+                
+                const regex = new RegExp(`^${pattern}$`);
+                if (regex.test(file)) {
+                  rule.owners.forEach(owner => requiredReviewers.add(owner));
+                }
+              }
+            }
+            
+            // Get current reviews
+            const { data: reviews } = await github.rest.pulls.listReviews({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber,
+            });
+            
+            const approvedReviewers = reviews
+              .filter(r => r.state === 'APPROVED')
+              .map(r => `@${r.user.login}`);
+            
+            // Check if required reviewers have approved
+            const missingApprovals = [];
+            for (const reviewer of requiredReviewers) {
+              // In real scenario, map GitHub usernames to CODEOWNERS
+              // For now, we check if any approval exists
+              if (approvedReviewers.length === 0) {
+                missingApprovals.push(reviewer);
+              }
+            }
+            
+            // Get PR author
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber,
+            });
+            
+            core.setOutput('changed-files', changedFiles.join(', '));
+            core.setOutput('required-reviewers', Array.from(requiredReviewers).join(', '));
+            core.setOutput('approved-reviewers', approvedReviewers.join(', '));
+            core.setOutput('pr-author', pr.user.login);
+            
+            // Critical check: Export module changes require 2 approvals
+            const isExportChange = changedFiles.some(f => f.startsWith('packages/export/'));
+            if (isExportChange && approvedReviewers.length < 2) {
+              core.setFailed(
+                `❌ CRITICAL: Export module changes require 2 approvals. ` +
+                `Current approvals: ${approvedReviewers.length}`
+              );
+            }
+            
+            // Security module changes require security team
+            const isSecurityChange = changedFiles.some(f => 
+              f.startsWith('packages/middleware/') ||
+              f.startsWith('packages/auth/') ||
+              f.startsWith('packages/audit/') ||
+              f.startsWith('.github/workflows/s')
+            );
+            
+            if (isSecurityChange && approvedReviewers.length === 0) {
+              core.setFailed(
+                `❌ SECURITY: Changes to security modules require approval from security team`
+              );
+            }
+
+      - name: Report Status
+        run: |
+          echo "═══════════════════════════════════════════════════════════════"
+          echo "  CODEOWNERS Review Check"
+          echo "═══════════════════════════════════════════════════════════════"
+          echo "Changed Files: ${{ steps.check-reviewers.outputs.changed-files }}"
+          echo "Required Reviewers: ${{ steps.check-reviewers.outputs.required-reviewers }}"
+          echo "Approved Reviewers: ${{ steps.check-reviewers.outputs.approved-reviewers }}"
+          echo "PR Author: ${{ steps.check-reviewers.outputs.pr-author }}"
+          echo "═══════════════════════════════════════════════════════════════"
+
+  # ═══════════════════════════════════════════════════════════════
+  # Validate Export Module Changes
+  # ═══════════════════════════════════════════════════════════════
+  validate-export-changes:
+    name: "Validate Export Module Changes"
+    runs-on: ubuntu-latest
+    if: contains(github.event.pull_request.changed_files, 'packages/export/')
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check Export Test Coverage
+        run: |
+          echo "═══════════════════════════════════════════════════════════════"
+          echo "  S14 Export Module Validation"
+          echo "═══════════════════════════════════════════════════════════════"
+          
+          # Check that tests exist for changed files
+          CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep "packages/export/" || true)
+          
+          if [ -z "$CHANGED_FILES" ]; then
+            echo "✅ No export module changes detected"
+            exit 0
+          fi
+          
+          echo "Changed export files:"
+          echo "$CHANGED_FILES"
+          
+          # Check for corresponding test files
+          MISSING_TESTS=""
+          for file in $CHANGED_FILES; do
+            if [[ "$file" == *.ts && "$file" != *.test.ts ]]; then
+              TEST_FILE="${file%.ts}.test.ts"
+              if [ ! -f "$TEST_FILE" ]; then
+                # Check if test exists elsewhere
+                BASENAME=$(basename "$file" .ts)
+                if ! find packages/export -name "*${BASENAME}*.test.ts" | grep -q .; then
+                  echo "⚠️ No test file found for: $file"
+                  MISSING_TESTS="$MISSING_TESTS $file"
+                fi
+              fi
+            fi
+          done
+          
+          if [ -n "$MISSING_TESTS" ]; then
+            echo ""
+            echo "❌ CRITICAL: Export module changes require test coverage"
+            echo "Missing tests for: $MISSING_TESTS"
+            exit 1
+          fi
+          
+          echo "✅ Test coverage verified"
+
+      - name: Check Security Patterns
+        run: |
+          echo "═══════════════════════════════════════════════════════════════"
+          echo "  Security Pattern Validation"
+          echo "═══════════════════════════════════════════════════════════════"
+          
+          # Check for schema injection vulnerabilities
+          if git diff origin/${{ github.base_ref }}...HEAD | grep -E "SELECT.*\$\{.*schema|FROM.*\$\{.*tenant"; then
+            echo "❌ CRITICAL: Potential SQL injection in schema reference"
+            exit 1
+          fi
+          
+          # Check for missing tenant isolation
+          if git diff origin/${{ github.base_ref }}...HEAD packages/export/src | grep -E "public\.(tenants|users)" | grep -v "public.tenants WHERE"; then
+            echo "❌ CRITICAL: Direct public schema access without WHERE clause"
+            exit 1
+          fi
+          
+          # Check for hardcoded secrets
+          if git diff origin/${{ github.base_ref }}...HEAD | grep -iE "(password|secret|key)\s*=\s*[\"'][^\"']{8,}[\"']"; then
+            echo "❌ CRITICAL: Potential hardcoded secret"
+            exit 1
+          fi
+          
+          echo "✅ Security patterns validated"
+
+      - name: Require S14 Gate Pass
+        run: |
+          echo "═══════════════════════════════════════════════════════════════"
+          echo "  S14 Security Gate Requirement"
+          echo "═══════════════════════════════════════════════════════════════"
+          
+          # Check that S14 gate workflow exists and is modified if needed
+          if [ ! -f ".github/workflows/s14-export-security-gate.yml" ]; then
+            echo "❌ CRITICAL: S14 security gate workflow is missing!"
+            exit 1
+          fi
+          
+          echo "✅ S14 security gate exists"
+
+  # ═══════════════════════════════════════════════════════════════
+  # Block Self-Approval for Critical Modules
+  # ═══════════════════════════════════════════════════════════════
+  block-self-approval:
+    name: "Block Self-Approval"
+    runs-on: ubuntu-latest
+    if: contains(github.event.pull_request.changed_files, 'packages/export/') || 
+        contains(github.event.pull_request.changed_files, 'packages/middleware/') ||
+        contains(github.event.pull_request.changed_files, 'packages/auth/')
+    
+    steps:
+      - name: Check Self-Approval
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prAuthor = context.payload.pull_request.user.login;
+            
+            // Get reviews
+            const { data: reviews } = await github.rest.pulls.listReviews({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+            });
+            
+            const approvals = reviews.filter(r => r.state === 'APPROVED');
+            
+            for (const approval of approvals) {
+              if (approval.user.login === prAuthor) {
+                core.setFailed(
+                  `❌ CRITICAL: Self-approval not allowed for security-critical modules. ` +
+                  `PR author ${prAuthor} cannot approve their own changes.`
+                );
+              }
+            }
+            
+            console.log(`✅ No self-approval detected. PR author: ${prAuthor}`);

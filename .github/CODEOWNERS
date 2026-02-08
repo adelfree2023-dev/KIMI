@@ -1,0 +1,78 @@
+# KIMI Code Owners
+# Defines who must review changes to specific parts of the codebase
+
+# Global fallback - require security team review
+* @adelfree2023-dev/security-team
+
+# ═══════════════════════════════════════════════════════════════
+# Core Security Modules - Require Security Team Approval
+# ═══════════════════════════════════════════════════════════════
+
+# Authentication & Authorization
+packages/auth/** @adelfree2023-dev/security-team @adelfree2023-dev/backend-leads
+
+# Audit Logging (S4)
+packages/audit/** @adelfree2023-dev/security-team @adelfree2023-dev/backend-leads
+
+# Middleware (Rate Limiting, Tenant Isolation)
+packages/middleware/** @adelfree2023-dev/security-team @adelfree2023-dev/backend-leads
+
+# Database & Tenant Isolation (S2)
+packages/db/** @adelfree2023-dev/security-team @adelfree2023-dev/database-team
+
+# ═══════════════════════════════════════════════════════════════
+# Export System (S14) - NEW Critical Module
+# ═══════════════════════════════════════════════════════════════
+
+# Export system requires 2 approvals: Security + Export Module Owner
+packages/export/** @adelfree2023-dev/security-team @adelfree2023-dev/export-module-owner
+
+# Export strategies require security review
+packages/export/src/strategies/** @adelfree2023-dev/security-team
+
+# Export worker (background processing)
+packages/export/src/export.worker.ts @adelfree2023-dev/security-team @adelfree2023-dev/export-module-owner
+
+# Export controller (API endpoints)
+packages/export/src/export.controller.ts @adelfree2023-dev/security-team @adelfree2023-dev/export-module-owner
+
+# ═══════════════════════════════════════════════════════════════
+# CI/CD & Security Gates - Require DevOps + Security
+# ═══════════════════════════════════════════════════════════════
+
+.github/workflows/* @adelfree2023-dev/devops-team @adelfree2023-dev/security-team
+.github/workflows/s*-*.yml @adelfree2023-dev/security-team
+.github/workflows/s14-*.yml @adelfree2023-dev/security-team
+
+# Security policies
+SECURITY.md @adelfree2023-dev/security-team
+docs/security/** @adelfree2023-dev/security-team
+
+# ═══════════════════════════════════════════════════════════════
+# Provisioning System - Core Business Logic
+# ═══════════════════════════════════════════════════════════════
+
+packages/provisioning/** @adelfree2023-dev/backend-leads @adelfree2023-dev/provisioning-team
+apps/api/src/provisioning/** @adelfree2023-dev/backend-leads @adelfree2023-dev/provisioning-team
+
+# ═══════════════════════════════════════════════════════════════
+# API Layer
+# ═══════════════════════════════════════════════════════════════
+
+apps/api/src/*.ts @adelfree2023-dev/backend-leads
+apps/api/src/main.ts @adelfree2023-dev/backend-leads @adelfree2023-dev/security-team
+
+# ═══════════════════════════════════════════════════════════════
+# Infrastructure
+# ═══════════════════════════════════════════════════════════════
+
+docker-compose.yml @adelfree2023-dev/devops-team @adelfree2023-dev/security-team
+Dockerfile @adelfree2023-dev/devops-team @adelfree2023-dev/security-team
+
+# ═══════════════════════════════════════════════════════════════
+# Environment Files (Never allow direct modification)
+# ═══════════════════════════════════════════════════════════════
+
+.env* @adelfree2023-dev/security-team
+*.pem @adelfree2023-dev/security-team
+*.key @adelfree2023-dev/security-team

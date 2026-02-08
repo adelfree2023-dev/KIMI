@@ -13,10 +13,10 @@
     "./styles": "./dist/styles.css"
   },
   "scripts": {
-    "build": "tsup src/index.ts --format cjs,esm --dts --external react --loader .ts=tsx",
+    "build": "tsup src/index.ts --format cjs,esm --dts --external react,react-dom",
     "dev": "tsup src/index.ts --format cjs,esm --dts --watch --external react"
   },
-  "peerDependencies": {
+  "dependencies": {
     "react": "^18.0.0",
     "react-dom": "^18.0.0"
   },

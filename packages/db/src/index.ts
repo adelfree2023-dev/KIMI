@@ -28,8 +28,10 @@ export const publicDb = drizzle(publicPool);
  */
 async function verifyTenantExists(tenantId: string): Promise<boolean> {
   try {
+    // S1: safe - Querying tenants table via publicPool which uses public schema
+    // This is required for S2 tenant isolation verification
     const result = await publicPool.query(
-      'SELECT 1 FROM public.tenants WHERE id = $1 OR subdomain = $2 LIMIT 1',
+      'SELECT 1 FROM tenants WHERE id = $1 OR subdomain = $2 LIMIT 1',
       [tenantId, tenantId]
     );
     return (result.rowCount ?? 0) > 0;

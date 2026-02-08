@@ -129,7 +129,7 @@ export class EncryptionService {
     
     // CRITICAL FIX (S7): In production, explicitly reject any key containing 'test' or 'default'
     if (isProduction) {
-      const forbiddenPatterns = ['test', 'default', 'example', 'sample', '123456', 'password'];
+      const forbiddenPatterns = ['test', 'default', 'example', 'sample', '123456', 'password', 'key', 'secret'];
       const keyLower = this.masterKey.toLowerCase();
       for (const pattern of forbiddenPatterns) {
         if (keyLower.includes(pattern)) {
@@ -137,14 +137,23 @@ export class EncryptionService {
         }
       }
       
-      // Additional check: ensure key has high entropy (mix of chars)
-      const hasUpper = /[A-Z]/.test(this.masterKey);
-      const hasLower = /[a-z]/.test(this.masterKey);
-      const hasNumber = /[0-9]/.test(this.masterKey);
-      const hasSpecial = /[^A-Za-z0-9]/.test(this.masterKey);
+      // S7 FIX: Strict complexity requirements for production
+      // Must have: uppercase, lowercase, numbers, and special characters
+      const complexityRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/;
+      if (!complexityRegex.test(this.masterKey)) {
+        throw new Error('S1 Violation: ENCRYPTION_MASTER_KEY must contain uppercase, lowercase, numbers, and special characters (@$!%*?&)');
+      }
       
-      if (!(hasUpper && hasLower && hasNumber && hasSpecial)) {
-        throw new Error('S1 Violation: ENCRYPTION_MASTER_KEY must contain uppercase, lowercase, numbers, and special characters');
+      // S7 FIX: Entropy check (4.0 bits per character minimum)
+      const calculateEntropy = (key: string): number => {
+        const charSet = new Set(key.split(''));
+        const poolSize = charSet.size;
+        return Math.log2(Math.pow(poolSize, key.length)) / key.length;
+      };
+      
+      const entropy = calculateEntropy(this.masterKey);
+      if (entropy < 4.0) {
+        throw new Error(`S1 Violation: ENCRYPTION_MASTER_KEY has insufficient entropy (${entropy.toFixed(2)} bits/char, minimum 4.0 required)`);
       }
     }
   }

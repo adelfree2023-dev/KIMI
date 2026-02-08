@@ -1,16 +1,16 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { SecurityMiddleware } from './security.js';
+import { SecurityHeadersMiddleware } from './security.js';
 import { NextFunction, Request, Response } from 'express';
 
 describe('SecurityMiddleware', () => {
-  let middleware: SecurityMiddleware;
+  let middleware: SecurityHeadersMiddleware;
   let mockRequest: Partial<Request>;
   let mockResponse: Partial<Response>;
   let nextFunction: NextFunction;
 
   beforeEach(() => {
-    middleware = new SecurityMiddleware();
+    middleware = new SecurityHeadersMiddleware();
     mockRequest = {
       headers: {},
     };

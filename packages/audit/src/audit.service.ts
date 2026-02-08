@@ -24,6 +24,7 @@ export interface AuditLogEntry {
   entityType: string;
   entityId: string;
   userId?: string;
+  userEmail?: string; // S4: User email for audit trail
   tenantId?: string;
   metadata?: Record<string, any>;
   ipAddress?: string;
@@ -68,11 +69,13 @@ export class AuditService {
       // 🔒 S2 Enforcement: Reset search_path to public before audit query
       await client.query('SET search_path TO public');
 
+      // S4 FIX: Include userEmail in audit log for complete audit trail
       await client.query(
         `
         INSERT INTO public.audit_logs (
           tenant_id, 
           user_id, 
+          user_email,
           action, 
           entity_type, 
           entity_id, 
@@ -82,11 +85,12 @@ export class AuditService {
           severity,
           result,
           created_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
       `,
         [
           tenantId,
           entry.userId || null,
+          entry.userEmail || null, // S4: User email for audit trail
           entry.action,
           entry.entityType,
           entry.entityId,
@@ -106,15 +110,21 @@ export class AuditService {
       // In high-security mode, we must fail the operation if audit logging fails
       throw new Error('Audit Persistence Failure');
     } finally {
-      // 🔒 S2 Enforcement: Reset search_path before releasing to pool
+      // 🔒 S2 CRITICAL FIX: Guaranteed context cleanup before releasing connection
+      // If cleanup fails, destroy connection to prevent cross-tenant contamination
+      let cleanupSuccessful = false;
       try {
         await client.query('SET search_path TO public');
-        client.release();
+        cleanupSuccessful = true;
       } catch (cleanupError) {
-        // CRITICAL FIX (S2): If cleanup fails, destroy the connection instead of releasing to pool
-        // This prevents context contamination
-        console.error('S2 CRITICAL: Failed to reset search_path, destroying connection');
-        client.release(true); // true = destroy connection
+        console.error('S2 CRITICAL: Failed to reset search_path', cleanupError);
+      }
+      
+      // Release connection only if cleanup succeeded, otherwise destroy it
+      try {
+        client.release(!cleanupSuccessful); // true = destroy if cleanup failed
+      } catch (releaseError) {
+        console.error('S2 CRITICAL: Failed to release connection', releaseError);
       }
     }
   }

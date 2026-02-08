@@ -99,7 +99,7 @@ describe('GlobalExceptionFilter', () => {
     expect(mockStatus).toHaveBeenCalledWith(HttpStatus.INTERNAL_SERVER_ERROR);
     expect(mockJson).toHaveBeenCalledWith(expect.objectContaining({
       statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
-      message: 'Internal server error', // Sanitized
+      message: 'An unexpected error occurred', // Sanitized
       error: 'Internal Server Error',
       path: expect.any(String),
       requestId: expect.any(String),

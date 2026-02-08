@@ -23,12 +23,35 @@ export const publicPool = new Pool({
 export const publicDb = drizzle(publicPool);
 
 /**
+ * Verify tenant exists before allowing connection
+ * S2: Prevents access to non-existent tenant schemas
+ */
+async function verifyTenantExists(tenantId: string): Promise<boolean> {
+  try {
+    const result = await publicPool.query(
+      'SELECT 1 FROM public.tenants WHERE id = $1 OR subdomain = $2 LIMIT 1',
+      [tenantId, tenantId]
+    );
+    return result.rowCount > 0;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Execute operation within tenant context using shared pool
+ * S2: Verifies tenant validity before connection
  */
 export async function withTenantConnection<T>(
   tenantId: string,
   operation: (db: any) => Promise<T>
 ): Promise<T> {
+  // 🔒 S2 Enforcement: Verify tenant exists first
+  const exists = await verifyTenantExists(tenantId);
+  if (!exists) {
+    throw new Error(`S2 Violation: Tenant '${tenantId}' not found or invalid`);
+  }
+
   const client = await publicPool.connect();
 
   try {

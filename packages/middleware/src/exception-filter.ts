@@ -53,9 +53,21 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       requestId,
     };
 
-    // Include stack only in development
+    // S5 FIX: Stack trace only in development, never in production
     if (process.env.NODE_ENV === 'development') {
-      errorResponse.stack = exception instanceof Error ? exception.stack : undefined;
+      // Limit stack trace depth even in development
+      const stack = exception instanceof Error ? exception.stack : undefined;
+      errorResponse.stack = stack ? stack.split('\n').slice(0, 5).join('\n') : undefined;
+    }
+
+    // S5 FIX: In production, ensure no internal details leak
+    if (process.env.NODE_ENV === 'production') {
+      // Remove any potentially sensitive fields
+      delete (errorResponse as any).stack;
+      // Ensure generic message for 500 errors
+      if (statusCode === 500) {
+        errorResponse.message = 'Internal server error';
+      }
     }
 
     response.status(statusCode).json(errorResponse);
@@ -102,9 +114,14 @@ export class GlobalExceptionFilter implements ExceptionFilter {
   }
 
   private sanitizeMessage(statusCode: number, message: string): string {
-    // Never expose internal details for 500 errors
+    // S5 FIX: Never expose internal details for 500 errors
     if (statusCode === 500) {
-      return 'An unexpected error occurred';
+      return 'Internal server error';
+    }
+    
+    // S5 FIX: Also sanitize for production environment regardless of status
+    if (process.env.NODE_ENV === 'production') {
+      return 'Request failed';
     }
 
     // S5 FIX: Also sanitize potential internal details from 4xx errors

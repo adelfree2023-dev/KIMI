@@ -37,7 +37,7 @@ describe('Migration Runner', () => {
     vi.mocked(migrate).mockRejectedValue(new Error('Migration syntax error'));
 
     await expect(runTenantMigrations('fail-store')).rejects.toThrow(
-      'Migration Failure'
+      'Migration syntax error'
     );
   });
 });

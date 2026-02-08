@@ -4,6 +4,7 @@
  * Coverage Target: 95%+
  */
 
+import * as Minio from 'minio';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   createStorageBucket,

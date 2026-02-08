@@ -29,9 +29,10 @@ export interface AuditLogEntry {
   ipAddress?: string;
   userAgent?: string;
   timestamp?: Date; // Added for test compatibility
-  severity?: AuditSeverity; // Added for strict typing
-  result?: string; // Added for strict typing
-  errorMessage?: string; // Added for strict typing
+  severity?: AuditSeverity;
+  result?: string;
+  status?: string; // Standardize to status to match implementation logic if needed, but keeping result for now
+  errorMessage?: string;
 }
 
 @Injectable()
@@ -60,7 +61,7 @@ export class AuditService {
     try {
       // 🔒 S2 Enforcement: Reset search_path to public before audit query
       await client.query('SET search_path TO public');
-      
+
       await client.query(
         `
         INSERT INTO public.audit_logs (
@@ -72,8 +73,10 @@ export class AuditService {
           metadata, 
           ip_address, 
           user_agent,
+          severity,
+          result,
           created_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
       `,
         [
           tenantId,
@@ -81,9 +84,11 @@ export class AuditService {
           entry.action,
           entry.entityType,
           entry.entityId,
-          entry.metadata ? JSON.stringify(entry.metadata) : null,
+          JSON.stringify(entry.metadata || {}),
           entry.ipAddress || null,
           entry.userAgent || null,
+          entry.severity || 'INFO',
+          entry.result || entry.status || 'SUCCESS',
           timestamp,
         ]
       );
@@ -125,6 +130,8 @@ export class AuditService {
           metadata JSONB,
           ip_address TEXT,
           user_agent TEXT,
+          severity TEXT DEFAULT 'INFO',
+          result TEXT DEFAULT 'SUCCESS',
           created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
         );
       `);

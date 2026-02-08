@@ -1069,20 +1069,71 @@ jobs:
     needs: [s9-s13-penetration]
     if: always() && needs.s9-s13-penetration.result == 'success'
     
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: apex_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
       
-      - name: Setup Application Stack
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install Dependencies
+        run: bun install
+
+      - name: Start API Server (Background)
         run: |
-          # Start application for DAST scanning
-          # Use 'docker compose' (v2) or install docker-compose if needed
-          if command -v docker-compose &> /dev/null; then
-            docker-compose up -d postgres redis minio api
-          else
-            docker compose up -d postgres redis minio api
-          fi
-          sleep 30  # Wait for services
+          # Build first
+          bun run build
+          
+          # Start the API server in background for DAST scanning
+          cd apps/api
+          bun run start &
+          echo $! > /tmp/api.pid
+          sleep 15  # Wait for server to start
+          
+          # Check if server is running
+          curl -f http://localhost:3000/health || curl -f http://localhost:3000 || {
+            echo "API server failed to start"
+            exit 1
+          }
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/apex_test
+          REDIS_URL: redis://localhost:6379
+          JWT_SECRET: test-jwt-secret-key-for-ci-environment-only-32chars
+          MINIO_ENDPOINT: localhost
+          MINIO_PORT: 9000
+          MINIO_ACCESS_KEY: minioadmin
+          MINIO_SECRET_KEY: minioadmin
+          MINIO_USE_SSL: false
+          MINIO_REGION: us-east-1
+          NODE_ENV: test
+          PORT: 3000
       
       - name: OWASP ZAP Baseline Scan
         uses: zaproxy/action-baseline@v0.12.0
@@ -1116,6 +1167,13 @@ jobs:
           fi
           
           echo "✅ DAST scan completed - No critical issues found"
+
+      - name: Stop API Server
+        if: always()
+        run: |
+          if [ -f /tmp/api.pid ]; then
+            kill $(cat /tmp/api.pid) 2>/dev/null || true
+          fi
 
   # ═══════════════════════════════════════════════════════════════
   # PHASE 3: Deploy to Staging

@@ -1,0 +1,41 @@
+/**
+ * MSW Server Setup
+ * 
+ * Configures Mock Service Worker for Node/Vitest tests.
+ * 
+ * @module @apex/test-utils/mocks/server
+ */
+
+import { beforeAll, afterEach, afterAll } from 'vitest';
+import { setupServer } from 'msw/node';
+import { productsHandlers } from './handlers/products.handlers';
+import { cartHandlers } from './handlers/cart.handlers';
+import { ordersHandlers } from './handlers/orders.handlers';
+
+/**
+ * MSW server with all handlers registered
+ */
+export const server = setupServer(
+    ...productsHandlers,
+    ...cartHandlers,
+    ...ordersHandlers
+);
+
+/**
+ * Setup function for Vitest
+ * 
+ * @example
+ * // In your vitest.setup.ts
+ * import { setupMswServer } from '@apex/test-utils';
+ * setupMswServer();
+ */
+export function setupMswServer() {
+    // Start server before all tests
+    beforeAll(() => server.listen({ onUnhandledRequest: 'warn' }));
+
+    // Reset handlers after each test
+    afterEach(() => server.resetHandlers());
+
+    // Clean up after all tests
+    afterAll(() => server.close());
+}

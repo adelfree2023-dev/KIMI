@@ -1,0 +1,43 @@
+{
+    "name": "@apex/test-utils",
+    "version": "1.0.0",
+    "description": "Testing utilities for Apex v2 templates",
+    "main": "./dist/index.js",
+    "module": "./dist/index.mjs",
+    "types": "./dist/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.mjs",
+            "require": "./dist/index.js"
+        }
+    },
+    "scripts": {
+        "build": "tsup",
+        "dev": "tsup --watch",
+        "test": "vitest"
+    },
+    "keywords": [
+        "testing",
+        "mocks",
+        "fixtures",
+        "test-utils"
+    ],
+    "dependencies": {
+        "@faker-js/faker": "^8.3.1",
+        "@testing-library/react": "^14.1.2",
+        "@testing-library/user-event": "^14.5.1",
+        "msw": "^2.0.11"
+    },
+    "devDependencies": {
+        "@types/react": "^18.2.45",
+        "react": "^18.2.0",
+        "tsup": "^8.0.1",
+        "typescript": "^5.3.3",
+        "vitest": "^1.0.4"
+    },
+    "peerDependencies": {
+        "@apex/validators": "workspace:*",
+        "react": ">=18.0.0"
+    }
+}

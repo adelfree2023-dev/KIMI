@@ -1,0 +1,208 @@
+﻿========================================================
+🗺️  PROJECT STRUCTURE MAP
+========================================================
+📅 Generated: 2026-02-08 08:39
+📂 Files Included: 142
+🚫 Noise Filtered: Lockfiles, Logs, Assets
+🔒 Security Filter: ACTIVE
+========================================================
+
+├── 📂 .github
+│   ├── 📂 actions
+│   │   ├── 📂 security-scan
+│   │   │   └── 📄 action.yml
+│   │   ├── 📂 setup-environment
+│   │   │   └── 📄 action.yml
+│   │   └── 📂 verify-compliance
+│   │       └── 📄 action.yml
+│   └── 📂 workflows
+│       ├── 📄 ci-fast.yml ➤ ═══════════════════════════════════════════════...
+│       ├── 📄 ci-integration.yml
+│       ├── 📄 deploy-production.yml
+│       ├── 📄 deploy-staging.yml
+│       ├── 📄 provisioning-speed-gate.yml
+│       ├── 📄 s1-env-verification-gate.yml
+│       ├── 📄 s2-tenant-isolation-gate.yml ➤ ═══════════════════════════════════════════════...
+│       ├── 📄 s3-input-validation-gate.yml ➤ ═══════════════════════════════════════════════...
+│       ├── 📄 s4-audit-logging-gate.yml ➤ ═══════════════════════════════════════════════...
+│       ├── 📄 s5-exception-handling-gate.yml ➤ ═══════════════════════════════════════════════...
+│       ├── 📄 s6-rate-limiting-gate.yml ➤ ═══════════════════════════════════════════════...
+│       ├── 📄 s7-encryption-gate.yml ➤ ═══════════════════════════════════════════════...
+│       ├── 📄 s8-security-headers-gate.yml ➤ ═══════════════════════════════════════════════...
+│       └── 📄 security-gates-aggregator.yml ➤ ═══════════════════════════════════════════════...
+├── 📂 .turbo
+│   └── 📂 daemon
+├── 📂 apps
+│   ├── 📂 api
+│   │   ├── 📂 src
+│   │   │   ├── 📂 provisioning
+│   │   │   │   ├── 📂 dto
+│   │   │   │   │   ├── 📄 provision-request.dto.spec.ts ➤ Provision Request DTO Tests
+│   │   │   │   │   ├── 📄 provision-request.dto.ts ➤ Provision Request DTO
+│   │   │   │   │   ├── 📄 provision-response.dto.spec.ts ➤ Provision Response DTO Tests
+│   │   │   │   │   └── 📄 provision-response.dto.ts
+│   │   │   │   ├── 📄 index.spec.ts
+│   │   │   │   ├── 📄 index.ts ➤ Provisioning Module
+│   │   │   │   ├── 📄 provisioning.controller.spec.ts
+│   │   │   │   ├── 📄 provisioning.controller.ts ➤ Provisioning Controller
+│   │   │   │   ├── 📄 provisioning.module.spec.ts
+│   │   │   │   ├── 📄 provisioning.module.ts
+│   │   │   │   ├── 📄 provisioning.service.spec.ts
+│   │   │   │   └── 📄 provisioning.service.ts ➤ Provisioning Service
+│   │   │   ├── 📄 app.module.spec.ts
+│   │   │   ├── 📄 app.module.ts ➤ Apex v2 API Root Module
+│   │   │   ├── 📄 main.spec.ts
+│   │   │   └── 📄 main.ts ➤ Apex v2 API Bootstrap
+│   │   ├── 📄 package.json
+│   │   └── 📄 tsconfig.json
+│   └── 📂 web
+│       ├── 📂 app
+│       │   └── 📄 globals.css
+│       ├── 📂 components
+│       ├── 📄 next.config.js ➤ @type {import('next').NextConfig} 
+│       ├── 📄 package.json
+│       ├── 📄 postcss.config.js
+│       ├── 📄 tailwind.config.ts
+│       └── 📄 tsconfig.json
+├── 📂 docs
+│   ├── 📄 admin-dashboard-masterlist.md ➤ 🎛️ Apex v2 Admin Dashboard: World-Class Contro...
+│   ├── 📄 Apex v2 Engineering Constitution & Modular Protocol .md ➤ 📜 Apex v2 Engineering Constitution & Modular P...
+│   ├── 📄 architecture.md ➤ 🏗️ Apex v2: Modern Secure Multi-Tenant Archite...
+│   ├── 📄 landing-page-masterlist.md ➤ 🌐 Apex v2 Marketing Website: Master Page List
+│   ├── 📄 plan.md ➤ 📜 APEX V2 FINAL MASTER EXECUTION REGISTER
+│   ├── 📄 store-features-masterlist.md ➤ 🛒 Apex v2 Storefront: Master Page & Feature List
+│   ├── 📄 super-admin-masterlist.md ➤ 👑 Apex v2 Super Admin: Platform Governance (Go...
+│   └── 📄 🧱 Apex v2 Strategic Roadmap & Lego-Architecture Blueprint .md ➤ 🧱 Apex v2 Strategic Roadmap & Lego-Architectur...
+├── 📂 packages
+│   ├── 📂 audit
+│   │   ├── 📂 src
+│   │   │   ├── 📄 audit.service.test.ts ➤ Audit Service Tests
+│   │   │   ├── 📄 audit.service.ts ➤ Audit Logging Service
+│   │   │   ├── 📄 index.test.ts
+│   │   │   └── 📄 index.ts
+│   │   ├── 📄 package.json
+│   │   ├── 📄 tsconfig.json
+│   │   └── 📄 vitest.config.ts
+│   ├── 📂 auth
+│   │   ├── 📂 src
+│   │   │   ├── 📂 decorators
+│   │   │   │   ├── 📄 current-user.decorator.test.ts
+│   │   │   │   ├── 📄 current-user.decorator.ts
+│   │   │   │   ├── 📄 public.decorator.test.ts ➤ Public Decorator Tests
+│   │   │   │   └── 📄 public.decorator.ts
+│   │   │   ├── 📂 guards
+│   │   │   │   ├── 📄 tenant-jwt-match.guard.test.ts ➤ Tenant-JWT Match Guard Tests
+│   │   │   │   └── 📄 tenant-jwt-match.guard.ts ➤ S2: Tenant-JWT Match Guard
+│   │   │   ├── 📂 strategies
+│   │   │   │   ├── 📄 jwt.strategy.test.ts ➤ JWT Strategy Tests
+│   │   │   │   └── 📄 jwt.strategy.ts
+│   │   │   ├── 📄 auth.module.test.ts ➤ Auth Module Tests
+│   │   │   ├── 📄 auth.module.ts
+│   │   │   ├── 📄 auth.schema.test.ts
+│   │   │   ├── 📄 auth.schema.ts ➤ Auth Schema - Zod Validation (Rule 5.1)
+│   │   │   ├── 📄 auth.service.test.ts ➤ Auth Service Tests
+│   │   │   ├── 📄 auth.service.ts
+│   │   │   ├── 📄 encryption.test.ts
+│   │   │   ├── 📄 encryption.ts ➤ S7: Encryption Service
+│   │   │   ├── 📄 index.test.ts ➤ Auth Module Index Tests
+│   │   │   └── 📄 index.ts ➤ Authentication module exports
+│   │   ├── 📄 package.json
+│   │   ├── 📄 tsconfig.json
+│   │   └── 📄 vitest.config.ts
+│   ├── 📂 config
+│   │   ├── 📂 src
+│   │   │   ├── 📄 index.test.ts
+│   │   │   └── 📄 index.ts ➤ S1: Environment Verification Protocol
+│   │   ├── 📄 package.json
+│   │   ├── 📄 tsconfig.json
+│   │   └── 📄 vitest.config.ts
+│   ├── 📂 db
+│   │   ├── 📂 src
+│   │   │   ├── 📄 index.test.ts
+│   │   │   ├── 📄 index.ts ➤ S2: Tenant Isolation Protocol
+│   │   │   ├── 📄 migrate.test.ts ➤ Database Migration Tests
+│   │   │   ├── 📄 migrate.ts
+│   │   │   ├── 📄 schema.test.ts
+│   │   │   ├── 📄 schema.ts
+│   │   │   ├── 📄 tenant.schema.test.ts ➤ Tenant Schema Tests
+│   │   │   └── 📄 tenant.schema.ts ➤ Tenant Schema - Zod Validation (Rule 5.1)
+│   │   ├── 📄 drizzle.config.ts
+│   │   ├── 📄 package.json
+│   │   ├── 📄 tsconfig.json
+│   │   └── 📄 vitest.config.ts
+│   ├── 📂 events
+│   │   ├── 📂 src
+│   │   │   ├── 📄 index.test.ts
+│   │   │   └── 📄 index.ts ➤ Apex v2 Events Package
+│   │   ├── 📄 package.json
+│   │   ├── 📄 tsconfig.json
+│   │   └── 📄 vitest.config.ts
+│   ├── 📂 middleware
+│   │   ├── 📂 src
+│   │   │   ├── 📄 audit.schema.test.ts ➤ Audit Schema Tests
+│   │   │   ├── 📄 audit.schema.ts ➤ Audit Schema - Zod Validation (Rule 5.1)
+│   │   │   ├── 📄 connection-context.test.ts ➤ Tests for connection context management
+│   │   │   ├── 📄 connection-context.ts ➤ Connection Context Management
+│   │   │   ├── 📄 exception-filter.test.ts
+│   │   │   ├── 📄 exception-filter.ts ➤ S5: Global Exception Filter
+│   │   │   ├── 📄 index.test.ts
+│   │   │   ├── 📄 index.ts ➤ @apex/middleware
+│   │   │   ├── 📄 rate-limit-store.test.ts
+│   │   │   ├── 📄 rate-limit.test.ts ➤ Rate Limit Tests
+│   │   │   ├── 📄 rate-limit.ts ➤ S6: Rate Limiting Service
+│   │   │   ├── 📄 s2.test.ts
+│   │   │   ├── 📄 security.test.ts ➤ Security Tests
+│   │   │   ├── 📄 security.ts ➤ S8: Web Security Headers & Configuration
+│   │   │   ├── 📄 tenant-context.test.ts ➤ Tenant Context Tests
+│   │   │   ├── 📄 tenant-context.ts
+│   │   │   ├── 📄 tenant-isolation.middleware.test.ts ➤ Tenant Isolation Middleware Tests
+│   │   │   ├── 📄 tenant-isolation.middleware.ts ➤ S2: Tenant Isolation Middleware
+│   │   │   ├── 📄 tenant-resolution.test.ts ➤ Tenant Resolution Tests
+│   │   │   └── 📄 tenant-resolution.ts
+│   │   ├── 📄 package.json
+│   │   ├── 📄 tsconfig.json
+│   │   └── 📄 vitest.config.ts
+│   ├── 📂 provisioning
+│   │   ├── 📂 src
+│   │   │   ├── 📄 blueprint.test.ts ➤ Blueprint Service Tests
+│   │   │   ├── 📄 blueprint.ts ➤ Super-#21: Onboarding Blueprint Editor
+│   │   │   ├── 📄 index.test.ts
+│   │   │   ├── 📄 index.ts ➤ @apex/provisioning
+│   │   │   ├── 📄 quota-service.test.ts ➤ Tests for quota service
+│   │   │   ├── 📄 quota-service.ts ➤ Quota Service
+│   │   │   ├── 📄 runner.test.ts ➤ Migration Runner Tests
+│   │   │   ├── 📄 runner.ts ➤ Migration Runner
+│   │   │   ├── 📄 schema-manager.test.ts ➤ Schema Manager Tests
+│   │   │   ├── 📄 schema-manager.ts ➤ Schema Manager
+│   │   │   ├── 📄 seeder.test.ts ➤ Seeder Tests
+│   │   │   ├── 📄 seeder.ts ➤ Tenant Data Seeder
+│   │   │   ├── 📄 storage-manager.test.ts ➤ Storage Manager Tests
+│   │   │   ├── 📄 storage-manager.ts
+│   │   │   ├── 📄 tenant-overview.test.ts ➤ Tenant Overview Service Tests
+│   │   │   └── 📄 tenant-overview.ts ➤ Super-#01: Tenant Overview Table
+│   │   ├── 📄 package.json
+│   │   ├── 📄 tsconfig.json
+│   │   └── 📄 vitest.config.ts
+│   └── 📂 ui
+│       ├── 📂 src
+│       │   ├── 📄 index.test.ts
+│       │   └── 📄 index.ts ➤ Apex v2 UI Package
+│       ├── 📄 package.json
+│       ├── 📄 tsconfig.json
+│       └── 📄 vitest.config.ts
+├── 📂 scripts
+│   ├── 📄 check-s2-isolation.sh ➤ !/bin/bash
+│   ├── 📄 check-s2-isolation.ts ➤ !/usr/bin/env bun
+│   ├── 📄 deploy.sh ➤ !/bin/bash
+│   ├── 📄 server-setup.sh ➤ !/bin/bash
+│   └── 📄 test-s1.ts ➤ !/usr/bin/env bun
+├── 📄 biome.json
+├── 📄 docker-compose.yml
+├── 📄 GITHUB_INFO.md ➤ GitHub Connection Information
+├── 📄 job_log.txt
+├── 📄 package.json
+├── 📄 tsconfig.json
+├── 📄 turbo.json
+├── 📄 unit_tests_log.txt
+├── 📄 vitest.config.ts
+└── 📄 vitest.setup.ts ➤ Vitest Global Setup

@@ -20,7 +20,7 @@ $CodeFilePath = Join-Path $CurrentScriptPath $CodeFileName
 
 # أ- مجلدات لا قيمة لها للذكاء الاصطناعي
 $ExcludedFolders = @(
-    "node_modules", ".git", ".idea", ".vscode", ".agent","docs"
+    "node_modules", ".git", ".idea", ".vscode", ".agent",
     "dist", "build", "coverage", "update", "bin", "obj", 
     ".next", ".nest", "assets", "public" # تمت إضافة assets و public لتقليل الحشو
 )

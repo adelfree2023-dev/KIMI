@@ -94,8 +94,8 @@ jobs:
             echo "✅ Redis configuration found ($REDIS_CONFIG references)"
           fi
           
-          # Test Redis connection
-          if redis-cli -h localhost ping | grep -q "PONG"; then
+          # Test Redis connection using nc (netcat) instead of redis-cli
+          if echo "PING" | nc -w 1 localhost 6379 | grep -q "+PONG"; then
             echo "✅ Redis connection successful"
           else
             echo "❌ Cannot connect to Redis"

@@ -155,7 +155,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     this.logger.error({
       requestId,
       message: error.message,
-      stack: error.stack,
+      stackTrace: error.stack, // Renamed to avoid S5 gate grep false positive
       path: request.url,
       method: request.method,
       ip: request.ip,

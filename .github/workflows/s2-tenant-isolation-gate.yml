@@ -3,7 +3,7 @@
 # Tests that Tenant A cannot access Tenant B's data
 # ═══════════════════════════════════════════════════════════════
 
-name: '🔒 S2 Tenant Isolation Gate'
+name: "🔒 S2 Tenant Isolation Gate"
 
 on:
   push:
@@ -22,7 +22,7 @@ env:
 
 jobs:
   s2-tenant-isolation-test:
-    name: 'S2 Tenant Isolation Security Test'
+    name: "S2 Tenant Isolation Security Test"
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -96,7 +96,7 @@ jobs:
       - name: Test Cross-Tenant Data Isolation
         run: |
           echo "🔒 Testing S2 Tenant Isolation..."
-          
+
           # Test 1: Verify Alpha data exists in Alpha schema
           echo "Test 1: Verify Alpha tenant data..."
           ALPHA_DATA=$(psql "$DATABASE_URL" -t -c "SELECT secret_data FROM tenant_alpha.products WHERE name='Alpha Product';" | xargs)
@@ -105,7 +105,7 @@ jobs:
             exit 1
           fi
           echo "✅ Alpha tenant data accessible"
-          
+
           # Test 2: Verify Beta data exists in Beta schema
           echo "Test 2: Verify Beta tenant data..."
           BETA_DATA=$(psql "$DATABASE_URL" -t -c "SELECT secret_data FROM tenant_beta.products WHERE name='Beta Product';" | xargs)
@@ -114,16 +114,16 @@ jobs:
             exit 1
           fi
           echo "✅ Beta tenant data accessible"
-          
+
           # Test 3: CRITICAL - Simulate cross-tenant access attempt
           echo "Test 3: Simulate malicious cross-tenant query..."
-          
+
           # Try to access Alpha data from Beta context (should fail)
           CROSS_RESULT=$(psql "$DATABASE_URL" -t -c "
             SET search_path TO tenant_beta, public;
             SELECT COUNT(*) FROM tenant_alpha.products;
           " 2>&1 | xargs)
-          
+
           if [ "$CROSS_RESULT" != "0" ] && [ "$CROSS_RESULT" != "ERROR:"* ]; then
             echo "🚨 CRITICAL S2 VIOLATION: Can access Alpha data from Beta context!"
             echo "Result: $CROSS_RESULT"
@@ -134,18 +134,18 @@ jobs:
       - name: Test Row-Level Security (RLS)
         run: |
           echo "🛡️ Testing Row-Level Security policies..."
-          
+
           # Enable RLS on test tables
           psql "$DATABASE_URL" -c "
             ALTER TABLE tenant_alpha.products ENABLE ROW LEVEL SECURITY;
             ALTER TABLE tenant_beta.products ENABLE ROW LEVEL SECURITY;
           " || true
-          
+
           # Check if RLS is enabled
           RLS_STATUS=$(psql "$DATABASE_URL" -t -c "
             SELECT relrowsecurity FROM pg_class WHERE relname = 'products' AND relnamespace = 'tenant_alpha'::regnamespace;
           " | xargs)
-          
+
           if [ "$RLS_STATUS" = "t" ]; then
             echo "✅ RLS is enabled on tenant tables"
           else
@@ -155,17 +155,41 @@ jobs:
       - name: Verify Tenant Context Enforcement
         run: |
           echo "🔍 Verifying tenant context enforcement..."
-          
+
           # Check application code for tenant isolation patterns
           ISOLATION_PATTERNS=$(grep -r "search_path\|tenant_\|setTenant" packages/*/src apps/*/src --include="*.ts" 2>/dev/null | wc -l)
-          
+
           if [ "$ISOLATION_PATTERNS" -eq 0 ]; then
             echo "🚨 CRITICAL: No tenant isolation patterns found in code!"
             echo "Expected: SET search_path, tenant_ prefix, or setTenant calls"
             exit 1
           fi
-          
+
           echo "✅ Found $ISOLATION_PATTERNS tenant isolation patterns"
+
+          # S2 FIX: Audit logs are deliberately in public schema (S4 audit protocol)
+          # They are tenant-isolated via tenant_id column, not via schema
+          # Exclude audit-related public. references from violation detection
+          echo "🔍 Checking for unauthorized public schema access..."
+          UNAUTHORIZED_PUBLIC=$(grep -rn "public\." packages/*/src apps/*/src --include="*.ts" 2>/dev/null | \
+            grep -v "audit" | \
+            grep -v "public.decorator" | \
+            grep -v "node_modules" | \
+            grep -v "test\|spec" | \
+            wc -l)
+
+          if [ "$UNAUTHORIZED_PUBLIC" -gt 0 ]; then
+            echo "⚠️ WARNING: Found $UNAUTHORIZED_PUBLIC potential public schema references"
+            echo "Review these manually to ensure they're legitimate:"
+            grep -rn "public\." packages/*/src apps/*/src --include="*.ts" 2>/dev/null | \
+              grep -v "audit" | \
+              grep -v "public.decorator" | \
+              grep -v "node_modules" | \
+              grep -v "test\|spec" | head -5
+            # Don't fail - these may be decorators or other legitimate uses
+          else
+            echo "✅ No unauthorized public schema access found"
+          fi
 
       - name: Report Success
         if: success()

@@ -89,6 +89,7 @@ async function validateTenant(subdomain: string): Promise<TenantContext> {
     console.error(`S2 Error validating tenant ${subdomain}:`, error);
     throw new UnauthorizedException('Tenant validation failed');
   }
+}
 
 @Injectable()
 export class TenantIsolationMiddleware implements NestMiddleware {

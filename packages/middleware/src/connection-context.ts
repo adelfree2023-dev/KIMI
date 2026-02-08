@@ -16,6 +16,8 @@ export interface TenantContext {
   readonly plan: 'free' | 'basic' | 'pro' | 'enterprise';
   readonly features: readonly string[];
   readonly createdAt: Date;
+  readonly schemaName: string;
+  readonly isActive: boolean;
 }
 
 /**

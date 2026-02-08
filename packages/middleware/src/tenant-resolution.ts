@@ -67,3 +67,21 @@ export function extractSubdomain(host: string): string | null {
 
   return null;
 }
+
+// Export types and helper functions for tenant resolution
+export type TenantResolutionStrategy = 'host' | 'header' | 'jwt';
+
+export function extractTenantFromHost(host: string): string | null {
+  return extractSubdomain(host);
+}
+
+export function extractTenantFromHeader(req: Request): string | null {
+  const tenantHeader = req.headers['x-tenant-id'];
+  return typeof tenantHeader === 'string' ? tenantHeader : null;
+}
+
+export function extractTenantFromJWT(req: Request): string | null {
+  // JWT extraction would be implemented here
+  // For now, return null as placeholder
+  return null;
+}

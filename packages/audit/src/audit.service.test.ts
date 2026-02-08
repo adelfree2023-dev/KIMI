@@ -211,7 +211,7 @@ describe('Audit Service (S4 Protocol)', () => {
       };
 
       // Should not throw even if release fails
-      await expect(log(entry)).rejects.toThrow('Query failed');
+      await expect(log(entry)).rejects.toThrow('Audit Persistence Failure');
       expect(mockClient.release).toHaveBeenCalled();
     });
   });

@@ -1,0 +1,45 @@
+{
+  "name": "@apex/security",
+  "version": "1.0.0",
+  "description": "Advanced security modules for KIMI - mTLS, secrets rotation, penetration testing",
+  "type": "module",
+  "main": "./src/index.ts",
+  "exports": {
+    ".": {
+      "import": "./src/index.ts",
+      "types": "./src/index.ts"
+    },
+    "./mtls": {
+      "import": "./src/mtls/index.ts",
+      "types": "./src/mtls/index.ts"
+    },
+    "./secrets": {
+      "import": "./src/secrets/index.ts",
+      "types": "./src/secrets/index.ts"
+    }
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "biome check .",
+    "lint:fix": "biome check --apply ."
+  },
+  "dependencies": {
+    "@nestjs/common": "^10.0.0",
+    "@nestjs/core": "^10.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "vitest": "^1.0.0"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "keywords": [
+    "security",
+    "mtls",
+    "secrets-rotation",
+    "penetration-testing"
+  ],
+  "license": "MIT"
+}

@@ -1,4 +1,8 @@
+import { fileURLToPath } from 'node:url';
+import { dirname, resolve } from 'node:path';
 import { defineConfig } from 'vitest/config';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 /**
  * Root Vitest Configuration
@@ -12,14 +16,14 @@ export default defineConfig({
     environment: 'node',
     resolve: {
       alias: {
-        '@apex/config': new URL('./packages/config/src/index.ts', import.meta.url).pathname,
-        '@apex/db': new URL('./packages/db/src/index.ts', import.meta.url).pathname,
-        '@apex/audit': new URL('./packages/audit/src/index.ts', import.meta.url).pathname,
-        '@apex/middleware': new URL('./packages/middleware/src/index.ts', import.meta.url).pathname,
-        '@apex/auth': new URL('./packages/auth/src/index.ts', import.meta.url).pathname,
-        '@apex/events': new URL('./packages/events/src/index.ts', import.meta.url).pathname,
-        '@apex/provisioning': new URL('./packages/provisioning/src/index.ts', import.meta.url).pathname,
-        '@apex/ui': new URL('./packages/ui/src/index.ts', import.meta.url).pathname,
+        '@apex/config': resolve(__dirname, 'packages/config/src/index.ts'),
+        '@apex/db': resolve(__dirname, 'packages/db/src/index.ts'),
+        '@apex/audit': resolve(__dirname, 'packages/audit/src/index.ts'),
+        '@apex/middleware': resolve(__dirname, 'packages/middleware/src/index.ts'),
+        '@apex/auth': resolve(__dirname, 'packages/auth/src/index.ts'),
+        '@apex/events': resolve(__dirname, 'packages/events/src/index.ts'),
+        '@apex/provisioning': resolve(__dirname, 'packages/provisioning/src/index.ts'),
+        '@apex/ui': resolve(__dirname, 'packages/ui/src/index.ts'),
       },
     },
     coverage: {

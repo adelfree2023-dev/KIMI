@@ -1,52 +1,17 @@
 {
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "target": "ESNext",
-    "module": "ESNext",
-    "moduleResolution": "Bundler",
-    "strict": true,
-    "skipLibCheck": true,
-    "esModuleInterop": true,
-    "isolatedModules": true,
-    "declaration": true,
+    "outDir": "./dist",
     "composite": true,
-    "lib": [
-      "ESNext",
-      "DOM"
-    ],
-    "types": [
-      "node",
-      "bun-types"
-    ],
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
-    "baseUrl": ".",
-    "paths": {
-      "@apex/audit": [
-        "packages/audit/src/index.ts"
-      ],
-      "@apex/db": [
-        "packages/db/src/index.ts"
-      ],
-      "@apex/config": [
-        "packages/config/src/index.ts"
-      ],
-      "@apex/provisioning": [
-        "packages/provisioning/src/index.ts"
-      ],
-      "@apex/middleware": [
-        "packages/middleware/src/index.ts"
-      ],
-      "@apex/events": [
-        "packages/events/src/index.ts"
-      ],
-      "@apex/ui": [
-        "packages/ui/src/index.ts"
-      ]
-    }
+    "baseUrl": "."
   },
+  "include": [
+    "src/**/*"
+  ],
   "exclude": [
     "node_modules",
-    "dist"
+    "dist",
+    "**/*.spec.ts"
   ],
   "references": [
     {

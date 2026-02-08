@@ -1,13 +1,18 @@
 {
-  "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "composite": true,
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "declaration": true,
     "outDir": "./dist",
     "rootDir": "./src",
-    "types": ["node", "react", "react-dom"],
     "jsx": "react-jsx",
-    "declaration": true,
-    "emitDeclarationOnly": true
+    "lib": ["ESNext", "DOM"],
+    "types": ["react", "react-dom"]
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]

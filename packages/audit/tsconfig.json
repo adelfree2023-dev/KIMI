@@ -17,5 +17,13 @@
     "node_modules",
     "dist",
     "**/*.test.ts"
+  ],
+  "references": [
+    {
+      "path": "../db"
+    },
+    {
+      "path": "../middleware"
+    }
   ]
 }

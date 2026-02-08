@@ -37,6 +37,7 @@ export const auditLogs = pgTable('audit_logs', {
   id: uuid('id').defaultRandom().primaryKey(),
   tenantId: text('tenant_id').notNull(),
   userId: text('user_id'),
+  userEmail: text('user_email'), // S4: User email for audit trail
   action: text('action').notNull(),
   entityType: text('entity_type').notNull(),
   entityId: text('entity_id').notNull(),

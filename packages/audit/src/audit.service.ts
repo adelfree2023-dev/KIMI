@@ -145,6 +145,7 @@ export class AuditService {
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
           tenant_id TEXT NOT NULL,
           user_id TEXT,
+          user_email TEXT,
           action TEXT NOT NULL,
           entity_type TEXT NOT NULL,
           entity_id TEXT NOT NULL,

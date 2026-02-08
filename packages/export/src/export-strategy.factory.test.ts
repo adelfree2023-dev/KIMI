@@ -11,9 +11,9 @@ describe('ExportStrategyFactory', () => {
     let factory: ExportStrategyFactory;
 
     // Mock strategies
-    const mockLiteStrategy = { name: 'lite', validate: vi.fn(), export: vi.fn() } as any;
-    const mockNativeStrategy = { name: 'native', validate: vi.fn(), export: vi.fn() } as any;
-    const mockAnalyticsStrategy = { name: 'analytics', validate: vi.fn(), export: vi.fn() } as any;
+    const mockLiteStrategy = { name: 'lite', validate: vi.fn().mockResolvedValue(true), export: vi.fn() } as any;
+    const mockNativeStrategy = { name: 'native', validate: vi.fn().mockResolvedValue(true), export: vi.fn() } as any;
+    const mockAnalyticsStrategy = { name: 'analytics', validate: vi.fn().mockResolvedValue(true), export: vi.fn() } as any;
 
     beforeEach(() => {
         factory = new ExportStrategyFactory(

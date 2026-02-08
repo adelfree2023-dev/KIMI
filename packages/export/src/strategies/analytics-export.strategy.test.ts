@@ -51,6 +51,10 @@ describe('AnalyticsExportStrategy', () => {
                 tenantId: 'tenant-123',
                 profile: 'analytics',
                 requestedBy: 'user-456',
+                dateRange: {
+                    from: new Date('2026-01-01'),
+                    to: new Date('2026-01-31'),
+                },
             };
 
             const result = await strategy.validate(options);
@@ -94,20 +98,16 @@ describe('AnalyticsExportStrategy', () => {
             mockClient.query
                 .mockResolvedValueOnce({
                     rows: [
-                        { id: 1, name: 'Product 1', price: 100 },
-                        { id: 2, name: 'Product 2', price: 200 },
+                        { id: 1, total: 150, created_at: new Date() },
                     ],
-                    rowCount: 2,
+                    rowCount: 1, // Orders query result
                 })
                 .mockResolvedValueOnce({
                     rows: [
-                        { id: 1, customer_name: 'John', email: 'john@example.com' },
+                        { id: 1, name: 'Product 1', price: 100 },
+                        { id: 2, name: 'Product 2', price: 200 },
                     ],
-                    rowCount: 1,
-                })
-                .mockResolvedValueOnce({
-                    rows: [{ id: 1, total: 150, created_at: new Date() }],
-                    rowCount: 1,
+                    rowCount: 2, // Products query result
                 });
 
             const options: ExportOptions = {
@@ -188,10 +188,14 @@ describe('AnalyticsExportStrategy', () => {
         it('should convert rows to CSV format', async () => {
             mockClient.query
                 .mockResolvedValueOnce({
+                    rows: [], // Orders query
+                    rowCount: 0,
+                })
+                .mockResolvedValueOnce({
                     rows: [
                         { name: 'Item 1', sku: 'SKU1', times_ordered: 10, total_quantity: 100 },
                     ],
-                    rowCount: 1,
+                    rowCount: 1, // Products query
                 });
 
             const options: ExportOptions = {

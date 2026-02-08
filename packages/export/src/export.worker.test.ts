@@ -88,6 +88,9 @@ describe('ExportWorker', () => {
             }),
         });
         worker = new ExportWorker(mockFactory, mockAudit as any);
+        (worker as any).exportQueue = {
+            getJob: vi.fn(),
+        };
     });
 
     afterEach(async () => {
@@ -105,6 +108,7 @@ describe('ExportWorker', () => {
                     requestedBy: 'user-456',
                 },
                 updateProgress: vi.fn().mockResolvedValue(undefined),
+                updateData: vi.fn().mockResolvedValue(undefined),
             } as unknown as Job;
 
             const result = await (worker as any).processJob(job);
@@ -134,12 +138,14 @@ describe('ExportWorker', () => {
                     requestedBy: 'user-456',
                 },
                 updateProgress: vi.fn().mockResolvedValue(undefined),
+                updateData: vi.fn().mockResolvedValue(undefined),
             } as unknown as Job;
 
             await (worker as any).processJob(job);
 
             expect(job.updateProgress).toHaveBeenCalledWith(10);
-            expect(job.updateProgress).toHaveBeenCalledWith(50);
+            expect(job.updateProgress).toHaveBeenCalledWith(20);
+            expect(job.updateProgress).toHaveBeenCalledWith(70);
             expect(job.updateProgress).toHaveBeenCalledWith(90);
             expect(job.updateProgress).toHaveBeenCalledWith(100);
         });
@@ -153,6 +159,7 @@ describe('ExportWorker', () => {
                     requestedBy: 'user-456',
                 },
                 updateProgress: vi.fn(),
+                updateData: vi.fn(),
             } as unknown as Job;
 
             await (worker as any).processJob(job);
@@ -175,6 +182,7 @@ describe('ExportWorker', () => {
                     requestedBy: 'user-456',
                 },
                 updateProgress: vi.fn(),
+                updateData: vi.fn(),
             } as unknown as Job;
 
             await (worker as any).processJob(job);
@@ -200,6 +208,7 @@ describe('ExportWorker', () => {
                     requestedBy: 'user-456',
                 },
                 updateProgress: vi.fn(),
+                updateData: vi.fn(),
             } as unknown as Job;
 
             await expect((worker as any).processJob(job)).rejects.toThrow('Export failed');
@@ -223,6 +232,7 @@ describe('ExportWorker', () => {
                     requestedBy: 'user-789',
                 },
                 updateProgress: vi.fn(),
+                updateData: vi.fn(),
             } as unknown as Job;
 
             await (worker as any).processJob(job);
@@ -292,19 +302,24 @@ describe('ExportWorker', () => {
                 data: {
                     tenantId: 'tenant-123',
                     profile: 'lite',
+                    bucketName: 'test-bucket',
+                    objectKey: 'test-key',
                 },
                 updateProgress: vi.fn(),
+                updateData: vi.fn(),
             } as unknown as Job;
 
             // First process the job to create the file
             await (worker as any).processJob(job);
+
+            (worker as any).exportQueue.getJob.mockResolvedValue(job);
 
             // Then confirm download
             await worker.confirmDownload('job-123');
 
             expect(mockAudit.log).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    action: 'EXPORT_DOWNLOAD_CONFIRMED',
+                    action: 'EXPORT_FILE_DELETED',
                 })
             );
         });

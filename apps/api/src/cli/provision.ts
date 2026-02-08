@@ -6,7 +6,7 @@
 
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from '../app.module.js';
-import { ProvisioningService } from '../provisioning/provisioning.service.js';
+import type { ProvisioningService } from '../provisioning/provisioning.service.js';
 
 interface ProvisionOptions {
   subdomain: string;
@@ -30,7 +30,7 @@ export async function main(args: string[] = process.argv.slice(2)) {
       logger: ['error', 'warn'], // Always show errors and warnings
     });
 
-    const provisioningService = app.get<ProvisioningService>(ProvisioningService);
+    const provisioningService = app.get<ProvisioningService>('PROVISIONING_SERVICE');
 
     // Execute provisioning
     const result = await provisioningService.provision({

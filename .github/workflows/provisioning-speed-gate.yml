@@ -62,6 +62,14 @@ jobs:
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/apex_test
           REDIS_URL: redis://localhost:6379
+          JWT_SECRET: test-jwt-secret-key-for-ci-environment-only-32chars
+          MINIO_ENDPOINT: localhost
+          MINIO_PORT: '9000'
+          MINIO_ACCESS_KEY: minio-test-access-key
+          MINIO_SECRET_KEY: minio-test-secret-key-for-ci-only
+          MINIO_USE_SSL: 'false'
+          MINIO_REGION: us-east-1
+          NODE_ENV: test
 
       - name: "⏱️ NORTH STAR: Provision in Under 60 Seconds"
         id: provision-test
@@ -137,6 +145,13 @@ jobs:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/apex_test
           REDIS_URL: redis://localhost:6379
           NODE_ENV: test
+          JWT_SECRET: test-jwt-secret-key-for-ci-environment-only-32chars
+          MINIO_ENDPOINT: localhost
+          MINIO_PORT: '9000'
+          MINIO_ACCESS_KEY: minio-test-access-key
+          MINIO_SECRET_KEY: minio-test-secret-key-for-ci-only
+          MINIO_USE_SSL: 'false'
+          MINIO_REGION: us-east-1
 
       - name: Verify Provisioned Store
         run: |
@@ -170,6 +185,13 @@ jobs:
           echo "✅ Store provisioning integrity verified"
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/apex_test
+          JWT_SECRET: test-jwt-secret-key-for-ci-environment-only-32chars
+          MINIO_ENDPOINT: localhost
+          MINIO_PORT: '9000'
+          MINIO_ACCESS_KEY: minio-test-access-key
+          MINIO_SECRET_KEY: minio-test-secret-key-for-ci-only
+          MINIO_USE_SSL: 'false'
+          MINIO_REGION: us-east-1
 
       - name: Performance Breakdown (Optional)
         if: always()

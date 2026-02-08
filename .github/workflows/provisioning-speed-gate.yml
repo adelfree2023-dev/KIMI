@@ -71,12 +71,14 @@ jobs:
 
           # Generate unique subdomain
           SUBDOMAIN="perf-test-$(date +%s)"
+          echo "SUBDOMAIN=${SUBDOMAIN}" >> $GITHUB_OUTPUT
 
           # Start timer
           START_TIME=$(date +%s)
-
-          # Execute provisioning
+          
+          # Execute provisioning with error handling
           echo "🚀 Starting provisioning for subdomain: ${SUBDOMAIN}"
+          set +e  # Don't exit on error immediately
           bun run cli provision \
             --subdomain="${SUBDOMAIN}" \
             --plan=basic \
@@ -84,15 +86,28 @@ jobs:
             --password="TestPass123!" \
             --store-name="Speed Test Store" \
             --quiet
+          PROVISION_EXIT_CODE=$?
+          set -e  # Re-enable exit on error
 
           # End timer
           END_TIME=$(date +%s)
           DURATION=$((END_TIME - START_TIME))
+          
+          echo "DURATION=${DURATION}" >> $GITHUB_OUTPUT
+          echo "THRESHOLD=55" >> $GITHUB_OUTPUT
 
           echo ""
           echo "════════════════════════════════════════════════════════"
           echo "⏱️ PROVISIONING COMPLETED IN: ${DURATION} SECONDS"
           echo "════════════════════════════════════════════════════════"
+
+          # Check if provisioning command failed
+          if [ $PROVISION_EXIT_CODE -ne 0 ]; then
+            echo ""
+            echo "❌ PROVISIONING COMMAND FAILED (Exit code: ${PROVISION_EXIT_CODE})"
+            echo "   Check logs above for specific errors"
+            exit 1
+          fi
 
           # Validate against threshold
           THRESHOLD=55  # 55s to have buffer before 60s
@@ -116,11 +131,6 @@ jobs:
           echo "✅ NORTH STAR ACHIEVED!"
           echo "✅ Provisioning time: ${DURATION}s (threshold: ${THRESHOLD}s)"
           echo ""
-
-          # Save metrics
-          echo "DURATION=${DURATION}" >> $GITHUB_OUTPUT
-          echo "THRESHOLD=${THRESHOLD}" >> $GITHUB_OUTPUT
-          echo "SUBDOMAIN=${SUBDOMAIN}" >> $GITHUB_OUTPUT
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/apex_test
           REDIS_URL: redis://localhost:6379

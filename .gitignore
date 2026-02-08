@@ -54,3 +54,8 @@ letsencrypt_data/
 # Temporary files
 *.tmp
 *.temp
+
+# Update/Codebase exports (contain full source with potential secrets)
+update/
+Apex_2026_*.txt
+Collect-Project.ps1

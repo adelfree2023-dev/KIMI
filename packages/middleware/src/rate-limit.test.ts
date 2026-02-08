@@ -75,6 +75,7 @@ describe('RateLimitGuard', () => {
       switchToHttp: () => ({
         getRequest: () => ({
           ip: '127.0.0.1',
+          headers: {},
           tenantContext: { plan: 'free' },
         }),
       }),
@@ -92,6 +93,7 @@ describe('RateLimitGuard', () => {
 
     const mockReq = {
       ip: '127.0.0.1',
+      headers: { 'x-api-key': 'test-key' },
       tenantContext: { plan: 'free' },
     };
     const mockContext = {

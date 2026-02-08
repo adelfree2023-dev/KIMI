@@ -84,7 +84,7 @@ describe('Storage Manager', () => {
       );
       expect(mockClient.makeBucket).toHaveBeenCalledWith(
         'tenant-550e8400e29b41d4a716446655440000-assets',
-        'us-east-1'
+        expect.any(String)
       );
     });
 

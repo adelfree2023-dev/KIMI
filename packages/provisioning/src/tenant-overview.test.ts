@@ -19,15 +19,8 @@ import {
 } from './tenant-overview.js';
 
 // Mock database
-const mockTenants: Array<{
-  id: string;
-  subdomain: string;
-  name: string;
-  plan: string;
-  status: string;
-  createdAt: Date;
-  updatedAt: Date;
-}> = [
+const { mockTenants } = vi.hoisted(() => ({
+  mockTenants: [
     {
       id: 'tenant-1',
       subdomain: 'alpha',
@@ -55,7 +48,8 @@ const mockTenants: Array<{
       createdAt: new Date(),
       updatedAt: new Date(),
     },
-  ];
+  ]
+}));
 
 vi.mock('@apex/db', () => {
   const mockQuery = {

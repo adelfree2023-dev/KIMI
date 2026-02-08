@@ -191,6 +191,29 @@ describe('Audit Service (S4 Protocol)', () => {
       await expect(log(entry)).rejects.toThrow();
       expect(mockClient.release).toHaveBeenCalled();
     });
+
+    it('should handle errors when releasing connection fails', async () => {
+      mockClient.query.mockRejectedValue(new Error('Query failed'));
+      mockClient.release.mockImplementation(() => {
+        throw new Error('Release failed');
+      });
+
+      const entry: AuditLogEntry = {
+        timestamp: new Date(),
+        action: 'TEST_ACTION',
+        userId: 'user-123',
+        ipAddress: '127.0.0.1',
+        entityType: 'test',
+        entityId: 'test-1',
+        metadata: { actorType: 'system' },
+        severity: 'INFO',
+        result: 'SUCCESS',
+      };
+
+      // Should not throw even if release fails
+      await expect(log(entry)).rejects.toThrow('Query failed');
+      expect(mockClient.release).toHaveBeenCalled();
+    });
   });
 
   describe('query', () => {

@@ -209,11 +209,9 @@ describe('Storage Manager', () => {
 
     it('should throw if bucket not empty and force=false', async () => {
       mockClient.bucketExists.mockResolvedValue(true);
-      mockClient.listObjects.mockReturnValue(
-        (async function* () {
-          yield { name: 'file.txt', size: 100 };
-        })()
-      );
+      mockClient.listObjects.mockReturnValue({
+        toArray: async () => [{ name: 'file.txt', size: 100 }]
+      });
 
       await expect(deleteStorageBucket('uuid-123')).rejects.toThrow(
         'not empty'
@@ -222,11 +220,9 @@ describe('Storage Manager', () => {
 
     it('should delete non-empty bucket with force=true', async () => {
       mockClient.bucketExists.mockResolvedValue(true);
-      mockClient.listObjects.mockReturnValue(
-        (async function* () {
-          yield { name: 'file.txt', size: 100 };
-        })()
-      );
+      mockClient.listObjects.mockReturnValue({
+        toArray: async () => [{ name: 'file.txt', size: 100 }]
+      });
       mockClient.removeBucket.mockResolvedValue(undefined);
 
       // Note: Actual implementation would need to delete objects first

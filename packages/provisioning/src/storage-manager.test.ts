@@ -58,6 +58,8 @@ describe('Storage Manager', () => {
     // Reset the internal singleton to force re-init with our mock
     resetMinioClient();
 
+    expect(Minio.Client).toHaveBeenCalled();
+
     // Trigger lazy init (ignore errors if it already exists or fails during init)
     try {
       await createStorageBucket('init');

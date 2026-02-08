@@ -1,7 +1,8 @@
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { SecurityHeadersMiddleware } from './security.js';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { SecurityHeadersMiddleware, defaultCorsConfig, getTenantCorsConfig, CsrfProtection, CsrfGuard } from './security.js';
 import { NextFunction, Request, Response } from 'express';
+import { ExecutionContext } from '@nestjs/common';
 
 describe('SecurityMiddleware', () => {
   let middleware: SecurityHeadersMiddleware;
@@ -49,8 +50,6 @@ describe('SecurityMiddleware', () => {
   });
 
   it('should set CSP headers if configured', () => {
-    // Modify implementation to verify CSP logic if needed
-    // Default implementation sets a strict CSP
     middleware.use(mockRequest as Request, mockResponse as Response, nextFunction);
     expect(mockResponse.setHeader).toHaveBeenCalledWith(
       'Content-Security-Policy',
@@ -58,8 +57,59 @@ describe('SecurityMiddleware', () => {
     );
   });
 });
-import { CsrfProtection, CsrfGuard } from './security.js';
-import { ExecutionContext } from '@nestjs/common';
+
+describe('CORS Configuration', () => {
+  describe('defaultCorsConfig.origin', () => {
+    const originFn = defaultCorsConfig.origin as (
+      origin: string | undefined,
+      callback: (err: Error | null, allow?: boolean) => void
+    ) => void;
+
+    it('should allow requests with no origin', () => {
+      const callback = vi.fn();
+      originFn(undefined, callback);
+      expect(callback).toHaveBeenCalledWith(null, true);
+    });
+
+    it('should allow whitelisted dev origins', () => {
+      const callback = vi.fn();
+      originFn('http://localhost:3000', callback);
+      expect(callback).toHaveBeenCalledWith(null, true);
+    });
+
+    it('should allow origins from ALLOWED_ORIGINS env', () => {
+      vi.stubEnv('ALLOWED_ORIGINS', 'https://myapp.com,https://api.myapp.com');
+      const callback = vi.fn();
+      originFn('https://myapp.com', callback);
+      expect(callback).toHaveBeenCalledWith(null, true);
+      vi.unstubAllEnvs();
+    });
+
+    it('should block non-whitelisted origins', () => {
+      const callback = vi.fn();
+      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => { });
+      originFn('http://evil.com', callback);
+      expect(callback).toHaveBeenCalledWith(expect.any(Error));
+      expect(consoleSpy).toHaveBeenCalled();
+      consoleSpy.mockRestore();
+    });
+  });
+
+  describe('getTenantCorsConfig', () => {
+    it('should generate tenant specific CORS config', () => {
+      const config = getTenantCorsConfig('https://tenant1.com');
+      expect(config.origin).toContain('https://tenant1.com');
+      expect(config.origin).toContain('admin.https://tenant1.com');
+    });
+
+    it('should include dev origins in development environment', () => {
+      vi.stubEnv('NODE_ENV', 'development');
+      const config = getTenantCorsConfig('https://tenant1.com');
+      expect(config.origin as string[]).toContain('http://localhost:3000');
+      vi.unstubAllEnvs();
+    });
+  });
+});
 
 describe('CsrfProtection', () => {
   let csrf: CsrfProtection;
@@ -103,6 +153,22 @@ describe('CsrfProtection', () => {
     } as unknown as Request;
     expect(csrf.validate(mockReq)).toBe(false);
   });
+
+  it('should reject missing cookie token', () => {
+    const mockReq = {
+      cookies: {},
+      headers: { 'x-xsrf-token': 'token' },
+    } as unknown as Request;
+    expect(csrf.validate(mockReq)).toBe(false);
+  });
+
+  it('should reject missing header token', () => {
+    const mockReq = {
+      cookies: { 'XSRF-TOKEN': 'token' },
+      headers: {},
+    } as unknown as Request;
+    expect(csrf.validate(mockReq)).toBe(false);
+  });
 });
 
 describe('CsrfGuard', () => {
@@ -140,57 +206,5 @@ describe('CsrfGuard', () => {
     } as unknown as ExecutionContext;
 
     expect(guard.canActivate(mockContext)).toBe(true);
-  });
-});
-
-import { defaultCorsConfig, getTenantCorsConfig } from './security.js';
-
-describe('CORS Configuration', () => {
-  describe('defaultCorsConfig.origin', () => {
-    const originFn = defaultCorsConfig.origin as (
-      origin: string | undefined,
-      callback: (err: Error | null, allow?: boolean) => void
-    ) => void;
-
-    it('should allow requests with no origin', () => {
-      const callback = vi.fn();
-      originFn(undefined, callback);
-      expect(callback).toHaveBeenCalledWith(null, true);
-    });
-
-    it('should allow whitelisted dev origins', () => {
-      const callback = vi.fn();
-      originFn('http://localhost:3000', callback);
-      expect(callback).toHaveBeenCalledWith(null, true);
-    });
-
-    it('should allow origins from ALLOWED_ORIGINS env', () => {
-      vi.stubEnv('ALLOWED_ORIGINS', 'https://myapp.com,https://api.myapp.com');
-      const callback = vi.fn();
-      originFn('https://myapp.com', callback);
-      expect(callback).toHaveBeenCalledWith(null, true);
-      vi.unstubAllEnvs();
-    });
-
-    it('should block non-whitelisted origins', () => {
-      const callback = vi.fn();
-      originFn('https://malicious.com', callback);
-      expect(callback).toHaveBeenCalledWith(expect.any(Error));
-    });
-  });
-
-  describe('getTenantCorsConfig', () => {
-    it('should include tenant domain and admin subdomain', () => {
-      const config = getTenantCorsConfig('example.com');
-      expect(config.origin).toContain('example.com');
-      expect(config.origin).toContain('admin.example.com');
-    });
-
-    it('should include dev origins in development environment', () => {
-      vi.stubEnv('NODE_ENV', 'development');
-      const config = getTenantCorsConfig('example.com');
-      expect(config.origin).toContain('http://localhost:3000');
-      vi.unstubAllEnvs();
-    });
   });
 });

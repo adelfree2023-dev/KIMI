@@ -118,6 +118,9 @@ export class AuditService {
   async initializeS4(): Promise<void> {
     const client = await publicPool.connect();
     try {
+      // 0. Ensure public schema (S2 Enforcement)
+      await client.query('SET search_path TO public');
+
       // 1. Create table if not exists
       await client.query(`
         CREATE TABLE IF NOT EXISTS public.audit_logs (
@@ -135,6 +138,10 @@ export class AuditService {
           created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
         );
       `);
+
+      // 2. Create performance indexes
+      await client.query('CREATE INDEX IF NOT EXISTS idx_audit_timestamp ON public.audit_logs(created_at)');
+      await client.query('CREATE INDEX IF NOT EXISTS idx_audit_tenant ON public.audit_logs(tenant_id)');
 
       // 2. Create immutability triggers
       // Prevent UPDATE

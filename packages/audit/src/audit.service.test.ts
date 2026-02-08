@@ -312,7 +312,7 @@ describe('Audit Service (S4 Protocol)', () => {
       expect(queryCall[1]).toContain('CROSS_TENANT_ACCESS_ATTEMPT');
       expect(queryCall[1]).toContain('attacker-123');
       expect(queryCall[1]).toContain('victim-tenant');
-      expect(queryCall[1]).toContain('requestedResource');
+      expect(queryCall[1][5]).toContain('requestedResource');
     });
 
     it('should always result in FAILURE for security events', async () => {

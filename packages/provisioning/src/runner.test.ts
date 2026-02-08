@@ -29,7 +29,7 @@ describe('Migration Runner', () => {
     const result = await runTenantMigrations('test-store');
 
     expect(result.schemaName).toBe('tenant_test-store');
-    expect(createTenantDb).toHaveBeenCalledWith('test-store');
+    expect(createTenantDb).toHaveBeenCalledWith('tenant_test-store');
     expect(migrate).toHaveBeenCalled();
   });
 

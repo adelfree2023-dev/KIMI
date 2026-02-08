@@ -204,4 +204,28 @@ describe('ProvisioningService', () => {
       expect(mockClient.release).toHaveBeenCalled();
     });
   });
+  describe('Logger & Non-Standard Errors', () => {
+    it('should log error when rollback fails', async () => {
+      const loggerSpy = vi.spyOn(Logger.prototype, 'error');
+
+      vi.mocked(provisioning.createTenantSchema).mockResolvedValue(undefined as any);
+      vi.mocked(provisioning.runTenantMigrations).mockRejectedValue(new Error('Migrate Fail'));
+      vi.mocked(provisioning.dropTenantSchema).mockRejectedValue(new Error('Drop Fail'));
+
+      await expect(service.provision(options)).rejects.toThrow(InternalServerErrorException);
+
+      expect(loggerSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Rollback FAILED'),
+        expect.any(Error)
+      );
+    });
+
+    it('should handle non-Error objects thrown during provisioning', async () => {
+      vi.mocked(provisioning.createTenantSchema).mockRejectedValue('String Error');
+
+      await expect(service.provision(options)).rejects.toThrow(
+        'Provisioning Failed: Unknown'
+      );
+    });
+  });
 });

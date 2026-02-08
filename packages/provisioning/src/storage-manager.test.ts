@@ -409,5 +409,44 @@ describe('Storage Manager', () => {
       await expect(getSignedUploadUrl('uuid-123', 'file.txt')).rejects.toThrow('Failed to generate upload URL');
     });
   });
+  describe('Configuration Edge Cases', () => {
+    it('should use HTTPS endpoint when MINIO_USE_SSL is true', async () => {
+      vi.stubEnv('MINIO_USE_SSL', 'true');
+      const { createStorageBucket } = await import('./storage-manager.js');
+      // Re-mock to ensure env is picked up if it's read at module level (it's not, its read in func)
+      // but client inits with env. 
+      // Actually client singleton might persist. We need to reset it.
+      resetMinioClient();
+
+      const result = await createStorageBucket('ssl-test');
+      expect(result.endpoint).toContain('https://');
+      vi.unstubAllEnvs();
+    });
+
+    it('should default to us-east-1 when MINIO_REGION is missing', async () => {
+      vi.stubEnv('MINIO_REGION', '');
+      resetMinioClient();
+      const { createStorageBucket } = await import('./storage-manager.js');
+
+      await createStorageBucket('region-test');
+      expect(mockClient.makeBucket).toHaveBeenCalledWith(
+        expect.any(String),
+        'us-east-1'
+      );
+      vi.unstubAllEnvs();
+    });
+  });
+
+  describe('Non-Error Exception Handling', () => {
+    it('should handle non-Error objects in createStorageBucket', async () => {
+      mockClient.bucketExists.mockRejectedValue('String Error');
+      await expect(createStorageBucket('fail')).rejects.toThrow('Unknown error');
+    });
+
+    it('should handle non-Error objects in getStorageStats', async () => {
+      mockClient.listObjects.mockImplementation(() => { throw 'String Error' });
+      await expect(getStorageStats('fail')).rejects.toThrow('Unknown error');
+    });
+  });
 });
 

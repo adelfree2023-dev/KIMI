@@ -1,6 +1,6 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { GlobalExceptionFilter, OperationalError } from './exception-filter.js';
+import { GlobalExceptionFilter, OperationalError, ValidationError, AuthenticationError, AuthorizationError, TenantIsolationError } from './exception-filter.js';
 import { ArgumentsHost, HttpException, HttpStatus, Logger } from '@nestjs/common';
 import { ZodError } from 'zod';
 
@@ -206,14 +206,88 @@ describe('GlobalExceptionFilter', () => {
     vi.unstubAllEnvs();
   });
 
-  it('should return generic message in production for any status if NODE_ENV is production', () => {
-    vi.stubEnv('NODE_ENV', 'production');
-    const exception = new HttpException('Detailed Error', HttpStatus.BAD_REQUEST);
+  it('should fallback to "Error" for unknown status codes', () => {
+    // Force a status code that isn't in the map
+    const exception = new HttpException('Unknown', 418); // I'm a teapot
     filter.catch(exception, mockArgumentsHost);
 
     expect(mockJson).toHaveBeenCalledWith(expect.objectContaining({
-      message: 'Request failed',
+      error: 'Error',
     }));
+  });
+
+  it('should sanitize all internal error patterns individually', () => {
+    const patterns = [
+      'relation "users" does not exist',
+      'database "production" not found',
+      'constraint "uk_email" failed',
+      'schema "public" error',
+      '/app/packages/core/src/index.ts',
+      '/app/node_modules/nestjs/core',
+    ];
+
+    patterns.forEach(msg => {
+      const exception = new HttpException(msg, HttpStatus.BAD_REQUEST);
+      filter.catch(exception, mockArgumentsHost);
+      expect(mockJson).toHaveBeenCalledWith(expect.objectContaining({
+        message: 'Invalid request',
+      }));
+    });
+  });
+
+  it('should redact Windows paths in development stack traces', () => {
+    vi.stubEnv('NODE_ENV', 'development');
+    const exception = new Error('Win Error');
+    exception.stack = 'Error: Win Error\n    at Object.<anonymous> (C:\\Users\\Dell\\project\\file.ts:1:1)';
+
+    filter.catch(exception, mockArgumentsHost);
+
+    expect(mockJson).toHaveBeenCalledWith(expect.objectContaining({
+      stack: expect.stringContaining('[USER]/project/file.ts'),
+    }));
+    expect(mockJson).toHaveBeenCalledWith(expect.objectContaining({
+      stack: expect.not.stringContaining('C:\\Users\\Dell'),
+    }));
+    vi.unstubAllEnvs();
+  });
+
+  it('should redact Linux/Mac paths in development stack traces', () => {
+    vi.stubEnv('NODE_ENV', 'development');
+    const exception = new Error('Nix Error');
+    exception.stack = 'Error: Nix Error\n    at Object.<anonymous> (/home/user/project/file.ts:1:1)';
+
+    filter.catch(exception, mockArgumentsHost);
+
+    expect(mockJson).toHaveBeenCalledWith(expect.objectContaining({
+      stack: expect.stringContaining('[USER]/project/file.ts'),
+    }));
+    expect(mockJson).toHaveBeenCalledWith(expect.objectContaining({
+      stack: expect.not.stringContaining('/home/user'),
+    }));
+    vi.unstubAllEnvs();
+  });
+
+  it('should handle non-Error objects gracefully in development (no stack)', () => {
+    vi.stubEnv('NODE_ENV', 'development');
+    const exception = 'Just a string error'; // Not an Error object
+
+    filter.catch(exception, mockArgumentsHost);
+
+    // Should not crash and should not have stack
+    expect(mockJson).toHaveBeenCalledWith(expect.not.objectContaining({
+      stack: expect.anything(),
+    }));
+    vi.unstubAllEnvs();
+  });
+
+  it('should report error tracking for generic 500 even if no wrapper service', () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    const loggerWarnSpy = vi.spyOn(Logger.prototype, 'warn');
+
+    const exception = new Error('Critical Failure');
+    filter.catch(exception, mockArgumentsHost);
+
+    expect(loggerWarnSpy).toHaveBeenCalledWith(expect.stringContaining('Would report to error tracking'));
     vi.unstubAllEnvs();
   });
 });
@@ -223,5 +297,34 @@ describe('OperationalError', () => {
     const error = new OperationalError('Ops error');
     expect(error).toBeInstanceOf(HttpException);
     expect(error.getStatus()).toBe(HttpStatus.BAD_REQUEST);
+  });
+
+  it('should accept custom status codes', () => {
+    const error = new OperationalError('Ops error', HttpStatus.NOT_FOUND);
+    expect(error.getStatus()).toBe(HttpStatus.NOT_FOUND);
+  });
+
+  it('should create ValidationError', () => {
+    const error = new ValidationError('Invalid input');
+    expect(error.getStatus()).toBe(HttpStatus.BAD_REQUEST);
+    expect(error.message).toBe('Invalid input');
+  });
+
+  it('should create AuthenticationError', () => {
+    const error = new AuthenticationError();
+    expect(error.getStatus()).toBe(HttpStatus.UNAUTHORIZED);
+    expect(error.message).toBe('Authentication required');
+  });
+
+  it('should create AuthorizationError', () => {
+    const error = new AuthorizationError();
+    expect(error.getStatus()).toBe(HttpStatus.FORBIDDEN);
+    expect(error.message).toBe('Access denied');
+  });
+
+  it('should create TenantIsolationError', () => {
+    const error = new TenantIsolationError();
+    expect(error.getStatus()).toBe(HttpStatus.FORBIDDEN);
+    expect(error.message).toBe('Tenant access violation');
   });
 });

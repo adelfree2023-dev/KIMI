@@ -24,7 +24,8 @@
     "@apex/config": "workspace:*",
     "@apex/db": "workspace:*",
     "@apex/middleware": "workspace:*",
-    "rxjs": "^7.8.0"
+    "rxjs": "^7.8.0",
+    "zod": "^3.22.4"
   },
   "devDependencies": {
     "@types/passport-jwt": "^3.0.0",

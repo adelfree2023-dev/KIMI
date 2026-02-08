@@ -10,7 +10,7 @@
     }
   },
   "scripts": {
-    "build": "tsc --outDir ./dist --declaration --declarationMap --sourceMap && echo 'Build completed'",
+    "build": "tsc -p tsconfig.json --outDir ./dist --declaration --declarationMap --sourceMap && echo 'Build completed'",
     "test": "vitest run",
     "test:unit": "vitest run --coverage",
     "lint": "biome check .",

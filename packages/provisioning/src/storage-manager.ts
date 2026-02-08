@@ -54,6 +54,13 @@ export function resetMinioClient(): void {
   minioClient = null;
 }
 
+/**
+ * Set MinIO client singleton (Internal use for testing only)
+ */
+export function setMinioClient(client: Minio.Client): void {
+  minioClient = client;
+}
+
 function sanitizeBucketName(subdomain: string): string {
   return `tenant-${subdomain.toLowerCase().replace(/[^a-z0-9]/g, '')}-assets`;
 }
@@ -67,11 +74,12 @@ const PLAN_QUOTAS: Record<string, number> = {
 
 export async function createStorageBucket(
   subdomain: string,
-  plan = 'free'
+  plan = 'free',
+  injectedClient?: Minio.Client
 ): Promise<BucketCreationResult> {
   const start = Date.now();
   const bucketName = sanitizeBucketName(subdomain);
-  const client = getMinioClient();
+  const client = injectedClient || getMinioClient();
 
   try {
     const exists = await client.bucketExists(bucketName);

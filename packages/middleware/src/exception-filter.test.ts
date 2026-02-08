@@ -243,7 +243,7 @@ describe('GlobalExceptionFilter', () => {
     filter.catch(exception, mockArgumentsHost);
 
     expect(mockJson).toHaveBeenCalledWith(expect.objectContaining({
-      stack: expect.stringContaining('[USER]/project/file.ts'),
+      stack: expect.stringMatching(/\[USER\][\/\\]project[\/\\]file.ts/),
     }));
     expect(mockJson).toHaveBeenCalledWith(expect.objectContaining({
       stack: expect.not.stringContaining('C:\\Users\\Dell'),

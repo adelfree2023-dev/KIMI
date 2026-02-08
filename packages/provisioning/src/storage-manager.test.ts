@@ -14,6 +14,7 @@ import {
   deleteObject,
   getStorageStats,
   resetMinioClient,
+  setMinioClient,
 } from './storage-manager.js';
 
 // Mock MinIO client
@@ -34,16 +35,43 @@ vi.mock('minio', () => ({
   })),
 }));
 
+const mockEnv = {
+  MINIO_ENDPOINT: 'localhost',
+  MINIO_PORT: '9000',
+  MINIO_USE_SSL: 'false',
+  MINIO_ACCESS_KEY: 'test',
+  MINIO_SECRET_KEY: 'test',
+  MINIO_REGION: 'us-east-1',
+};
+
 vi.mock('@apex/config', () => ({
-  env: {
-    MINIO_ENDPOINT: 'localhost',
-    MINIO_PORT: '9000',
-    MINIO_USE_SSL: 'false',
-    MINIO_ACCESS_KEY: 'test',
-    MINIO_SECRET_KEY: 'test',
-    MINIO_REGION: 'us-east-1',
-  },
+  env: mockEnv,
 }));
+
+// ...
+
+describe('Configuration Edge Cases', () => {
+  it('should use HTTPS endpoint when MINIO_USE_SSL is true', async () => {
+    mockEnv.MINIO_USE_SSL = 'true';
+
+    const result = await createStorageBucket('ssl-test', 'free', mockClient);
+
+    expect(result.endpoint).toContain('https://');
+    mockEnv.MINIO_USE_SSL = 'false'; // Reset
+  });
+
+  it('should default to us-east-1 when MINIO_REGION is missing', async () => {
+    mockEnv.MINIO_REGION = '';
+
+    await createStorageBucket('region-test', 'free', mockClient);
+
+    expect(mockClient.makeBucket).toHaveBeenCalledWith(
+      expect.any(String),
+      'us-east-1'
+    );
+    mockEnv.MINIO_REGION = 'us-east-1'; // Reset
+  });
+});
 
 describe('Storage Manager', () => {
   let mockClient: any;
@@ -412,23 +440,24 @@ describe('Storage Manager', () => {
   describe('Configuration Edge Cases', () => {
     it('should use HTTPS endpoint when MINIO_USE_SSL is true', async () => {
       vi.stubEnv('MINIO_USE_SSL', 'true');
-      const { createStorageBucket } = await import('./storage-manager.js');
-      // Re-mock to ensure env is picked up if it's read at module level (it's not, its read in func)
-      // but client inits with env. 
-      // Actually client singleton might persist. We need to reset it.
+
       resetMinioClient();
+      setMinioClient(mockClient);
 
       const result = await createStorageBucket('ssl-test');
+
       expect(result.endpoint).toContain('https://');
       vi.unstubAllEnvs();
     });
 
     it('should default to us-east-1 when MINIO_REGION is missing', async () => {
       vi.stubEnv('MINIO_REGION', '');
+
       resetMinioClient();
-      const { createStorageBucket } = await import('./storage-manager.js');
+      setMinioClient(mockClient);
 
       await createStorageBucket('region-test');
+
       expect(mockClient.makeBucket).toHaveBeenCalledWith(
         expect.any(String),
         'us-east-1'

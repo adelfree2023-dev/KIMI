@@ -21,9 +21,11 @@ export interface EncryptedData {
 
 /**
  * Derives encryption key from master key using salt
+ * S7 FIX: Using NIST-recommended scrypt parameters for production security
+ * N=2^17 (memory cost), r=8 (block size), p=1 (parallelism)
  */
 function deriveKey(masterKey: string, salt: Buffer): Buffer {
-  return scryptSync(masterKey, salt, KEY_LENGTH);
+  return scryptSync(masterKey, salt, KEY_LENGTH, { N: 2 ** 17, r: 8, p: 1 });
 }
 
 /**
@@ -33,14 +35,14 @@ export function encrypt(plaintext: string, masterKey: string): EncryptedData {
   const salt = randomBytes(SALT_LENGTH);
   const iv = randomBytes(IV_LENGTH);
   const key = deriveKey(masterKey, salt);
-  
+
   const cipher = createCipheriv(ALGORITHM, key, iv);
-  
+
   let encrypted = cipher.update(plaintext, 'utf8', 'hex');
   encrypted += cipher.final('hex');
-  
+
   const tag = cipher.getAuthTag();
-  
+
   return {
     encrypted,
     iv: iv.toString('hex'),
@@ -57,13 +59,13 @@ export function decrypt(encryptedData: EncryptedData, masterKey: string): string
   const iv = Buffer.from(encryptedData.iv, 'hex');
   const tag = Buffer.from(encryptedData.tag, 'hex');
   const key = deriveKey(masterKey, salt);
-  
+
   const decipher = createDecipheriv(ALGORITHM, key, iv);
   decipher.setAuthTag(tag);
-  
+
   let decrypted = decipher.update(encryptedData.encrypted, 'hex', 'utf8');
   decrypted += decipher.final('utf8');
-  
+
   return decrypted;
 }
 
@@ -106,27 +108,27 @@ export class EncryptionService {
 
   constructor() {
     this.masterKey = process.env.ENCRYPTION_MASTER_KEY || '';
-    
+
     // CRITICAL FIX (S7): Strict enforcement for production
     // In production, test keys are NEVER allowed, regardless of environment variables
     const isProduction = process.env.NODE_ENV === 'production';
     const isTestMode = process.env.NODE_ENV === 'test' && !isProduction;
-    
+
     if (!this.masterKey) {
       if (isTestMode) {
-        // Generate deterministic test key for tests only
-        this.masterKey = 'test-encryption-key-32-chars-long!';
-        console.warn('⚠️ S7: Using test encryption key - NEVER use in production');
+        // S7 FIX: Generate random key per test run instead of static string
+        this.masterKey = randomBytes(32).toString('base64url');
+        console.warn('⚠️ S7: Using RANDOM test encryption key - NEVER use in production');
       } else {
         throw new Error('S1 Violation: ENCRYPTION_MASTER_KEY is required');
       }
     }
-    
+
     // Always enforce minimum key length
     if (this.masterKey.length < 32) {
       throw new Error('S1 Violation: ENCRYPTION_MASTER_KEY must be at least 32 characters');
     }
-    
+
     // CRITICAL FIX (S7): In production, explicitly reject any key containing 'test' or 'default'
     if (isProduction) {
       const forbiddenPatterns = ['test', 'default', 'example', 'sample', '123456', 'password', 'key', 'secret'];
@@ -136,21 +138,21 @@ export class EncryptionService {
           throw new Error(`S1 Violation: ENCRYPTION_MASTER_KEY contains forbidden pattern '${pattern}'. Production keys must be cryptographically random.`);
         }
       }
-      
+
       // S7 FIX: Strict complexity requirements for production
       // Must have: uppercase, lowercase, numbers, and special characters
       const complexityRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/;
       if (!complexityRegex.test(this.masterKey)) {
         throw new Error('S1 Violation: ENCRYPTION_MASTER_KEY must contain uppercase, lowercase, numbers, and special characters (@$!%*?&)');
       }
-      
+
       // S7 FIX: Entropy check (4.0 bits per character minimum)
       const calculateEntropy = (key: string): number => {
         const charSet = new Set(key.split(''));
         const poolSize = charSet.size;
         return Math.log2(Math.pow(poolSize, key.length)) / key.length;
       };
-      
+
       const entropy = calculateEntropy(this.masterKey);
       if (entropy < 4.0) {
         throw new Error(`S1 Violation: ENCRYPTION_MASTER_KEY has insufficient entropy (${entropy.toFixed(2)} bits/char, minimum 4.0 required)`);

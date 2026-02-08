@@ -185,6 +185,37 @@ describe('GlobalExceptionFilter', () => {
 
     vi.unstubAllEnvs();
   });
+
+  it('should sanitize multiple patterns in a single message', () => {
+    const exception = new HttpException('Table "users" has invalid column "secret"', HttpStatus.BAD_REQUEST);
+    filter.catch(exception, mockArgumentsHost);
+
+    expect(mockJson).toHaveBeenCalledWith(expect.objectContaining({
+      message: 'Invalid request',
+    }));
+  });
+
+  it('should sanitize pattern matches even in development', () => {
+    vi.stubEnv('NODE_ENV', 'development');
+    const exception = new HttpException('Table "users" is fine', HttpStatus.BAD_REQUEST);
+    filter.catch(exception, mockArgumentsHost);
+
+    expect(mockJson).toHaveBeenCalledWith(expect.objectContaining({
+      message: 'Invalid request',
+    }));
+    vi.unstubAllEnvs();
+  });
+
+  it('should return generic message in production for any status if NODE_ENV is production', () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    const exception = new HttpException('Detailed Error', HttpStatus.BAD_REQUEST);
+    filter.catch(exception, mockArgumentsHost);
+
+    expect(mockJson).toHaveBeenCalledWith(expect.objectContaining({
+      message: 'Request failed',
+    }));
+    vi.unstubAllEnvs();
+  });
 });
 
 describe('OperationalError', () => {

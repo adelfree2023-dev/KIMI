@@ -98,6 +98,98 @@ describe('TenantIsolationMiddleware', () => {
     await expect(middleware.use(mockReq as any, mockRes as any, mockNext))
       .rejects.toThrow('Invalid tenant: unknown');
   });
+
+  it('should handle ports in host header', async () => {
+    const mockReq = {
+      headers: { host: 'alpha.apex.localhost:3000' },
+    };
+
+    const mockTenant = {
+      id: 'uuid-123',
+      subdomain: 'alpha',
+      plan: 'basic',
+      status: 'active',
+    };
+
+    const mockSelect = {
+      from: vi.fn().mockReturnThis(),
+      where: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockResolvedValue([mockTenant]),
+    };
+    vi.mocked(publicDb.select).mockReturnValue(mockSelect as any);
+
+    await middleware.use(mockReq as any, mockRes as any, mockNext);
+    expect(mockNext).toHaveBeenCalled();
+  });
+
+  it('should support production subdomains', async () => {
+    const mockReq = {
+      headers: { host: 'alpha.60sec.shop' },
+    };
+
+    const mockTenant = {
+      id: 'uuid-123',
+      subdomain: 'alpha',
+      plan: 'basic',
+      status: 'active',
+    };
+
+    const mockSelect = {
+      from: vi.fn().mockReturnThis(),
+      where: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockResolvedValue([mockTenant]),
+    };
+    vi.mocked(publicDb.select).mockReturnValue(mockSelect as any);
+
+    await middleware.use(mockReq as any, mockRes as any, mockNext);
+    expect(mockNext).toHaveBeenCalled();
+  });
+
+  it('should throw UnauthorizedException for suspended tenant', async () => {
+    const mockReq = {
+      headers: { host: 'suspended.apex.localhost' },
+    };
+
+    const mockTenant = {
+      id: 'uuid-suspended',
+      subdomain: 'suspended',
+      plan: 'basic',
+      status: 'suspended',
+    };
+
+    const mockSelect = {
+      from: vi.fn().mockReturnThis(),
+      where: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockResolvedValue([mockTenant]),
+    };
+    vi.mocked(publicDb.select).mockReturnValue(mockSelect as any);
+
+    await expect(middleware.use(mockReq as any, mockRes as any, mockNext))
+      .rejects.toThrow('Invalid tenant: suspended');
+  });
+
+  it('should throw UnauthorizedException for pending tenant', async () => {
+    const mockReq = {
+      headers: { host: 'pending.apex.localhost' },
+    };
+
+    const mockTenant = {
+      id: 'uuid-pending',
+      subdomain: 'pending',
+      plan: 'basic',
+      status: 'pending',
+    };
+
+    const mockSelect = {
+      from: vi.fn().mockReturnThis(),
+      where: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockResolvedValue([mockTenant]),
+    };
+    vi.mocked(publicDb.select).mockReturnValue(mockSelect as any);
+
+    await expect(middleware.use(mockReq as any, mockRes as any, mockNext))
+      .rejects.toThrow('Invalid tenant: pending');
+  });
 });
 
 describe('TenantScopedGuard', () => {

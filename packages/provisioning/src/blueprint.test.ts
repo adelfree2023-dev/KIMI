@@ -254,9 +254,22 @@ describe('Blueprint Service', () => {
       expect(() => validateBlueprint(bp as any)).toThrow('Blueprint must have a name');
     });
 
+    it('should reject blueprint with empty name', () => {
+      const bp = { ...defaultBlueprintTemplate, name: '' };
+      expect(() => validateBlueprint(bp as any)).toThrow('Blueprint must have a name');
+    });
+
     it('should reject blueprint without version', () => {
       const bp = { ...defaultBlueprintTemplate, version: undefined };
       expect(() => validateBlueprint(bp as any)).toThrow('Blueprint version must be "1.0"');
+    });
+
+    it('should reject product without name', () => {
+      const bp = {
+        ...defaultBlueprintTemplate,
+        products: [{ price: 10 }]
+      };
+      expect(() => validateBlueprint(bp as any)).toThrow('Product must have a name');
     });
 
     it('should reject page without title', () => {
@@ -267,7 +280,6 @@ describe('Blueprint Service', () => {
       expect(() => validateBlueprint(bp as any)).toThrow('Page must have slug and title');
     });
   });
-
 
   describe('getBlueprintById', () => {
     it('should return null for non-existent id', async () => {
@@ -312,6 +324,7 @@ describe('Blueprint Service', () => {
       const result = await getDefaultBlueprint('free');
       expect(result).not.toBeNull();
       expect(result?.name).toBe('Non Default');
+      expect(result?.isDefault).toBe(false);
     });
 
     it('should return null when no blueprints exist for specific plan', async () => {
@@ -331,6 +344,14 @@ describe('Blueprint Service', () => {
       expect(result).not.toBeNull();
       expect(result?.name).toBe('Updated Name');
       expect(result?.isDefault).toBe(true);
+    });
+
+    it('should handle partial updates', async () => {
+      const result = await updateBlueprint('test-id', {
+        description: 'New Description',
+        isDefault: false
+      });
+      expect(result).not.toBeNull();
     });
 
     it('should return null if update fails (no record found)', async () => {

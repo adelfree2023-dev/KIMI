@@ -55,6 +55,7 @@ export async function withTenantConnection<T>(
   }
 
   const client = await publicPool.connect();
+  let cleanupSuccessful = false;
 
   try {
     // 🔒 S2 Enforcement: Switch to tenant context
@@ -62,11 +63,25 @@ export async function withTenantConnection<T>(
 
     const db = drizzle(client);
     const result = await operation(db);
-    return result;
-  } finally {
-    // 🧹 Cleanup: Reset context before returning to pool
+
+    // S2 FIX: Reset context BEFORE returning result
     await client.query('SET search_path TO public');
-    client.release();
+    cleanupSuccessful = true;
+
+    return result;
+  } catch (error) {
+    // S2 FIX: Attempt cleanup even on error
+    try {
+      await client.query('SET search_path TO public');
+      cleanupSuccessful = true;
+    } catch (cleanupError) {
+      console.error('S2 CRITICAL: Failed to reset search_path after error', cleanupError);
+    }
+    throw error;
+  } finally {
+    // 🔒 S2 Protocol: Destroy connection if cleanup failed to prevent context leakage
+    // client.release(true) destroys the connection instead of returning to pool
+    client.release(!cleanupSuccessful);
   }
 }
 

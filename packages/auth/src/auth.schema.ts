@@ -22,10 +22,19 @@ export const RegisterSchema = z.object({
   email: z.string().email(),
   password: z
     .string()
-    .min(8, 'Password must be at least 8 characters')
+    .min(12, 'Password must be at least 12 characters')
     .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
     .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
-    .regex(/[0-9]/, 'Password must contain at least one number'),
+    .regex(/[0-9]/, 'Password must contain at least one number')
+    .regex(/[@$!%*?&]/, 'Password must contain at least one special character (@$!%*?&)')
+    .refine(
+      (val) => !/(\w)\1{2,}/.test(val),
+      'Password cannot contain repeating characters (e.g., aaa, 111)'
+    )
+    .refine(
+      (val) => !/password|12345|admin|qwerty/i.test(val),
+      'Password cannot contain common words (password, admin, qwerty, 12345)'
+    ),
   tenantId: z.string().uuid(),
 });
 

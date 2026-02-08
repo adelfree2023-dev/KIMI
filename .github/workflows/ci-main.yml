@@ -490,7 +490,8 @@ jobs:
           
           describe('CSP (Content Security Policy) Compliance', () => {
             it('should have CSP headers defined', () => {
-              const fs = require('fs');n              const middlewareFiles = [
+              const fs = require('fs');
+              const middlewareFiles = [
                 './packages/middleware/src/security.ts',
                 './apps/web/next.config.js',
                 './apps/web/middleware.ts'

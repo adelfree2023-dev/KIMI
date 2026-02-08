@@ -15,13 +15,17 @@ export const securityHeaders = {
   'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
 
   // Content Security Policy
+  // S8 FIX: Removed 'unsafe-inline' 'unsafe-eval' - use nonces via CspNonceMiddleware
+  // Note: 'unsafe-eval' is ONLY allowed in development for Next.js HMR
   'Content-Security-Policy': [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval'", // Adjust for Next.js
-    "style-src 'self' 'unsafe-inline'",
+    process.env.NODE_ENV === 'development'
+      ? "script-src 'self' 'unsafe-eval'" // Dev only: HMR requires eval
+      : "script-src 'self'", // Production: strict, nonces added by middleware
+    "style-src 'self' 'unsafe-inline'", // CSS inline is lower risk
     "img-src 'self' data: https:",
     "font-src 'self'",
-    "connect-src 'self' https://api.apex.com",
+    "connect-src 'self' https://api.apex.com wss://localhost:*", // wss for HMR
     "frame-ancestors 'none'",
     "base-uri 'self'",
     "form-action 'self'",

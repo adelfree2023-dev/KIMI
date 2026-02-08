@@ -56,7 +56,7 @@ async function main() {
   try {
     // Create NestJS application context (without HTTP server)
     const app = await NestFactory.createApplicationContext(AppModule, {
-      logger: options.quiet ? false : ['error'],
+      logger: ['error', 'warn'], // Always show errors and warnings
     });
 
     const provisioningService = app.get<ProvisioningService>('PROVISIONING_SERVICE' as any);
@@ -76,11 +76,13 @@ async function main() {
     }
 
     await app.close();
-    process.exit(0);
   } catch (error) {
-    console.error('❌ Provisioning failed:', error instanceof Error ? error.message : error);
+    console.error('❌ Provisioning failed:', error instanceof Error ? error.stack : error);
     process.exit(1);
   }
 }
 
-main();
+main().catch((err) => {
+  console.error('❌ Fatal CLI Error:', err);
+  process.exit(1);
+});

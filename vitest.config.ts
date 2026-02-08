@@ -61,7 +61,7 @@ export default defineConfig({
       },
     },
     onConsoleLog: (log, type) => {
-      if (type === 'error') {
+      if (type === 'stderr') {
         console.error(log);
       }
     },

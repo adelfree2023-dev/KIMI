@@ -194,9 +194,9 @@ describe('Storage Manager', () => {
 
     it('should delete empty bucket', async () => {
       mockClient.bucketExists.mockResolvedValue(true);
-      mockClient.listObjects.mockReturnValue(
-        (async function* () { })() // Empty async generator
-      );
+      mockClient.listObjects.mockReturnValue({
+        toArray: async () => []
+      });
       mockClient.removeBucket.mockResolvedValue(undefined);
 
       const result = await deleteStorageBucket('uuid-123');
@@ -257,7 +257,9 @@ describe('Storage Manager', () => {
     });
 
     it('should handle empty bucket', async () => {
-      mockClient.listObjects.mockReturnValue((async function* () { })());
+      mockClient.listObjects.mockReturnValue({
+        toArray: async () => []
+      });
       mockClient.getBucketTagging.mockResolvedValue({ plan: 'free' });
 
       const result = await getStorageStats('uuid-123');

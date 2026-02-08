@@ -1,9 +1,9 @@
 # ═══════════════════════════════════════════════════════════════
-# Security Gates Aggregator (S1-S8)
+# Security Gates Aggregator (S1-S13)
 # Runs all security gates in sequence - BLOCKS on any failure
 # ═══════════════════════════════════════════════════════════════
 
-name: "🔒 Security Gates (S1-S8)"
+name: "🔒 Security Gates (S1-S13)"
 
 on:
   push:
@@ -84,13 +84,53 @@ jobs:
     secrets: inherit
 
   # ═══════════════════════════════════════════════════════════════
+  # S9: Dependency Vulnerability Scanning
+  # ═══════════════════════════════════════════════════════════════
+  s9-gate:
+    name: "S9 Dependency Scanning"
+    uses: ./.github/workflows/s9-dependency-scanning.yml
+    secrets: inherit
+
+  # ═══════════════════════════════════════════════════════════════
+  # S10: Secret Detection
+  # ═══════════════════════════════════════════════════════════════
+  s10-gate:
+    name: "S10 Secret Detection"
+    uses: ./.github/workflows/s10-secret-detection.yml
+    secrets: inherit
+
+  # ═══════════════════════════════════════════════════════════════
+  # S11: SQL Injection Penetration
+  # ═══════════════════════════════════════════════════════════════
+  s11-gate:
+    name: "S11 SQL Injection Penetration"
+    uses: ./.github/workflows/s11-sql-injection-penetration.yml
+    secrets: inherit
+
+  # ═══════════════════════════════════════════════════════════════
+  # S12: XSS Penetration
+  # ═══════════════════════════════════════════════════════════════
+  s12-gate:
+    name: "S12 XSS Penetration"
+    uses: ./.github/workflows/s12-xss-penetration.yml
+    secrets: inherit
+
+  # ═══════════════════════════════════════════════════════════════
+  # S13: Red Team Attack Simulation
+  # ═══════════════════════════════════════════════════════════════
+  s13-gate:
+    name: "S13 Red Team Simulation"
+    uses: ./.github/workflows/s13-red-team-simulation.yml
+    secrets: inherit
+
+  # ═══════════════════════════════════════════════════════════════
   # Final Security Report - BLOCKS if any gate fails
   # ═══════════════════════════════════════════════════════════════
   security-summary:
     name: "🔒 Security Gates Final Report"
     runs-on: ubuntu-latest
     needs:
-      [s1-gate, s2-gate, s3-gate, s4-gate, s5-gate, s6-gate, s7-gate, s8-gate]
+      [s1-gate, s2-gate, s3-gate, s4-gate, s5-gate, s6-gate, s7-gate, s8-gate, s9-gate, s10-gate, s11-gate, s12-gate, s13-gate]
     if: always()
     steps:
       - name: Report Security Status
@@ -111,20 +151,25 @@ jobs:
             fi
           }
 
-          echo "S1 - Environment Verification: $(status_icon ${{ needs.s1-gate.result }}) ${{ needs.s1-gate.result }}"
-          echo "S2 - Tenant Isolation:         $(status_icon ${{ needs.s2-gate.result }}) ${{ needs.s2-gate.result }}"
-          echo "S3 - Input Validation:         $(status_icon ${{ needs.s3-gate.result }}) ${{ needs.s3-gate.result }}"
-          echo "S4 - Audit Logging:            $(status_icon ${{ needs.s4-gate.result }}) ${{ needs.s4-gate.result }}"
-          echo "S5 - Exception Handling:       $(status_icon ${{ needs.s5-gate.result }}) ${{ needs.s5-gate.result }}"
-          echo "S6 - Rate Limiting:            $(status_icon ${{ needs.s6-gate.result }}) ${{ needs.s6-gate.result }}"
-          echo "S7 - Encryption at Rest:       $(status_icon ${{ needs.s7-gate.result }}) ${{ needs.s7-gate.result }}"
-          echo "S8 - Security Headers:         $(status_icon ${{ needs.s8-gate.result }}) ${{ needs.s8-gate.result }}"
+          echo "S1  - Environment Verification:   $(status_icon ${{ needs.s1-gate.result }}) ${{ needs.s1-gate.result }}"
+          echo "S2  - Tenant Isolation:           $(status_icon ${{ needs.s2-gate.result }}) ${{ needs.s2-gate.result }}"
+          echo "S3  - Input Validation:           $(status_icon ${{ needs.s3-gate.result }}) ${{ needs.s3-gate.result }}"
+          echo "S4  - Audit Logging:              $(status_icon ${{ needs.s4-gate.result }}) ${{ needs.s4-gate.result }}"
+          echo "S5  - Exception Handling:         $(status_icon ${{ needs.s5-gate.result }}) ${{ needs.s5-gate.result }}"
+          echo "S6  - Rate Limiting:              $(status_icon ${{ needs.s6-gate.result }}) ${{ needs.s6-gate.result }}"
+          echo "S7  - Encryption at Rest:         $(status_icon ${{ needs.s7-gate.result }}) ${{ needs.s7-gate.result }}"
+          echo "S8  - Security Headers:           $(status_icon ${{ needs.s8-gate.result }}) ${{ needs.s8-gate.result }}"
+          echo "S9  - Dependency Scanning:        $(status_icon ${{ needs.s9-gate.result }}) ${{ needs.s9-gate.result }}"
+          echo "S10 - Secret Detection:           $(status_icon ${{ needs.s10-gate.result }}) ${{ needs.s10-gate.result }}"
+          echo "S11 - SQL Injection Penetration:  $(status_icon ${{ needs.s11-gate.result }}) ${{ needs.s11-gate.result }}"
+          echo "S12 - XSS Penetration:            $(status_icon ${{ needs.s12-gate.result }}) ${{ needs.s12-gate.result }}"
+          echo "S13 - Red Team Simulation:        $(status_icon ${{ needs.s13-gate.result }}) ${{ needs.s13-gate.result }}"
           echo ""
 
           # Calculate compliance score
           PASSED=0
           FAILED=0
-          for result in "${{ needs.s1-gate.result }}" "${{ needs.s2-gate.result }}" "${{ needs.s3-gate.result }}" "${{ needs.s4-gate.result }}" "${{ needs.s5-gate.result }}" "${{ needs.s6-gate.result }}" "${{ needs.s7-gate.result }}" "${{ needs.s8-gate.result }}"; do
+          for result in "${{ needs.s1-gate.result }}" "${{ needs.s2-gate.result }}" "${{ needs.s3-gate.result }}" "${{ needs.s4-gate.result }}" "${{ needs.s5-gate.result }}" "${{ needs.s6-gate.result }}" "${{ needs.s7-gate.result }}" "${{ needs.s8-gate.result }}" "${{ needs.s9-gate.result }}" "${{ needs.s10-gate.result }}" "${{ needs.s11-gate.result }}" "${{ needs.s12-gate.result }}" "${{ needs.s13-gate.result }}"; do
             if [ "$result" == "success" ]; then
               PASSED=$((PASSED + 1))
             elif [ "$result" == "failure" ]; then
@@ -133,7 +178,7 @@ jobs:
           done
 
           echo "═══════════════════════════════════════════════════════════════"
-          echo "Compliance Score: $PASSED/8 security gates passed"
+          echo "Compliance Score: $PASSED/13 security gates passed"
           echo "═══════════════════════════════════════════════════════════════"
           echo ""
 
@@ -153,16 +198,21 @@ jobs:
 
           echo "✅✅✅ ALL SECURITY GATES PASSED ✅✅✅"
           echo ""
-          echo "The codebase meets all S1-S8 security requirements:"
+          echo "The codebase meets all S1-S13 security requirements:"
           echo ""
-          echo "  ✓ S1: Environment Verification - No secrets in code"
-          echo "  ✓ S2: Tenant Isolation - Cross-tenant access blocked"
-          echo "  ✓ S3: Input Validation - Injection attacks prevented"
-          echo "  ✓ S4: Audit Logging - All operations tracked"
-          echo "  ✓ S5: Exception Handling - No information leakage"
-          echo "  ✓ S6: Rate Limiting - DDoS/Brute force protection"
-          echo "  ✓ S7: Encryption at Rest - Sensitive data encrypted"
-          echo "  ✓ S8: Security Headers - XSS/CSRF protection"
+          echo "  ✓ S1:  Environment Verification - No secrets in code"
+          echo "  ✓ S2:  Tenant Isolation - Cross-tenant access blocked"
+          echo "  ✓ S3:  Input Validation - Injection attacks prevented"
+          echo "  ✓ S4:  Audit Logging - All operations tracked"
+          echo "  ✓ S5:  Exception Handling - No information leakage"
+          echo "  ✓ S6:  Rate Limiting - DDoS/Brute force protection"
+          echo "  ✓ S7:  Encryption at Rest - Sensitive data encrypted"
+          echo "  ✓ S8:  Security Headers - XSS/CSRF protection"
+          echo "  ✓ S9:  Dependency Scanning - No vulnerable packages"
+          echo "  ✓ S10: Secret Detection - No leaked credentials"
+          echo "  ✓ S11: SQL Injection Penetration - SQLi resistant"
+          echo "  ✓ S12: XSS Penetration - XSS resistant"
+          echo "  ✓ S13: Red Team Simulation - Hacker-proof"
           echo ""
-          echo "🛡️ Code is SECURE for deployment 🛡️"
+          echo "🛡️🛡️🛡️ Code is MILITARY-GRADE SECURE 🛡️🛡️🛡️"
           echo "═══════════════════════════════════════════════════════════════"

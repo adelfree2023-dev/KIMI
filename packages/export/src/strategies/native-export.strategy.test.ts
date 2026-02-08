@@ -3,7 +3,7 @@
  * Verifies PostgreSQL binary dump export
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { NativeExportStrategy } from './native-export.strategy.js';
 import type { ExportOptions } from '../types.js';
 
@@ -39,7 +39,27 @@ describe('NativeExportStrategy', () => {
 
     beforeEach(() => {
         vi.clearAllMocks();
+        vi.stubGlobal('Bun', {
+            spawn: vi.fn().mockReturnValue({
+                exited: Promise.resolve(0),
+                stdout: {
+                    text: vi.fn().mockResolvedValue(''),
+                },
+                stderr: {
+                    text: vi.fn().mockResolvedValue(''),
+                },
+            }),
+            write: vi.fn().mockResolvedValue(undefined),
+            file: vi.fn().mockReturnValue({
+                arrayBuffer: vi.fn().mockResolvedValue(new ArrayBuffer(100)),
+                stat: vi.fn().mockResolvedValue({ size: 2048 }),
+            }),
+        });
         strategy = new NativeExportStrategy();
+    });
+
+    afterEach(() => {
+        vi.unstubAllGlobals();
     });
 
     describe('validate', () => {
@@ -115,7 +135,8 @@ describe('NativeExportStrategy', () => {
 
         it('should handle pg_dump failure', async () => {
             vi.mocked(Bun.spawn).mockReturnValueOnce({
-                exited: Promise.reject(new Error('pg_dump failed')),
+                exited: Promise.resolve(1),
+                stderr: new Response('pg_dump failed'),
             } as any);
 
             const options: ExportOptions = {
@@ -161,7 +182,8 @@ describe('NativeExportStrategy', () => {
 
         it('should cleanup on error', async () => {
             vi.mocked(Bun.spawn).mockReturnValueOnce({
-                exited: Promise.reject(new Error('Dump failed')),
+                exited: Promise.resolve(1),
+                stderr: new Response('Dump failed'),
             } as any);
 
             const options: ExportOptions = {

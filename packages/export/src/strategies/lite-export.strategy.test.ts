@@ -8,10 +8,12 @@ import { LiteExportStrategy } from './lite-export.strategy.js';
 import type { ExportOptions } from '../types.js';
 
 // Mock database
-const mockClient = {
-    query: vi.fn(),
-    release: vi.fn(),
-};
+const { mockClient } = vi.hoisted(() => ({
+    mockClient: {
+        query: vi.fn(),
+        release: vi.fn(),
+    },
+}));
 
 vi.mock('@apex/db', () => ({
     publicPool: {

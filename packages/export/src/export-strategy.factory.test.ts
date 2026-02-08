@@ -3,15 +3,24 @@
  * Verifies strategy selection and validation
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ExportStrategyFactory } from './export-strategy.factory.js';
 import type { ExportOptions } from './types.js';
 
 describe('ExportStrategyFactory', () => {
     let factory: ExportStrategyFactory;
 
+    // Mock strategies
+    const mockLiteStrategy = { name: 'lite', validate: vi.fn(), export: vi.fn() } as any;
+    const mockNativeStrategy = { name: 'native', validate: vi.fn(), export: vi.fn() } as any;
+    const mockAnalyticsStrategy = { name: 'analytics', validate: vi.fn(), export: vi.fn() } as any;
+
     beforeEach(() => {
-        factory = new ExportStrategyFactory();
+        factory = new ExportStrategyFactory(
+            mockLiteStrategy,
+            mockNativeStrategy,
+            mockAnalyticsStrategy
+        );
     });
 
     describe('getStrategy', () => {

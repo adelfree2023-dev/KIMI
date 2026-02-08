@@ -97,8 +97,11 @@ describe('RateLimitGuard', () => {
     expect(result).toBe(true);
   });
 
-  it.skip('should throw TooManyRequests for exceeded limit', async () => {
+  it('should throw TooManyRequests for exceeded limit', async () => {
     process.env.NODE_ENV = 'development'; // Use memory store fallback
+
+    // Create a fresh guard instance for this test so Memory Store persists
+    const testGuard = new RateLimitGuard(mockReflector);
     mockReflector.getAllAndOverride.mockReturnValue({ ttl: 60, limit: 1 });
 
     const mockReq = {
@@ -119,7 +122,7 @@ describe('RateLimitGuard', () => {
     };
 
     // First request should pass
-    await guard.canActivate(mockContext as any);
+    await testGuard.canActivate(mockContext as any);
 
     // Second request should fail - use fresh context but same request data
     const mockRes2 = { setHeader: vi.fn() };
@@ -131,6 +134,6 @@ describe('RateLimitGuard', () => {
       getHandler: () => ({}),
       getClass: () => ({}),
     };
-    await expect(guard.canActivate(mockContext2 as any)).rejects.toThrow();
+    await expect(testGuard.canActivate(mockContext2 as any)).rejects.toThrow();
   });
 });

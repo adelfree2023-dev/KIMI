@@ -17,10 +17,8 @@
       "node",
       "bun-types"
     ],
-    /* 1. تفعيل الـ Decorators عشان NestJS */
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    /* 2. تعريف المسارات (أهم جزء لحل الأخطاء) */
     "baseUrl": ".",
     "paths": {
       "@apex/audit": [
@@ -49,5 +47,25 @@
   "exclude": [
     "node_modules",
     "dist"
+  ],
+  "references": [
+    {
+      "path": "../../packages/config"
+    },
+    {
+      "path": "../../packages/db"
+    },
+    {
+      "path": "../../packages/middleware"
+    },
+    {
+      "path": "../../packages/audit"
+    },
+    {
+      "path": "../../packages/auth"
+    },
+    {
+      "path": "../../packages/provisioning"
+    }
   ]
 }

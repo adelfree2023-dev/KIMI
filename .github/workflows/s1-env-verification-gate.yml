@@ -16,6 +16,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history needed for Gitleaks
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v1
@@ -27,6 +29,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE || 'free' }}
+          GITLEAKS_ENABLE_COMMENTS: 'false'
 
       - name: Verify Environment Variables Structure
         run: |

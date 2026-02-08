@@ -69,7 +69,8 @@ describe('defaultCorsConfig', () => {
 describe('getTenantCorsConfig', () => {
   it('should return config with tenant origin', () => {
     const config = getTenantCorsConfig('coffee.apex.com');
-    expect(config.origin).toBe('coffee.apex.com');
+    expect(config.origin).toContain('coffee.apex.com');
+    expect(config.origin).toContain('admin.coffee.apex.com');
   });
 
   it('should preserve other settings', () => {

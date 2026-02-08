@@ -22,10 +22,10 @@ export default function LoginPage() {
 
         try {
             // TODO: Implement actual login
-            console.log('Login:', { email, password });
+            // await endpoints.auth.login(email, password);
             alert('Login functionality will be implemented');
         } catch (error) {
-            console.error('Login failed:', error);
+            console.error('Login failed');
         } finally {
             setIsLoading(false);
         }

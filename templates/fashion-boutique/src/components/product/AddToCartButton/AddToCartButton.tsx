@@ -29,12 +29,10 @@ export function AddToCartButton({ product }: AddToCartButtonProps) {
             //   quantity,
             // });
 
-            console.log('Added to cart:', { productId: product.id, quantity });
-
             // Show success toast
             alert(`Added ${quantity}x ${product.name} to cart!`);
         } catch (error) {
-            console.error('Failed to add to cart:', error);
+            console.error('Failed to add to cart');
             alert('Failed to add to cart. Please try again.');
         } finally {
             setIsAdding(false);

@@ -8,7 +8,7 @@ import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { ProvisioningModule } from './provisioning/provisioning.module.js';
-import { TenantIsolationMiddleware, RateLimitGuard } from '@apex/middleware';
+import { TenantIsolationMiddleware } from '@apex/middleware';
 
 @Module({
   imports: [
@@ -41,11 +41,8 @@ import { TenantIsolationMiddleware, RateLimitGuard } from '@apex/middleware';
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
     },
-    // S6: Custom Rate Limit Guard (Redis-based)
-    {
-      provide: APP_GUARD,
-      useClass: RateLimitGuard,
-    },
+    // Note: RateLimitGuard is HTTP-specific and applied per-controller
+    // Not registered globally to avoid CLI context issues
   ],
 })
 export class AppModule implements NestModule {

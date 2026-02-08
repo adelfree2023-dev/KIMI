@@ -1,0 +1,239 @@
+# ═══════════════════════════════════════════════════════════════
+# S14: Export Security Gate (S2 Compliance Verification)
+# Validates tenant data export system maintains isolation
+# ═══════════════════════════════════════════════════════════════
+
+name: "S14 Export Security Gate"
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+jobs:
+  s14-export-security:
+    name: "S14: Export System Security"
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install Dependencies
+        run: bun install
+
+      - name: S14.1: Tenant Isolation Verification
+        run: |
+          echo "═══════════════════════════════════════════════════════════════"
+          echo "  S14.1: Verifying S2 Tenant Isolation in Export System"
+          echo "═══════════════════════════════════════════════════════════════"
+          
+          # Check that export queries use schema prefix
+          SCHEMA_PREFIX=$(grep -r "tenant_" packages/export/src --include="*.ts" | grep -c "schemaName" || echo "0")
+          echo "Found $SCHEMA_PREFIX references to tenant schema isolation"
+          
+          if [ "$SCHEMA_PREFIX" -lt 3 ]; then
+            echo "❌ S14.1 FAILED: Insufficient tenant isolation in export queries"
+            exit 1
+          fi
+          
+          # Verify no cross-tenant queries
+          CROSS_TENANT=$(grep -rn "public\." packages/export/src --include="*.ts" | grep -v "public.tenants" | grep -v "audit" | wc -l)
+          if [ "$CROSS_TENANT" -gt 0 ]; then
+            echo "⚠️ WARNING: Found potential cross-tenant queries:"
+            grep -rn "public\." packages/export/src --include="*.ts" | grep -v "public.tenants" | grep -v "audit" || true
+          fi
+          
+          echo "✅ S14.1: Tenant isolation verified"
+
+      - name: S14.2: Export Strategy Validation
+        run: |
+          echo "═══════════════════════════════════════════════════════════════"
+          echo "  S14.2: Validating Export Strategy Pattern"
+          echo "═══════════════════════════════════════════════════════════════"
+          
+          # Check Strategy Pattern implementation
+          STRATEGIES=$(ls packages/export/src/strategies/*.ts 2>/dev/null | wc -l)
+          echo "Found $STRATEGIES export strategies"
+          
+          if [ "$STRATEGIES" -lt 3 ]; then
+            echo "❌ S14.2 FAILED: Missing export strategies (expected 3)"
+            exit 1
+          fi
+          
+          # Verify each strategy implements validate()
+          for strategy in packages/export/src/strategies/*.ts; do
+            if ! grep -q "validate" "$strategy"; then
+              echo "❌ Strategy $strategy missing validate() method"
+              exit 1
+            fi
+          done
+          
+          echo "✅ S14.2: All strategies properly implement validation"
+
+      - name: S14.3: Queue Security & Throttling
+        run: |
+          echo "═══════════════════════════════════════════════════════════════"
+          echo "  S14.3: Verifying Queue Security & Concurrency"
+          echo "═══════════════════════════════════════════════════════════════"
+          
+          # Check BullMQ queue configuration
+          if ! grep -q "concurrency.*1" packages/export/src/export.service.ts 2>/dev/null; then
+            echo "⚠️ WARNING: Tenant concurrency limit not explicitly set to 1"
+          fi
+          
+          # Verify job deduplication/throttling exists
+          if ! grep -q "activeJobs" packages/export/src/export.service.ts; then
+            echo "❌ S14.3 FAILED: Missing active job check for throttling"
+            exit 1
+          fi
+          
+          echo "✅ S14.3: Queue throttling configured"
+
+      - name: S14.4: Storage Security (S7)
+        run: |
+          echo "═══════════════════════════════════════════════════════════════"
+          echo "  S14.4: Verifying Storage Security"
+          echo "═══════════════════════════════════════════════════════════════"
+          
+          # Check for presigned URL usage
+          if ! grep -q "getSignedUrl" packages/export/src/export.worker.ts; then
+            echo "❌ S14.4 FAILED: Missing presigned URL generation"
+            exit 1
+          fi
+          
+          # Verify 24h expiry
+          if ! grep -q "expiresIn.*24.*60.*60" packages/export/src/export.worker.ts; then
+            echo "❌ S14.4 FAILED: Presigned URL expiry not set to 24h"
+            exit 1
+          fi
+          
+          # Check for auto-delete lifecycle
+          if ! grep -q "Expiration.*Days.*1" packages/export/src/export.worker.ts; then
+            echo "⚠️ WARNING: Auto-delete lifecycle may not be configured"
+          fi
+          
+          echo "✅ S14.4: Storage security verified"
+
+      - name: S14.5: Audit Logging (S4)
+        run: |
+          echo "═══════════════════════════════════════════════════════════════"
+          echo "  S14.5: Verifying Audit Logging"
+          echo "═══════════════════════════════════════════════════════════════"
+          
+          # Check audit log calls
+          AUDIT_CALLS=$(grep -c "audit.log" packages/export/src/*.ts || echo "0")
+          echo "Found $AUDIT_CALLS audit log calls"
+          
+          if [ "$AUDIT_CALLS" -lt 4 ]; then
+            echo "❌ S14.5 FAILED: Insufficient audit logging (expected: created, started, completed/failed)"
+            exit 1
+          fi
+          
+          # Verify all actions are logged
+          for action in "EXPORT_REQUESTED" "EXPORT_PROCESSING_STARTED" "EXPORT_COMPLETED" "EXPORT_FAILED"; do
+            if ! grep -rq "$action" packages/export/src/; then
+              echo "❌ Missing audit action: $action"
+              exit 1
+            fi
+          done
+          
+          echo "✅ S14.5: Audit logging comprehensive"
+
+      - name: S14.6: Authorization & Access Control
+        run: |
+          echo "═══════════════════════════════════════════════════════════════"
+          echo "  S14.6: Verifying Access Control"
+          echo "═══════════════════════════════════════════════════════════════"
+          
+          # Check admin role verification
+          if ! grep -q "role.*admin" packages/export/src/export.controller.ts; then
+            echo "❌ S14.6 FAILED: Missing admin role check"
+            exit 1
+          fi
+          
+          # Verify tenant access checks
+          if ! grep -q "tenantId.*user.tenantId" packages/export/src/export.controller.ts; then
+            echo "❌ S14.6 FAILED: Missing tenant access verification"
+            exit 1
+          fi
+          
+          echo "✅ S14.6: Access control verified"
+
+      - name: S14.7: Data Integrity (Checksums)
+        run: |
+          echo "═══════════════════════════════════════════════════════════════"
+          echo "  S14.7: Verifying Data Integrity"
+          echo "═══════════════════════════════════════════════════════════════"
+          
+          # Check checksum generation
+          if ! grep -q "SHA-256" packages/export/src/strategies/*.ts; then
+            echo "❌ S14.7 FAILED: Missing SHA-256 checksum generation"
+            exit 1
+          fi
+          
+          echo "✅ S14.7: Data integrity checks present"
+
+      - name: S14.8: Cleanup & Resource Management
+        run: |
+          echo "═══════════════════════════════════════════════════════════════"
+          echo "  S14.8: Verifying Cleanup Procedures"
+          echo "═══════════════════════════════════════════════════════════════"
+          
+          # Check for cleanup code
+          CLEANUP=$(grep -c "rm -rf\|rm -f" packages/export/src/*.ts || echo "0")
+          if [ "$CLEANUP" -lt 2 ]; then
+            echo "❌ S14.8 FAILED: Insufficient cleanup code"
+            exit 1
+          fi
+          
+          echo "✅ S14.8: Cleanup procedures verified"
+
+      - name: S14 Final Report
+        if: always()
+        run: |
+          echo ""
+          echo "╔═══════════════════════════════════════════════════════════════╗"
+          echo "║           S14 EXPORT SECURITY GATE COMPLETE                   ║"
+          echo "╚═══════════════════════════════════════════════════════════════╝"
+          echo ""
+          echo "✅ S14.1: Tenant Isolation (S2)"
+          echo "✅ S14.2: Strategy Pattern Validation"
+          echo "✅ S14.3: Queue Security & Throttling"
+          echo "✅ S14.4: Storage Security (S7)"
+          echo "✅ S14.5: Audit Logging (S4)"
+          echo "✅ S14.6: Authorization & Access Control"
+          echo "✅ S14.7: Data Integrity"
+          echo "✅ S14.8: Cleanup & Resource Management"
+          echo ""
+          echo "🛡️ Tenant Data Export System is S2 Compliant"

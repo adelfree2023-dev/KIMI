@@ -1,0 +1,206 @@
+/**
+ * Export Service
+ * Manages export jobs with BullMQ + Redis
+ * S2: Maintains tenant isolation
+ * S4: Audit logging
+ * S7: Secure presigned URLs
+ */
+
+import { Injectable, Logger, Inject } from '@nestjs/common';
+import { Queue, Job } from 'bullmq';
+import type { ExportJob, ExportOptions, ExportResult } from './types.js';
+import { ExportStrategyFactory } from './export-strategy.factory.js';
+import { AuditService } from '@apex/audit';
+import { randomUUID } from 'crypto';
+
+@Injectable()
+export class ExportService {
+  private readonly logger = new Logger(ExportService.name);
+  private exportQueue: Queue;
+
+  constructor(
+    private readonly strategyFactory: ExportStrategyFactory,
+    @Inject('AUDIT_SERVICE') private readonly audit: AuditService,
+  ) {
+    // Initialize BullMQ queue
+    this.exportQueue = new Queue('tenant-export', {
+      connection: {
+        host: process.env.REDIS_HOST || 'localhost',
+        port: parseInt(process.env.REDIS_PORT || '6379'),
+      },
+      defaultJobOptions: {
+        attempts: 3,
+        backoff: {
+          type: 'exponential',
+          delay: 5000,
+        },
+        removeOnComplete: 100,
+        removeOnFail: 50,
+      },
+    });
+
+    // Concurrency: 1 per tenant (throttling)
+    this.exportQueue.on('waiting', (job) => {
+      this.logger.log(`Export job ${job.id} waiting for tenant ${job.data.tenantId}`);
+    });
+  }
+
+  /**
+   * Create a new export job
+   * S4: Audit logged
+   */
+  async createExportJob(options: ExportOptions): Promise<ExportJob> {
+    // Validate options
+    const isValid = await this.strategyFactory.validateOptions(options);
+    if (!isValid) {
+      throw new Error(`Invalid export options for profile: ${options.profile}`);
+    }
+
+    // Check tenant concurrency (1 job per tenant)
+    const activeJobs = await this.exportQueue.getJobs(['active', 'waiting']);
+    const tenantJobs = activeJobs.filter(
+      j => j.data.tenantId === options.tenantId
+    );
+
+    if (tenantJobs.length > 0) {
+      throw new Error(
+        `Export already in progress for tenant ${options.tenantId}. ` +
+        `Please wait for completion.`
+      );
+    }
+
+    const jobId = randomUUID();
+
+    // Add to queue
+    const bullJob = await this.exportQueue.add(
+      'export',
+      {
+        id: jobId,
+        tenantId: options.tenantId,
+        profile: options.profile,
+        requestedBy: options.requestedBy,
+        includeAssets: options.includeAssets,
+        dateRange: options.dateRange,
+      },
+      {
+        jobId,
+        // Ensure FIFO within tenant
+        priority: 1,
+      }
+    );
+
+    // S4: Audit log
+    await this.audit.log({
+      action: 'EXPORT_REQUESTED',
+      entityType: 'EXPORT',
+      entityId: jobId,
+      tenantId: options.tenantId,
+      metadata: {
+        profile: options.profile,
+        requestedBy: options.requestedBy,
+      },
+    });
+
+    this.logger.log(`Export job created: ${jobId} for tenant ${options.tenantId}`);
+
+    return {
+      id: jobId,
+      tenantId: options.tenantId,
+      profile: options.profile,
+      requestedBy: options.requestedBy,
+      requestedAt: new Date(),
+      status: 'pending',
+    };
+  }
+
+  /**
+   * Get job status
+   */
+  async getJobStatus(jobId: string): Promise<ExportJob | null> {
+    const job = await this.exportQueue.getJob(jobId);
+    if (!job) return null;
+
+    const state = await job.getState();
+    const result = job.returnvalue as ExportResult | undefined;
+
+    return {
+      id: job.id as string,
+      tenantId: job.data.tenantId,
+      profile: job.data.profile,
+      requestedBy: job.data.requestedBy,
+      requestedAt: new Date(job.timestamp),
+      status: this.mapJobState(state),
+      progress: job.progress as number | undefined,
+      result: result ? {
+        ...result,
+        expiresAt: new Date(result.expiresAt),
+      } : undefined,
+      error: job.failedReason || undefined,
+    };
+  }
+
+  /**
+   * Cancel a pending job
+   */
+  async cancelJob(jobId: string): Promise<boolean> {
+    const job = await this.exportQueue.getJob(jobId);
+    if (!job) return false;
+
+    const state = await job.getState();
+    if (state === 'completed' || state === 'failed') {
+      return false; // Already finished
+    }
+
+    await job.remove();
+
+    // S4: Audit log
+    await this.audit.log({
+      action: 'EXPORT_CANCELLED',
+      entityType: 'EXPORT',
+      entityId: jobId,
+      tenantId: job.data.tenantId,
+    });
+
+    return true;
+  }
+
+  /**
+   * List export jobs for tenant
+   */
+  async listTenantExports(tenantId: string): Promise<ExportJob[]> {
+    const jobs = await this.exportQueue.getJobs([
+      'waiting',
+      'active',
+      'completed',
+      'failed',
+    ]);
+
+    return jobs
+      .filter(j => j.data.tenantId === tenantId)
+      .map(j => ({
+        id: j.id as string,
+        tenantId: j.data.tenantId,
+        profile: j.data.profile,
+        requestedBy: j.data.requestedBy,
+        requestedAt: new Date(j.timestamp),
+        status: this.mapJobState(j.getState()),
+      }));
+  }
+
+  private mapJobState(state: string | Promise<string>): ExportJob['status'] {
+    const resolved = typeof state === 'string' ? state : 'pending';
+    switch (resolved) {
+      case 'waiting':
+      case 'delayed':
+        return 'pending';
+      case 'active':
+        return 'processing';
+      case 'completed':
+        return 'completed';
+      case 'failed':
+        return 'failed';
+      default:
+        return 'pending';
+    }
+  }
+}

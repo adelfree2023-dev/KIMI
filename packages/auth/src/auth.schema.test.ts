@@ -32,7 +32,7 @@ describe('Auth Schemas (Rule 5.1)', () => {
     it('should validate strong passwords', () => {
       const valid = {
         email: 'user@test.com',
-        password: 'Password123',
+        password: 'SecurePass123!',
         tenantId: '550e8400-e29b-41d4-a716-446655440000',
       };
       expect(RegisterSchema.parse(valid)).toEqual(valid);
@@ -41,7 +41,7 @@ describe('Auth Schemas (Rule 5.1)', () => {
     it('should fail if password has no uppercase', () => {
       const invalid = {
         email: 'user@test.com',
-        password: 'password123',
+        password: 'securepass123!',
         tenantId: '550e8400-e29b-41d4-a716-446655440000',
       };
       expect(() => RegisterSchema.parse(invalid)).toThrow('uppercase');
@@ -50,7 +50,7 @@ describe('Auth Schemas (Rule 5.1)', () => {
     it('should fail if password has no lowercase', () => {
       const invalid = {
         email: 'user@test.com',
-        password: 'PASSWORD123',
+        password: 'SECUREPASS123!',
         tenantId: '550e8400-e29b-41d4-a716-446655440000',
       };
       expect(() => RegisterSchema.parse(invalid)).toThrow('lowercase');
@@ -59,7 +59,7 @@ describe('Auth Schemas (Rule 5.1)', () => {
     it('should fail if password has no number', () => {
       const invalid = {
         email: 'user@test.com',
-        password: 'Password',
+        password: 'SecurePasswd!',
         tenantId: '550e8400-e29b-41d4-a716-446655440000',
       };
       expect(() => RegisterSchema.parse(invalid)).toThrow('number');
@@ -68,10 +68,28 @@ describe('Auth Schemas (Rule 5.1)', () => {
     it('should fail on invalid tenantId UUID', () => {
       const invalid = {
         email: 'user@test.com',
-        password: 'Password123',
+        password: 'SecurePass123!',
         tenantId: 'invalid-uuid',
       };
       expect(() => RegisterSchema.parse(invalid)).toThrow();
+    });
+
+    it('should fail if password has no special character', () => {
+      const invalid = {
+        email: 'user@test.com',
+        password: 'SecurePass123',
+        tenantId: '550e8400-e29b-41d4-a716-446655440000',
+      };
+      expect(() => RegisterSchema.parse(invalid)).toThrow('special character');
+    });
+
+    it('should fail if password contains common words', () => {
+      const invalid = {
+        email: 'user@test.com',
+        password: 'Password123!!',
+        tenantId: '550e8400-e29b-41d4-a716-446655440000',
+      };
+      expect(() => RegisterSchema.parse(invalid)).toThrow('common words');
     });
   });
 

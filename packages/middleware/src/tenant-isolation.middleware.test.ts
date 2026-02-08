@@ -220,6 +220,18 @@ describe('TenantScopedGuard', () => {
 
     expect(() => guard.canActivate(mockContext as any)).toThrow('Tenant context required');
   });
+
+  it('should deny access if tenant is suspended (isActive=false)', () => {
+    const mockContext = {
+      switchToHttp: () => ({
+        getRequest: () => ({
+          tenantContext: { isActive: false, tenantId: 'suspended-tenant' },
+        }),
+      }),
+    };
+
+    expect(() => guard.canActivate(mockContext as any)).toThrow('Tenant is suspended');
+  });
 });
 
 describe('SuperAdminOrTenantGuard', () => {
@@ -265,5 +277,31 @@ describe('SuperAdminOrTenantGuard', () => {
     };
 
     expect(() => guard.canActivate(mockContext as any)).toThrow('Cross-tenant access denied');
+  });
+
+  it('should deny access when tenant is inactive without super_admin role', () => {
+    const mockContext = {
+      switchToHttp: () => ({
+        getRequest: () => ({
+          user: { role: 'user', tenantId: 'tenant-1' },
+          tenantContext: { tenantId: 'tenant-1', isActive: false },
+        }),
+      }),
+    };
+
+    expect(() => guard.canActivate(mockContext as any)).toThrow('Tenant access denied');
+  });
+
+  it('should deny access when tenantContext is missing for non-superadmin', () => {
+    const mockContext = {
+      switchToHttp: () => ({
+        getRequest: () => ({
+          user: { role: 'admin', tenantId: 'tenant-1' },
+          tenantContext: null,
+        }),
+      }),
+    };
+
+    expect(() => guard.canActivate(mockContext as any)).toThrow('Tenant access denied');
   });
 });

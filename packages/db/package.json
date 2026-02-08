@@ -10,7 +10,7 @@
     }
   },
   "scripts": {
-    "build": "bun build ./src/index.ts --outdir ./dist --target node && bun build ./src/index.ts --outfile ./dist/index.cjs --target node && tsc --emitDeclarationOnly || true",
+    "build": "bun build ./src/index.ts --outdir ./dist --target node && bun build ./src/index.ts --outfile ./dist/index.cjs --target node && tsc --emitDeclarationOnly",
     "db:generate": "drizzle-kit generate:pg",
     "db:migrate": "bun run src/migrate.ts",
     "db:studio": "drizzle-kit studio",
@@ -20,7 +20,8 @@
   "dependencies": {
     "drizzle-orm": "^0.29.0",
     "pg": "^8.11.0",
-    "@apex/config": "workspace:*"
+    "@apex/config": "workspace:*",
+    "zod": "^3.22.4"
   },
   "devDependencies": {
     "@types/pg": "^8.10.0",

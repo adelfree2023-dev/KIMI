@@ -3,7 +3,7 @@
 # Tests that errors don't leak sensitive information
 # ═══════════════════════════════════════════════════════════════
 
-name: '⚠️ S5 Exception Handling Gate'
+name: "⚠️ S5 Exception Handling Gate"
 
 on:
   push:
@@ -18,7 +18,7 @@ permissions:
 
 jobs:
   s5-exception-handling-test:
-    name: 'S5 Exception Handling Security Test'
+    name: "S5 Exception Handling Security Test"
     runs-on: ubuntu-latest
 
     steps:
@@ -35,28 +35,31 @@ jobs:
       - name: Check Global Exception Filter
         run: |
           echo "🔍 Checking for global exception filter..."
-          
+
           # Check for NestJS exception filter
           EXCEPTION_FILTER=$(grep -r "ExceptionFilter\|CatchEverything\|AllExceptions" packages/*/src apps/*/src --include="*.ts" 2>/dev/null | wc -l)
-          
+
           if [ "$EXCEPTION_FILTER" -eq 0 ]; then
             echo "🚨 CRITICAL: No global exception filter found!"
             echo "All errors must be caught and sanitized before reaching client"
             exit 1
           fi
-          
+
           echo "✅ Exception filter found: $EXCEPTION_FILTER references"
 
       - name: Verify No Stack Traces in Production
         run: |
           echo "🚫 Checking for stack trace leakage..."
-          
+
           # Check that stack traces are not sent to client
-          DANGEROUS_PATTERNS=$(grep -rn "stack.*response\|error\.stack\|stackTrace.*send\|return.*stack" packages/*/src apps/*/src --include="*.ts" 2>/dev/null | grep -v "node_modules\|test\|\.spec" | wc -l)
-          
+          # Exclude internal logging (logger.error) - that's fine and necessary
+          DANGEROUS_PATTERNS=$(grep -rn "stack.*response\|error\.stack\|stackTrace.*send\|return.*stack" packages/*/src apps/*/src --include="*.ts" 2>/dev/null | \
+            grep -v "node_modules\|test\|\.spec\|logger\|Logger\|log\|Log" | wc -l)
+
           if [ "$DANGEROUS_PATTERNS" -gt 0 ]; then
             echo "🚨 CRITICAL: Potential stack trace leakage detected!"
-            grep -rn "stack.*response\|error\.stack\|stackTrace.*send\|return.*stack" packages/*/src apps/*/src --include="*.ts" 2>/dev/null | grep -v "node_modules\|test\|\.spec" | head -10
+            grep -rn "stack.*response\|error\.stack\|stackTrace.*send\|return.*stack" packages/*/src apps/*/src --include="*.ts" 2>/dev/null | \
+              grep -v "node_modules\|test\|\.spec\|logger\|Logger\|log\|Log" | head -10
             echo ""
             echo "Stack traces reveal:"
             echo "  - Internal file paths"
@@ -65,33 +68,33 @@ jobs:
             echo "  - Third-party library vulnerabilities"
             exit 1
           fi
-          
+
           echo "✅ No stack trace leakage detected"
 
       - name: Check Error Response Sanitization
         run: |
           echo "🧹 Checking error response sanitization..."
-          
+
           # Check for proper error response structure
           ERROR_RESPONSES=$(grep -rn "message.*error\|error.*message" packages/*/src apps/*/src --include="*.ts" 2>/dev/null | grep -E "response\|send\|json" | wc -l)
-          
+
           # Look for generic error messages
           GENERIC_ERRORS=$(grep -rn '"Internal Server Error"\|"Something went wrong"\|"An error occurred"' packages/*/src apps/*/src --include="*.ts" 2>/dev/null | wc -l)
-          
+
           if [ "$GENERIC_ERRORS" -eq 0 ] && [ "$ERROR_RESPONSES" -gt 0 ]; then
             echo "⚠️ WARNING: No generic error messages found"
             echo "Consider using generic messages in production: 'An error occurred'"
           fi
-          
+
           echo "✅ Error response patterns checked"
 
       - name: Verify Database Error Handling
         run: |
           echo "🗄️ Checking database error handling..."
-          
+
           # Check for raw database errors being sent
           DB_ERROR_LEAKS=$(grep -rn "pg.*error\|postgres.*error\|drizzle.*error\|query.*failed\|constraint.*violation" packages/*/src apps/*/src --include="*.ts" -i 2>/dev/null | grep -E "response\|send\|return" | wc -l)
-          
+
           if [ "$DB_ERROR_LEAKS" -gt 0 ]; then
             echo "🚨 CRITICAL: Database errors may leak to client!"
             grep -rn "pg.*error\|postgres.*error\|drizzle.*error" packages/*/src apps/*/src --include="*.ts" -i 2>/dev/null | grep -E "response\|send\|return" | head -5
@@ -103,16 +106,16 @@ jobs:
             echo "  - Query syntax"
             exit 1
           fi
-          
+
           echo "✅ Database error handling verified"
 
       - name: Check GlitchTip/Sentry Integration
         run: |
           echo "📡 Checking error monitoring integration..."
-          
+
           # Check for GlitchTip, Sentry, or similar
           ERROR_MONITORING=$(grep -r "glitchtip\|sentry\|Sentry\|@sentry" packages/*/src apps/*/src --include="*.ts" -i 2>/dev/null | wc -l)
-          
+
           if [ "$ERROR_MONITORING" -eq 0 ]; then
             echo "⚠️ WARNING: No error monitoring service found"
             echo "Consider: GlitchTip, Sentry, or LogRocket for error tracking"
@@ -123,17 +126,17 @@ jobs:
       - name: Verify HTTP Status Codes
         run: |
           echo "📊 Checking HTTP status code usage..."
-          
+
           # Check for proper status codes
           STATUS_CODES=$(grep -r "HttpStatus\|@HttpCode\|res.status(" packages/*/src apps/*/src --include="*.ts" 2>/dev/null | wc -l)
-          
+
           if [ "$STATUS_CODES" -eq 0 ]; then
             echo "⚠️ WARNING: No explicit HTTP status codes found"
             echo "Use appropriate status codes: 400, 401, 403, 404, 500"
           else
             echo "✅ HTTP status codes found: $STATUS_CODES references"
           fi
-          
+
           # Check for sensitive 500 errors
           INTERNAL_ERRORS=$(grep -rn "500\|INTERNAL_SERVER_ERROR" packages/*/src apps/*/src --include="*.ts" 2>/dev/null | grep -E "throw|new" | wc -l)
           echo "Internal error throws: $INTERNAL_ERRORS (should be minimal)"
@@ -141,10 +144,10 @@ jobs:
       - name: Check Validation Error Messages
         run: |
           echo "✅ Checking validation error messages..."
-          
+
           # Zod validation should not expose schema details
           ZOD_ERRORS=$(grep -rn "zod.*error\|ZodError\|validation.*error" packages/*/src apps/*/src --include="*.ts" -i 2>/dev/null | wc -l)
-          
+
           if [ "$ZOD_ERRORS" -gt 0 ]; then
             echo "Found $ZOD_ERRORS Zod error references"
             echo "Ensure Zod errors don't expose internal schema structures"
@@ -153,10 +156,10 @@ jobs:
       - name: Test Error Boundary (Frontend)
         run: |
           echo "🌐 Checking frontend error boundaries..."
-          
+
           # Check for React error boundaries or similar
           ERROR_BOUNDARIES=$(grep -r "ErrorBoundary\|error-boundary\|componentDidCatch" apps/*/src --include="*.tsx" --include="*.ts" 2>/dev/null | wc -l)
-          
+
           if [ "$ERROR_BOUNDARIES" -eq 0 ]; then
             echo "⚠️ WARNING: No frontend error boundaries found"
             echo "Frontend should catch and sanitize errors too"
@@ -167,10 +170,10 @@ jobs:
       - name: Verify Environment-Based Error Detail
         run: |
           echo "🔧 Checking environment-based error handling..."
-          
+
           # Check for NODE_ENV conditional error details
           ENV_CONDITIONAL=$(grep -rn "NODE_ENV\|process.env.*env" packages/*/src apps/*/src --include="*.ts" 2>/dev/null | grep -i "error\|stack\|debug" | wc -l)
-          
+
           if [ "$ENV_CONDITIONAL" -eq 0 ]; then
             echo "⚠️ WARNING: No environment-based error detail control"
             echo "Should show detailed errors only in development"

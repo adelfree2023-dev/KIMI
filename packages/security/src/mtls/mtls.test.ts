@@ -1,5 +1,6 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { generateSecret, SecretsManager, hashSecret, verifySecret, MTLSServer, loadCertificates } from './index.js';
+import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
+import { MTLSServer, loadCertificates } from './index.js';
+import { generateSecret, SecretsManager, hashSecret, verifySecret } from '../secrets/index.js';
 import { createServer } from 'https';
 import { readFileSync, writeFileSync, mkdirSync, rmSync } from 'fs';
 import { join } from 'path';
@@ -7,11 +8,11 @@ import { tmpdir } from 'os';
 
 describe('mTLS Implementation', () => {
   const testDir = join(tmpdir(), 'mtls-test-' + Date.now());
-  
+
   beforeAll(() => {
     // Create test certificates
     mkdirSync(testDir, { recursive: true });
-    
+
     // Generate self-signed cert for testing
     const { execSync } = require('child_process');
     try {
@@ -27,11 +28,11 @@ describe('mTLS Implementation', () => {
       // If openssl not available, skip mTLS tests
     }
   });
-  
+
   afterAll(() => {
     try {
       rmSync(testDir, { recursive: true });
-    } catch {}
+    } catch { }
   });
 
   describe('Certificate Loading', () => {
@@ -54,7 +55,7 @@ describe('mTLS Implementation', () => {
           requestCert: true,
           rejectUnauthorized: true,
         });
-        
+
         expect(server).toBeDefined();
       } catch {
         // Skip if certs not generated
@@ -65,7 +66,7 @@ describe('mTLS Implementation', () => {
 
 describe('Secrets Manager', () => {
   let manager: SecretsManager;
-  
+
   beforeEach(() => {
     manager = new SecretsManager();
   });
@@ -74,7 +75,7 @@ describe('Secrets Manager', () => {
     it('should generate cryptographically secure secrets', () => {
       const secret1 = generateSecret(32);
       const secret2 = generateSecret(32);
-      
+
       expect(secret1).toHaveLength(43); // base64url encoding
       expect(secret2).toHaveLength(43);
       expect(secret1).not.toBe(secret2); // Should be unique
@@ -83,7 +84,7 @@ describe('Secrets Manager', () => {
     it('should generate different lengths', () => {
       const short = generateSecret(16);
       const long = generateSecret(64);
-      
+
       expect(long.length).toBeGreaterThan(short.length);
     });
   });
@@ -93,7 +94,7 @@ describe('Secrets Manager', () => {
       const secret = 'test-secret-123';
       const hash1 = hashSecret(secret);
       const hash2 = hashSecret(secret);
-      
+
       expect(hash1).toBe(hash2);
       expect(hash1).toHaveLength(64); // SHA-256 hex
     });
@@ -101,7 +102,7 @@ describe('Secrets Manager', () => {
     it('should verify secrets correctly', () => {
       const secret = 'my-secret';
       const hash = hashSecret(secret);
-      
+
       expect(verifySecret(secret, hash)).toBe(true);
       expect(verifySecret('wrong-secret', hash)).toBe(false);
     });
@@ -109,7 +110,7 @@ describe('Secrets Manager', () => {
     it('should use constant-time comparison', () => {
       const secret = 'test';
       const hash = hashSecret(secret);
-      
+
       // Should not throw timing attack errors
       expect(verifySecret(secret, hash)).toBe(true);
     });
@@ -118,7 +119,7 @@ describe('Secrets Manager', () => {
   describe('Secret Registration', () => {
     it('should register and retrieve secrets', () => {
       manager.registerSecret('test-secret', 'my-value');
-      
+
       expect(manager.getSecret('test-secret')).toBe('my-value');
     });
 
@@ -128,7 +129,7 @@ describe('Secrets Manager', () => {
 
     it('should validate current secrets', () => {
       manager.registerSecret('api-key', 'secret-123');
-      
+
       const result = manager.validateSecret('api-key', 'secret-123');
       expect(result.valid).toBe(true);
       expect(result.status).toBe('current');
@@ -136,7 +137,7 @@ describe('Secrets Manager', () => {
 
     it('should reject invalid secrets', () => {
       manager.registerSecret('api-key', 'secret-123');
-      
+
       const result = manager.validateSecret('api-key', 'wrong-secret');
       expect(result.valid).toBe(false);
       expect(result.status).toBe('invalid');
@@ -146,9 +147,9 @@ describe('Secrets Manager', () => {
   describe('Secret Rotation', () => {
     it('should rotate secrets', () => {
       manager.registerSecret('jwt-secret', 'old-value');
-      
+
       const newValue = manager.rotateSecret('jwt-secret', 'manual');
-      
+
       expect(newValue).not.toBe('old-value');
       expect(manager.getSecret('jwt-secret')).toBe(newValue);
     });
@@ -157,14 +158,14 @@ describe('Secrets Manager', () => {
       manager.registerSecret('api-key', 'first-value', {
         gracePeriod: 60 * 60 * 1000, // 1 hour
       });
-      
+
       const newValue = manager.rotateSecret('api-key');
-      
+
       // Old value should still work
       const result = manager.validateSecret('api-key', 'first-value');
       expect(result.valid).toBe(true);
       expect(result.status).toBe('grace');
-      
+
       // New value should work
       expect(manager.validateSecret('api-key', newValue).status).toBe('current');
     });
@@ -172,10 +173,10 @@ describe('Secrets Manager', () => {
     it('should emit rotation events', () => {
       const events: any[] = [];
       manager.onRotate((event) => events.push(event));
-      
+
       manager.registerSecret('test', 'initial');
       manager.rotateSecret('test', 'manual');
-      
+
       expect(events).toHaveLength(1);
       expect(events[0].secretName).toBe('test');
       expect(events[0].reason).toBe('manual');
@@ -190,9 +191,9 @@ describe('Secrets Manager', () => {
     it('should report rotation status', () => {
       manager.registerSecret('secret1', 'value1');
       manager.registerSecret('secret2', 'value2');
-      
+
       const status = manager.getRotationStatus();
-      
+
       expect(status).toHaveLength(2);
       expect(status[0].name).toBe('secret1');
       expect(status[0].daysUntilRotation).toBeGreaterThan(0);
@@ -204,9 +205,9 @@ describe('Secrets Manager', () => {
       manager.registerSecret('secret1', 'value1');
       manager.registerSecret('secret2', 'value2');
       manager.registerSecret('secret3', 'value3');
-      
+
       const rotated = manager.emergencyRotation();
-      
+
       expect(rotated).toHaveLength(3);
       expect(rotated).toContain('secret1');
       expect(rotated).toContain('secret2');

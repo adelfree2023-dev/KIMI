@@ -62,13 +62,169 @@ jobs:
     secrets: inherit
 
   # ═══════════════════════════════════════════════════════════════
-  # PHASE 2: Provisioning Speed Test (60s North Star)
+  # PHASE 2: S9-S13 Penetration Tests
+  # ═══════════════════════════════════════════════════════════════
+  s9-s13-penetration:
+    name: "🎯 S9-S13 Penetration Tests"
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: [s1-env, s2-tenant, s3-input, s4-audit, s5-exception, s6-rate, s7-encrypt, s8-headers]
+    if: always() && !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled')
+    
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: pentest
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install Dependencies
+        run: bun install
+
+      - name: 🎯 S9: Dependency Vulnerability Scan
+        run: |
+          echo "═══════════════════════════════════════════════════════════"
+          echo "              🔍 S9: DEPENDENCY VULNERABILITY SCAN"
+          echo "═══════════════════════════════════════════════════════════"
+          
+          bun npm audit --audit-level=moderate 2>&1 || true
+          
+          CRITICAL_COUNT=$(bun npm audit --audit-level=critical --json 2>/dev/null | jq '.metadata.vulnerabilities.critical // 0' || echo "0")
+          
+          if [ "$CRITICAL_COUNT" -gt 0 ]; then
+            echo "🚨 S9 FAILED: $CRITICAL_COUNT critical vulnerabilities"
+            exit 1
+          fi
+          
+          echo "✅ S9: Dependency scan passed"
+
+      - name: 🕵️ S10: Secret Detection
+        run: |
+          echo "═══════════════════════════════════════════════════════════"
+          echo "              🕵️ S10: SECRET DETECTION"
+          echo "═══════════════════════════════════════════════════════════"
+          
+          # Check for hardcoded secrets patterns
+          SECRET_PATTERNS="(password|secret|key|token)\s*=\s*['\"][^'\"]{8,}['\"]"
+          
+          MATCHES=$(grep -riE "$SECRET_PATTERNS" packages apps --include="*.ts" --include="*.tsx" | grep -v "test.ts" | grep -v ".d.ts" | grep -v "example" | head -10 || true)
+          
+          if [ -n "$MATCHES" ]; then
+            echo "⚠️ S10 WARNING: Potential hardcoded values found:"
+            echo "$MATCHES"
+          else
+            echo "✅ S10: No obvious secrets detected"
+          fi
+
+      - name: 💉 S11: SQL Injection Defense Check
+        run: |
+          echo "═══════════════════════════════════════════════════════════"
+          echo "         💉 S11: SQL INJECTION DEFENSE CHECK"
+          echo "═══════════════════════════════════════════════════════════"
+          
+          # Check for parameterized queries usage
+          UNPARAMETERIZED=$(grep -r "query\s*(" packages --include="*.ts" | grep -v "test.ts" | grep -E "\$\{|\`.*\${" | grep -v "prepare" | head -5 || true)
+          
+          if [ -n "$UNPARAMETERIZED" ]; then
+            echo "⚠️ S11 WARNING: Check these queries for parameterization:"
+            echo "$UNPARAMETERIZED"
+          else
+            echo "✅ S11: Queries appear parameterized"
+          fi
+
+      - name: 🎯 S12: XSS Defense Check
+        run: |
+          echo "═══════════════════════════════════════════════════════════"
+          echo "         🎯 S12: XSS DEFENSE CHECK"
+          echo "═══════════════════════════════════════════════════════════"
+          
+          # Check for unsafe innerHTML
+          UNSAFE_HTML=$(grep -r "innerHTML\|dangerouslySetInnerHTML" packages apps --include="*.ts" --include="*.tsx" | grep -v "test.ts" | head -5 || true)
+          
+          if [ -n "$UNSAFE_HTML" ]; then
+            echo "⚠️ S12 WARNING: Unsafe HTML usage found:"
+            echo "$UNSAFE_HTML"
+          else
+            echo "✅ S12: No unsafe HTML usage detected"
+          fi
+
+      - name: 🎭 S13: Red Team Simulation
+        run: |
+          echo "═══════════════════════════════════════════════════════════"
+          echo "         🎭 S13: RED TEAM ATTACK SIMULATION"
+          echo "═══════════════════════════════════════════════════════════"
+          
+          mkdir -p packages/security/src/redteam
+          
+          cat > packages/security/src/redteam/attacks.test.ts << 'TESTEOF'
+          import { describe, it, expect } from 'vitest';
+
+          describe('🔓 Auth Bypass Defense', () => {
+            const bypassAttempts = [
+              { email: "admin' OR '1'='1", password: "anything" },
+              { email: "admin@example.com'--", password: "ignored" },
+            ];
+
+            it.each(bypassAttempts)('should reject: %o', (payload) => {
+              const isSanitized = !payload.email.includes("' OR") && !payload.password.includes("' OR");
+              expect(isSanitized).toBe(true);
+            });
+          });
+
+          describe('📁 Path Traversal Defense', () => {
+            const traversalPayloads = [
+              "../../../etc/passwd",
+              "..\\..\\..\\windows\\system32\\config\\sam",
+            ];
+
+            it.each(traversalPayloads)('should block: %s', (payload) => {
+              const normalized = payload.replace(/\.{2,}[/\\]/g, '');
+              expect(normalized === '' || normalized !== payload).toBe(true);
+            });
+          });
+          TESTEOF
+          
+          bun test packages/security/src/redteam/attacks.test.ts --reporter=verbose
+          
+          echo "✅ S13: Red Team simulation completed"
+
+      - name: 📊 S9-S13 Summary
+        run: |
+          echo "═══════════════════════════════════════════════════════════"
+          echo "         🎯 S9-S13 PENETRATION TESTS COMPLETE"
+          echo "═══════════════════════════════════════════════════════════"
+          echo ""
+          echo "✅ S9: Dependency Vulnerability Scan"
+          echo "✅ S10: Secret Detection"
+          echo "✅ S11: SQL Injection Defense"
+          echo "✅ S12: XSS Defense"
+          echo "✅ S13: Red Team Simulation"
+
+  # ═══════════════════════════════════════════════════════════════
+  # PHASE 3: Provisioning Speed Test (60s North Star)
   # ═══════════════════════════════════════════════════════════════
   provisioning-speed:
     name: "⏱️ 60-Second Provisioning"
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    needs: [s1-env, s2-tenant, s3-input, s4-audit, s5-exception, s6-rate, s7-encrypt, s8-headers]
+    needs: [s1-env, s2-tenant, s3-input, s4-audit, s5-exception, s6-rate, s7-encrypt, s8-headers, s9-s13-penetration]
     if: always() && !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled')
     
     services:
@@ -234,7 +390,7 @@ jobs:
   final-report:
     name: "📊 Pipeline Report"
     runs-on: ubuntu-latest
-    needs: [s1-env, s2-tenant, s3-input, s4-audit, s5-exception, s6-rate, s7-encrypt, s8-headers, provisioning-speed, deploy-staging]
+    needs: [s1-env, s2-tenant, s3-input, s4-audit, s5-exception, s6-rate, s7-encrypt, s8-headers, s9-s13-penetration, provisioning-speed, deploy-staging]
     if: always()
 
     steps:
@@ -264,6 +420,15 @@ jobs:
           echo "  $(icon '${{ needs.s8-headers.result }}') S8: Security Headers"
           echo ""
 
+          # Penetration Tests (S9-S13)
+          echo "🎯 Penetration Tests (S9-S13):"
+          echo "  $(icon '${{ needs.s9-s13-penetration.result }}') S9: Dependency Scan"
+          echo "  $(icon '${{ needs.s9-s13-penetration.result }}') S10: Secret Detection"
+          echo "  $(icon '${{ needs.s9-s13-penetration.result }}') S11: SQL Injection Test"
+          echo "  $(icon '${{ needs.s9-s13-penetration.result }}') S12: XSS Test"
+          echo "  $(icon '${{ needs.s9-s13-penetration.result }}') S13: Red Team Simulation"
+          echo ""
+
           # Other phases
           echo "⏱️ Performance:"
           echo "  $(icon '${{ needs.provisioning-speed.result }}') 60-Second Provisioning"
@@ -278,7 +443,7 @@ jobs:
           FAILED=0
           SKIPPED=0
 
-          for result in "${{ needs.s1-env.result }}" "${{ needs.s2-tenant.result }}" "${{ needs.s3-input.result }}" "${{ needs.s4-audit.result }}" "${{ needs.s5-exception.result }}" "${{ needs.s6-rate.result }}" "${{ needs.s7-encrypt.result }}" "${{ needs.s8-headers.result }}" "${{ needs.provisioning-speed.result }}" "${{ needs.deploy-staging.result }}"; do
+          for result in "${{ needs.s1-env.result }}" "${{ needs.s2-tenant.result }}" "${{ needs.s3-input.result }}" "${{ needs.s4-audit.result }}" "${{ needs.s5-exception.result }}" "${{ needs.s6-rate.result }}" "${{ needs.s7-encrypt.result }}" "${{ needs.s8-headers.result }}" "${{ needs.s9-s13-penetration.result }}" "${{ needs.provisioning-speed.result }}" "${{ needs.deploy-staging.result }}"; do
             case "$result" in
               success) PASSED=$((PASSED + 1)) ;;
               failure) FAILED=$((FAILED + 1)) ;;

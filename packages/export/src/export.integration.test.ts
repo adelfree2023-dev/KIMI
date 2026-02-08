@@ -8,7 +8,9 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { Queue } from 'bullmq';
 import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
 
-describe('Export Integration Tests', () => {
+const INTEGRATION_TEST = process.env.RUN_INTEGRATION_TESTS === 'true';
+
+(INTEGRATION_TEST ? describe : describe.skip)('Export Integration Tests', () => {
   const TEST_TENANT = 'integration-test-tenant';
   let s3Client: S3Client;
 
@@ -49,18 +51,18 @@ describe('Export Integration Tests', () => {
       // 2. Wait for processing (max 30s)
       let status = job.status;
       let attempts = 0;
-      
+
       while (status === 'pending' || status === 'processing') {
         await new Promise(r => setTimeout(r, 1000));
-        
+
         const statusRes = await fetch(
           `http://localhost:3000/api/v1/tenant/export/${job.id}/status`,
           { headers: { 'Authorization': 'Bearer test-token' } }
         );
-        
+
         const statusData = await statusRes.json();
         status = statusData.status;
-        
+
         if (++attempts > 30) {
           throw new Error('Export timeout');
         }
@@ -73,7 +75,7 @@ describe('Export Integration Tests', () => {
         `http://localhost:3000/api/v1/tenant/export/${job.id}/status`,
         { headers: { 'Authorization': 'Bearer test-token' } }
       );
-      
+
       const finalData = await finalStatus.json();
       expect(finalData.result?.downloadUrl).toBeDefined();
       expect(finalData.result?.checksum).toBeDefined();
@@ -81,7 +83,7 @@ describe('Export Integration Tests', () => {
       // 4. Verify file exists in S3
       const bucketName = 'tenant-exports';
       const objectKey = `exports/${TEST_TENANT}/${job.id}.tar.gz`;
-      
+
       try {
         await s3Client.send(
           new GetObjectCommand({ Bucket: bucketName, Key: objectKey })
@@ -143,7 +145,7 @@ describe('Export Integration Tests', () => {
       // Wait for completion
       let status = 'pending';
       let attempts = 0;
-      
+
       while (status !== 'completed' && attempts < 30) {
         await new Promise(r => setTimeout(r, 1000));
         const statusRes = await fetch(
@@ -170,7 +172,7 @@ describe('Export Integration Tests', () => {
       // 3. Verify file is deleted from S3
       const bucketName = 'tenant-exports';
       const objectKey = `exports/${TEST_TENANT}/${job.id}.tar.gz`;
-      
+
       await expect(
         s3Client.send(new GetObjectCommand({ Bucket: bucketName, Key: objectKey }))
       ).rejects.toThrow();
@@ -179,7 +181,7 @@ describe('Export Integration Tests', () => {
     it('should auto-delete file after 5-minute timeout', async () => {
       // This test would take 5+ minutes to run
       // In CI, we use a shorter timeout or mock the timer
-      
+
       // For integration testing, we'll verify the timeout is set
       const createRes = await fetch('http://localhost:3000/api/v1/tenant/export', {
         method: 'POST',
@@ -312,7 +314,7 @@ describe('Export Integration Tests', () => {
 
     it('should handle multiple tenants exporting simultaneously', async () => {
       const tenants = ['tenant-a', 'tenant-b', 'tenant-c'];
-      
+
       // Start exports for all tenants
       const promises = tenants.map(tenant =>
         fetch('http://localhost:3000/api/v1/tenant/export', {
@@ -330,7 +332,7 @@ describe('Export Integration Tests', () => {
       );
 
       const results = await Promise.all(promises);
-      
+
       // All should be accepted (concurrency limit is per-tenant)
       results.forEach(res => {
         expect([202, 409]).toContain(res.status);
@@ -339,8 +341,4 @@ describe('Export Integration Tests', () => {
   });
 });
 
-// Run only if integration env is available
-const INTEGRATION_TEST = process.env.RUN_INTEGRATION_TESTS === 'true';
-(INTEGRATION_TEST ? describe : describe.skip)('Export Integration', () => {
-  // Integration tests defined above
-});
+

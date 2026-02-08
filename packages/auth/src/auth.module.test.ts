@@ -10,11 +10,17 @@ vi.mock('@nestjs/passport', () => ({
   PassportModule: {
     register: () => ({ module: 'PassportModule' }),
   },
-  PassportStrategy: class MockPassportStrategy {
+  // PassportStrategy is a mixin function that returns a class
+  PassportStrategy: () => class MockPassportStrategy {
     constructor() {}
   },
   AuthGuard: () => class MockAuthGuard {
     canActivate() { return true; }
+    handleRequest(err: any, user: any) {
+      if (err) throw err;
+      if (!user) throw new Error('User not found');
+      return user;
+    }
   },
 }));
 

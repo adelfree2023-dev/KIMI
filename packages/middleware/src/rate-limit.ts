@@ -28,7 +28,7 @@ export interface RateLimitConfig {
  * Redis Rate Limit Store
  * CRITICAL: Supports distributed deployments (Docker/K8s multi-instance)
  */
-class RedisRateLimitStore {
+export class RedisRateLimitStore {
   private client: RedisClientType | null = null;
   private connecting = false;
   private fallbackToMemory = false;

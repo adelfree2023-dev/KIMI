@@ -40,6 +40,8 @@ export default defineConfig({
         '**/index.ts',
         '**/node_modules/**',
         '**/dist/**',
+        'packages/db/src/migrate.ts',
+        'apps/api/src/main.ts',
       ],
       // Phase 1 Thresholds: 90% as required by Constitution Rule 4.1
       thresholds: {

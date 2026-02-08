@@ -121,7 +121,16 @@ describe('RateLimitGuard', () => {
     // First request should pass
     await guard.canActivate(mockContext as any);
 
-    // Second request should fail
-    await expect(guard.canActivate(mockContext as any)).rejects.toThrow();
+    // Second request should fail - use fresh context but same request data
+    const mockRes2 = { setHeader: vi.fn() };
+    const mockContext2 = {
+      switchToHttp: () => ({
+        getRequest: () => mockReq,
+        getResponse: () => mockRes2,
+      }),
+      getHandler: () => ({}),
+      getClass: () => ({}),
+    };
+    await expect(guard.canActivate(mockContext2 as any)).rejects.toThrow();
   });
 });

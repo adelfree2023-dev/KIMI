@@ -41,22 +41,21 @@ export default defineConfig({
         '**/node_modules/**',
         '**/dist/**',
       ],
-      // Phase 1 Thresholds: 30% minimum (will increase to 90% in later phases)
-      // Constitution Rule 4.1: Progressive coverage improvement
+      // Phase 1 Thresholds: 90% as required by Constitution Rule 4.1
       thresholds: {
-        branches: 30,
-        functions: 30,
-        lines: 30,
-        statements: 30,
+        branches: 90,
+        functions: 90,
+        lines: 90,
+        statements: 90,
       },
       // Report uncovered files
       reportOnFailure: true,
       // Show coverage summary at the end
       watermarks: {
-        statements: [30, 80],
-        functions: [30, 80],
-        branches: [30, 80],
-        lines: [30, 80],
+        statements: [50, 90],
+        functions: [50, 90],
+        branches: [50, 90],
+        lines: [50, 90],
       },
     },
     onConsoleLog: (log, type) => {

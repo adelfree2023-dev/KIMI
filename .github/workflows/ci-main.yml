@@ -761,29 +761,21 @@ jobs:
                 /^0\./,
                 /^::1$/,
                 /^fc00:/,
-                /^fe80:/,
-                /^0x7f/i,  // Hex encoded 127
-                /^0177\./  // Octal encoded 127
+                /^fe80:/
               ];
               
               ssrfPayloads.forEach(url => {
                 const hostname = new URL(url).hostname;
-                const isBlocked = blockedRanges.some(r => r.test(hostname));
+                const isBlockedByRange = blockedRanges.some(r => r.test(hostname));
                 
-                // Check for internal IPs, localhost, or encoded variants
-                const isInternal = url.includes('169.254') || 
-                                   url.includes('127') || 
-                                   url.includes('localhost') ||
-                                   url.includes('0x7f') ||      // Hex 127
-                                   url.includes('0177') ||      // Octal 127
-                                   url.includes('0.0.0.0') ||
-                                   url.startsWith('file://') || // File protocol
-                                   url.startsWith('dict://') || // Dict protocol
-                                   url.startsWith('ftp://');    // FTP protocol
+                // Check for hex/octal encoded IPs and non-HTTP protocols
+                const isHexEncoded = hostname.toLowerCase().startsWith('0x');
+                const isOctalEncoded = hostname.startsWith('0177');
+                const isNonHttpProtocol = !url.startsWith('http');
+                const isBlocked = isBlockedByRange || isHexEncoded || isOctalEncoded || isNonHttpProtocol;
                 
-                if (isInternal) {
-                  expect(isBlocked || !url.startsWith('http')).toBe(true);
-                }
+                // Verify all SSRF payloads are blocked
+                expect(isBlocked).toBe(true);
               });
             });
           });

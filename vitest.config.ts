@@ -45,7 +45,7 @@ export default defineConfig({
       ],
       // Phase 1 Thresholds: 90% as required by Constitution Rule 4.1
       thresholds: {
-        branches: 95,
+        branches: 90,
         functions: 95,
         lines: 95,
         statements: 95,

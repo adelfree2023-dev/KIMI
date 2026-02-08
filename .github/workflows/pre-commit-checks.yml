@@ -122,9 +122,10 @@ jobs:
             exit 1
           fi
           
-          # Check for file cleanup
-          if ! grep -q "rm -rf\|rm -f" packages/export/src/strategies/*.ts; then
-            echo "❌ CRITICAL: Export strategies missing cleanup code"
+          # Check for file cleanup (supports both 'rm -rf' and Bun.spawn(['rm', ...])
+          CLEANUP_COUNT=$(grep -c "rm.*-rf\|rm.*-f\|cleanup" packages/export/src/strategies/*.ts || echo "0")
+          if [ "$CLEANUP_COUNT" -lt 3 ]; then
+            echo "❌ CRITICAL: Export strategies missing cleanup code (found $CLEANUP_COUNT, expected 3+)"
             exit 1
           fi
           

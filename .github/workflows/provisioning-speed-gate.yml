@@ -56,7 +56,9 @@ jobs:
 
       - name: Setup Test Database
         run: |
-          bun run db:push
+          cd packages/db
+          bun run db:generate
+          bun run db:migrate
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/apex_test
           REDIS_URL: redis://localhost:6379

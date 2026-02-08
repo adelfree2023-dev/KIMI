@@ -157,6 +157,14 @@ describe('Tenant Overview Service', () => {
     });
 
     it('should return null for non-existent subdomain', async () => {
+      const { publicDb } = await import('@apex/db');
+      vi.mocked(publicDb.select).mockReturnValueOnce({
+        from: vi.fn().mockReturnValue({
+          where: vi.fn().mockReturnThis(),
+          limit: vi.fn().mockResolvedValue([]),
+        }),
+      } as any);
+
       const result = await getTenantBySubdomain('non-existent');
       expect(result).toBeNull();
     });
@@ -169,6 +177,13 @@ describe('Tenant Overview Service', () => {
     });
 
     it('should return null for non-existent tenant', async () => {
+      const { publicDb } = await import('@apex/db');
+      vi.mocked(publicDb.update).mockReturnValueOnce({
+        set: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        returning: vi.fn().mockResolvedValue([]),
+      } as any);
+
       const result = await updateTenantStatus('non-existent', 'active');
       expect(result).toBeNull();
     });
@@ -201,6 +216,21 @@ describe('Tenant Overview Service', () => {
     });
 
     it('should allow deletion of suspended tenants', async () => {
+      // Mock getTenantById to return a suspended tenant
+      const { publicDb } = await import('@apex/db');
+      vi.mocked(publicDb.select).mockReturnValueOnce({
+        from: vi.fn().mockReturnValue({
+          where: vi.fn().mockReturnThis(),
+          limit: vi.fn().mockResolvedValue([mockTenants[1]]), // tenant-2 is suspended
+        }),
+      } as any);
+
+      // Also mock delete to return success
+      vi.mocked(publicDb.delete).mockReturnValueOnce({
+        where: vi.fn().mockReturnThis(),
+        returning: vi.fn().mockResolvedValue([{ id: 'tenant-2' }]),
+      } as any);
+
       const result = await deleteTenant('tenant-2');
       expect(result.success).toBe(true);
     });

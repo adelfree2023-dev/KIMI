@@ -214,7 +214,7 @@ describe('Audit Service (S4 Protocol)', () => {
       const results = await query({ tenantId: 'tenant-1' });
 
       expect(mockClient.query).toHaveBeenCalledWith(
-        expect.stringContaining('target_tenant_id = $1'),
+        expect.stringContaining('tenant_id = $1'),
         expect.arrayContaining(['tenant-1'])
       );
       expect(results).toBeDefined();

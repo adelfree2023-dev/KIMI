@@ -11,7 +11,7 @@ import {
   deleteStorageBucket,
   getSignedUploadUrl,
   getStorageStats,
-  minioClient,
+  resetMinioClient,
 } from './storage-manager.js';
 
 // Mock MinIO client
@@ -54,8 +54,7 @@ describe('Storage Manager', () => {
     (Minio.Client as any).mockImplementation(() => mockClient);
 
     // Reset the internal singleton to force re-init with our mock
-    const sm = await import('./storage-manager.js');
-    (sm as any).minioClient = null;
+    resetMinioClient();
 
     // Trigger lazy init
     await createStorageBucket('init');

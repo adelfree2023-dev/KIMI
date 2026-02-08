@@ -76,13 +76,18 @@ describe('RateLimitGuard', () => {
 
   it('should allow request if no rate limit is defined', async () => {
     mockReflector.getAllAndOverride.mockReturnValue(null);
+    const mockReq = {
+      ip: '127.0.0.1',
+      headers: {},
+      tenantContext: { plan: 'free' },
+    };
+    const mockRes = {
+      setHeader: vi.fn(),
+    };
     const mockContext = {
       switchToHttp: () => ({
-        getRequest: () => ({
-          ip: '127.0.0.1',
-          headers: {},
-          tenantContext: { plan: 'free' },
-        }),
+        getRequest: () => mockReq,
+        getResponse: () => mockRes,
       }),
       getHandler: () => ({}),
       getClass: () => ({}),
@@ -101,9 +106,13 @@ describe('RateLimitGuard', () => {
       headers: { 'x-api-key': 'test-key' },
       tenantContext: { plan: 'free' },
     };
+    const mockRes = {
+      setHeader: vi.fn(),
+    };
     const mockContext = {
       switchToHttp: () => ({
         getRequest: () => mockReq,
+        getResponse: () => mockRes,
       }),
       getHandler: () => ({}),
       getClass: () => ({}),

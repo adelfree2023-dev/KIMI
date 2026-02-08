@@ -47,6 +47,13 @@ function getMinioClient(): Minio.Client {
   return minioClient;
 }
 
+/**
+ * Reset MinIO client singleton (Internal use for testing only)
+ */
+export function resetMinioClient(): void {
+  minioClient = null;
+}
+
 function sanitizeBucketName(subdomain: string): string {
   return `tenant-${subdomain.toLowerCase().replace(/[^a-z0-9]/g, '')}-assets`;
 }

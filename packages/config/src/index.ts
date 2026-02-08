@@ -120,12 +120,15 @@ export function enforceS1Compliance(): void {
 
 // Auto-execute on import for fail-fast behavior
 // CRITICAL FIX (S1): Always enforce in production, respect flag only in non-production
-if (process.env.NODE_ENV === 'production') {
-  // In production, S1 is ALWAYS enforced - no bypass allowed
-  enforceS1Compliance();
-} else if (process.env.ENABLE_S1_ENFORCEMENT !== 'false') {
-  // In non-production, respect the flag (default to enforce)
-  enforceS1Compliance();
+// Skip auto-enforcement during tests to allow mocking
+if (process.env.NODE_ENV !== 'test') {
+  if (process.env.NODE_ENV === 'production') {
+    // In production, S1 is ALWAYS enforced - no bypass allowed
+    enforceS1Compliance();
+  } else if (process.env.ENABLE_S1_ENFORCEMENT !== 'false') {
+    // In non-production, respect the flag (default to enforce)
+    enforceS1Compliance();
+  }
 }
 
 /**

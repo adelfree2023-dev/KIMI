@@ -31,7 +31,7 @@ class RedisRateLimitStore {
   private client: RedisClientType | null = null;
   private connecting = false;
   private fallbackToMemory = false;
-  
+
   // Fallback in-memory store (only used if Redis unavailable)
   private memoryStore: Map<string, { count: number; resetTime: number; violations: number }> = new Map();
 
@@ -39,7 +39,7 @@ class RedisRateLimitStore {
     if (this.client?.isOpen) {
       return this.client;
     }
-    
+
     if (this.connecting) {
       return null; // Still connecting
     }
@@ -48,17 +48,17 @@ class RedisRateLimitStore {
     if (!this.client && !this.fallbackToMemory) {
       await this.connect();
     }
-    
+
     return this.client;
   }
 
   private async connect(): Promise<void> {
     const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
-    
+
     try {
       this.connecting = true;
       this.client = createClient({ url: redisUrl });
-      
+
       this.client.on('error', () => {
         // Silent error - will fallback to memory
         this.fallbackToMemory = true;
@@ -85,7 +85,7 @@ class RedisRateLimitStore {
 
   async increment(key: string, windowMs: number): Promise<{ count: number; ttl: number }> {
     const client = await this.getClient();
-    
+
     // CRITICAL FIX (S6): In production, reject if Redis unavailable
     if (!client && process.env.NODE_ENV === 'production') {
       throw new HttpException(
@@ -96,35 +96,35 @@ class RedisRateLimitStore {
         HttpStatus.SERVICE_UNAVAILABLE
       );
     }
-    
+
     if (client) {
       // Redis implementation (distributed)
       const multi = client.multi();
       multi.incr(key);
       multi.ttl(key);
-      
+
       const results = await multi.exec();
       const count = results[0] as number;
       let ttl = results[1] as number;
-      
+
       // Set expiry on first request
       if (count === 1 || ttl === -1) {
         await client.expire(key, Math.ceil(windowMs / 1000));
         ttl = Math.ceil(windowMs / 1000);
       }
-      
+
       return { count, ttl };
     } else {
       // Memory fallback (single instance only) - non-production only
       const now = Date.now();
       const existing = this.memoryStore.get(key);
-      
+
       if (!existing || now > existing.resetTime) {
         const newRecord = { count: 1, resetTime: now + windowMs, violations: 0 };
         this.memoryStore.set(key, newRecord);
         return { count: 1, ttl: Math.ceil(windowMs / 1000) };
       }
-      
+
       existing.count++;
       return { count: existing.count, ttl: Math.ceil((existing.resetTime - now) / 1000) };
     }
@@ -133,7 +133,7 @@ class RedisRateLimitStore {
   async getViolations(key: string): Promise<number> {
     const violationKey = `${key}:violations`;
     const client = await this.getClient();
-    
+
     if (client) {
       const violations = await client.get(violationKey);
       return violations ? parseInt(violations, 10) : 0;
@@ -146,7 +146,7 @@ class RedisRateLimitStore {
   async incrementViolations(key: string, blockDurationMs: number): Promise<number> {
     const violationKey = `${key}:violations`;
     const client = await this.getClient();
-    
+
     if (client) {
       const violations = await client.incr(violationKey);
       // Set expiry for violation counter (longer than rate limit window)
@@ -165,7 +165,7 @@ class RedisRateLimitStore {
   async isBlocked(key: string, blockDurationMs: number): Promise<{ blocked: boolean; retryAfter: number }> {
     const blockKey = `${key}:blocked`;
     const client = await this.getClient();
-    
+
     if (client) {
       const ttl = await client.ttl(blockKey);
       if (ttl > 0) {
@@ -177,9 +177,9 @@ class RedisRateLimitStore {
       if (record && record.violations >= 5) {
         const now = Date.now();
         const blocked = now < record.resetTime;
-        return { 
-          blocked, 
-          retryAfter: blocked ? Math.ceil((record.resetTime - now) / 1000) : 0 
+        return {
+          blocked,
+          retryAfter: blocked ? Math.ceil((record.resetTime - now) / 1000) : 0
         };
       }
       return { blocked: false, retryAfter: 0 };
@@ -189,7 +189,7 @@ class RedisRateLimitStore {
   async block(key: string, blockDurationMs: number): Promise<void> {
     const blockKey = `${key}:blocked`;
     const client = await this.getClient();
-    
+
     if (client) {
       await client.setEx(blockKey, Math.ceil(blockDurationMs / 1000), '1');
     } else {
@@ -219,17 +219,17 @@ export class RateLimitGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<Request>();
-    
+
     // Get client identifier (IP or API key)
     const identifier = this.getIdentifier(request);
-    
+
     // Get tenant tier (default to free)
     const tenantTier = this.getTenantTier(request);
     const tierConfig = RATE_LIMIT_TIERS[tenantTier] || RATE_LIMIT_TIERS.free;
-    
+
     const key = `ratelimit:${identifier}`;
     const now = Date.now();
-    
+
     // Check if currently blocked (IP blacklist after 5 violations)
     const { blocked, retryAfter } = await rateLimitStore.isBlocked(key, this.defaultConfig.blockDurationMs || 300_000);
     if (blocked) {
@@ -239,23 +239,23 @@ export class RateLimitGuard implements CanActivate {
         retryAfter,
       }, HttpStatus.TOO_MANY_REQUESTS);
     }
-    
+
     // Increment request count
     const { count } = await rateLimitStore.increment(key, tierConfig.windowMs);
-    
+
     // Check if limit exceeded
     if (count > tierConfig.requests) {
       // Increment violations
       const violations = await rateLimitStore.incrementViolations(
-        key, 
+        key,
         this.defaultConfig.blockDurationMs || 300_000
       );
-      
+
       // Block after 5 violations
       if (violations >= 5) {
         await rateLimitStore.block(key, this.defaultConfig.blockDurationMs || 300_000);
       }
-      
+
       throw new HttpException({
         statusCode: HttpStatus.TOO_MANY_REQUESTS,
         message: 'Rate limit exceeded',
@@ -264,13 +264,13 @@ export class RateLimitGuard implements CanActivate {
         retryAfter: Math.ceil(tierConfig.windowMs / 1000),
       }, HttpStatus.TOO_MANY_REQUESTS);
     }
-    
+
     // Add rate limit headers
     const response = context.switchToHttp().getResponse();
     response.setHeader('X-RateLimit-Limit', tierConfig.requests);
     response.setHeader('X-RateLimit-Remaining', Math.max(0, tierConfig.requests - count));
     response.setHeader('X-RateLimit-Reset', Math.ceil((now + tierConfig.windowMs) / 1000));
-    
+
     return true;
   }
 
@@ -280,14 +280,14 @@ export class RateLimitGuard implements CanActivate {
     if (apiKey) {
       return `api:${apiKey}`;
     }
-    
+
     // Get IP from various headers (proxy support)
-    const ip = 
+    const ip =
       request.headers['x-forwarded-for'] as string ||
       request.headers['x-real-ip'] as string ||
       request.ip ||
       'unknown';
-    
+
     return `ip:${ip.split(',')[0].trim()}`;
   }
 
@@ -305,13 +305,25 @@ import { SetMetadata } from '@nestjs/common';
 
 export const RATE_LIMIT_KEY = 'rate_limit';
 
-export const RateLimit = (config: Partial<RateLimitConfig>) => 
+export const RateLimit = (config: Partial<RateLimitConfig>) =>
   SetMetadata(RATE_LIMIT_KEY, config);
 
 /**
  * Throttle configuration for @nestjs/throttler (alternative)
  */
 export const ThrottleConfig = {
+  DEFAULT: {
+    ttl: 60,
+    limit: 100,
+  },
+  STRICT: {
+    ttl: 60,
+    limit: 20,
+  },
+  LENIENT: {
+    ttl: 60,
+    limit: 200,
+  },
   throttlers: [
     {
       name: 'default',

@@ -5,14 +5,13 @@
   "exports": {
     ".": {
       "import": "./dist/index.js",
-      "require": "./dist/index.cjs",
       "types": "./dist/index.d.ts"
     }
   },
   "scripts": {
     "build": "tsc -p tsconfig.json --outDir ./dist --declaration --declarationMap --sourceMap && echo 'Build completed'",
     "db:generate": "drizzle-kit generate:pg",
-    "db:migrate": "bun run src/migrate.ts",
+    "db:migrate": "bun src/migrate.ts",
     "db:studio": "drizzle-kit studio",
     "test": "vitest run",
     "lint": "biome check ."

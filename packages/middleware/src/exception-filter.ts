@@ -34,15 +34,15 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
-    
+
     const requestId = this.generateRequestId();
-    
+
     // Determine error details
     const { statusCode, message, error } = this.parseError(exception);
-    
+
     // Log error (with stack trace for internal debugging)
     this.logError(exception, requestId, request);
-    
+
     // Build response (sanitized for client)
     const errorResponse: ErrorResponse = {
       statusCode,
@@ -52,14 +52,14 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       path: request.url,
       requestId,
     };
-    
+
     // Include stack only in development
     if (process.env.NODE_ENV === 'development') {
       errorResponse.stack = exception instanceof Error ? exception.stack : undefined;
     }
-    
+
     response.status(statusCode).json(errorResponse);
-    
+
     // Report to GlitchTip/Sentry in production
     if (process.env.NODE_ENV === 'production' && statusCode >= 500) {
       this.reportToErrorTracking(exception, requestId);
@@ -71,18 +71,18 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     if (exception instanceof HttpException) {
       const status = exception.getStatus();
       const response = exception.getResponse();
-      
+
       if (typeof response === 'string') {
         return { statusCode: status, message: response, error: this.getErrorName(status) };
       }
-      
+
       return {
         statusCode: status,
         message: (response as any).message || response,
         error: (response as any).error || this.getErrorName(status),
       };
     }
-    
+
     // Zod validation errors (S3)
     if (exception instanceof ZodError) {
       const issues = exception.issues.map(i => `${i.path.join('.')}: ${i.message}`).join('; ');
@@ -92,7 +92,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         error: 'Bad Request',
       };
     }
-    
+
     // Default: Internal server error
     return {
       statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
@@ -106,7 +106,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     if (statusCode === 500) {
       return 'An unexpected error occurred';
     }
-    
+
     // S5 FIX: Also sanitize potential internal details from 4xx errors
     // Database table names, column names, internal paths
     const internalPatterns = [
@@ -119,7 +119,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       /\/.*\/packages\//g,
       /\/.*\/node_modules\//g,
     ];
-    
+
     let sanitized = message;
     for (const pattern of internalPatterns) {
       if (pattern.test(sanitized)) {
@@ -129,7 +129,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         }
       }
     }
-    
+
     return sanitized;
   }
 
@@ -151,7 +151,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 
   private logError(exception: unknown, requestId: string, request: Request): void {
     const error = exception instanceof Error ? exception : new Error(String(exception));
-    
+
     this.logger.error({
       requestId,
       message: error.message,
@@ -159,7 +159,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       path: request.url,
       method: request.method,
       ip: request.ip,
-      userAgent: request.headers['user-agent'],
+      userAgent: request.headers?.['user-agent'],
     }, 'Exception caught');
   }
 

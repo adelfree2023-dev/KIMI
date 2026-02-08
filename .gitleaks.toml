@@ -23,6 +23,7 @@ paths = [
     '''.*\.spec\.ts$''',
     '''docs\/.*\.txt$''',
     '''docs\/Apex_2026_Full_Codebase\.txt$''',
+    '''vitest\.setup\.ts$''',  # Test setup with CI-only mock secrets
 ]
 
 # Regex patterns to ignore (test secrets, example values)

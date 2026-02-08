@@ -10,6 +10,9 @@
     "paths": {
       "@/*": [
         "./*"
+      ],
+      "@apex/ui": [
+        "../../packages/ui/src/index.ts"
       ]
     }
   },

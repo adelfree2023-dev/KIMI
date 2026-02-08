@@ -1108,12 +1108,9 @@ jobs:
 
       - name: Start API Server (Background)
         run: |
-          # Build first
-          bun run build
-          
-          # Start the API server in background for DAST scanning
+          # Start the API server directly with Bun (TypeScript native support)
           cd apps/api
-          bun run start &
+          bun run src/main.ts &
           echo $! > /tmp/api.pid
           sleep 15  # Wait for server to start
           

@@ -238,7 +238,7 @@ export class RateLimitGuard implements CanActivate {
 
     // Merge configs: customConfig > tierConfig > defaultConfig
     const requests = customConfig?.limit ?? customConfig?.requests ?? tierConfig.requests;
-    const windowMs = (customConfig?.ttl ? customConfig.ttl * 1000 : null) ?? customConfig?.windowMs ?? tierConfig.windowMs;
+    const windowMs = customConfig?.windowMs ?? (customConfig?.ttl ? customConfig.ttl * 1000 : tierConfig.windowMs);
 
     const key = `ratelimit:${identifier}`;
     const now = Date.now();

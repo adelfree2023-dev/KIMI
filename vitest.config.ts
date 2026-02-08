@@ -10,6 +10,18 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
+    resolve: {
+      alias: {
+        '@apex/config': new URL('./packages/config/src/index.ts', import.meta.url).pathname,
+        '@apex/db': new URL('./packages/db/src/index.ts', import.meta.url).pathname,
+        '@apex/audit': new URL('./packages/audit/src/index.ts', import.meta.url).pathname,
+        '@apex/middleware': new URL('./packages/middleware/src/index.ts', import.meta.url).pathname,
+        '@apex/auth': new URL('./packages/auth/src/index.ts', import.meta.url).pathname,
+        '@apex/events': new URL('./packages/events/src/index.ts', import.meta.url).pathname,
+        '@apex/provisioning': new URL('./packages/provisioning/src/index.ts', import.meta.url).pathname,
+        '@apex/ui': new URL('./packages/ui/src/index.ts', import.meta.url).pathname,
+      },
+    },
     coverage: {
       provider: 'v8',
       all: true,

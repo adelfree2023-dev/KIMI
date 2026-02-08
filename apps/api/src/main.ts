@@ -1,12 +1,13 @@
 /**
  * Apex v2 API Bootstrap
- * Implements S1-S8 Security Protocols
+ * Implements S1-S8 Security Protocols + OpenAPI Documentation
  */
 
 import { Logger, ValidationPipe, VersioningType } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { ZodValidationPipe } from 'nestjs-zod';
 import helmet from 'helmet';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module.js';
 import { GlobalExceptionFilter } from '@apex/middleware';
 import { defaultCorsConfig } from '@apex/middleware';
@@ -72,10 +73,36 @@ async function bootstrap() {
   // Prefix all routes with /api
   app.setGlobalPrefix('api');
 
+  // ═══════════════════════════════════════════════════════════════
+  // OpenAPI / Swagger Documentation
+  // ═══════════════════════════════════════════════════════════════
+  const config = new DocumentBuilder()
+    .setTitle('KIMI API')
+    .setDescription('60-Second Store Provisioning Engine API')
+    .setVersion('2.0.0')
+    .addBearerAuth()
+    .addTag('Provisioning', 'Store provisioning endpoints')
+    .addTag('Export', 'Tenant data export (S14)')
+    .addTag('Health', 'Health check endpoints')
+    .build();
+
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api/docs', app, document, {
+    swaggerOptions: {
+      persistAuthorization: true,
+    },
+    customCssUrl: 'https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.9.0/swagger-ui.css',
+    customJs: [
+      'https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.9.0/swagger-ui-bundle.js',
+      'https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.9.0/swagger-ui-standalone-preset.js',
+    ],
+  });
+
   const port = process.env.PORT || 3000;
   await app.listen(port);
 
   logger.log(`🚀 API is running on: http://localhost:${port}/api`);
+  logger.log(`📚 API Documentation: http://localhost:${port}/api/docs`);
   logger.log('✅ S1-S8 Security Protocols Active');
 }
 

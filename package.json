@@ -39,5 +39,9 @@
     "esbuild": "^0.25.0",
     "webpack": "^5.94.0",
     "micromatch": "^4.0.8"
+  },
+  "dependencies": {
+    "@nestjs/swagger": "^11.2.6",
+    "swagger-ui-express": "^5.0.1"
   }
 }

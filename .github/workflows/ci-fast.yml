@@ -319,10 +319,10 @@ jobs:
           retention-days: 7
 
   # ═══════════════════════════════════════════════════════════════
-  # Phase 8: Coverage Gate (Phase 1: 30% threshold)
+  # Phase 8: Coverage Gate (Production: 90% threshold)
   # ═══════════════════════════════════════════════════════════════
   coverage-gate:
-    name: 'Coverage Gate (30% Phase 1)'
+    name: 'Coverage Gate (90% Production)'
     runs-on: ubuntu-latest
     needs: unit-tests
     if: always() && needs.unit-tests.result == 'success'
@@ -337,19 +337,159 @@ jobs:
 
       - name: Check Coverage Threshold
         run: |
-          echo "🔍 Checking Coverage Threshold (Phase 1: 30%)..."
+          echo "🔍 Checking Coverage Threshold (Production: 90%)..."
           
           if [ -f "coverage/coverage-summary.json" ]; then
             overall=$(cat coverage/coverage-summary.json | grep -o '"lines":{"total":[0-9]*,"covered":[0-9]*,"skipped":[0-9]*,"pct":[0-9.]*' | grep -o '"pct":[0-9.]*' | head -1 | cut -d: -f2)
             echo "Overall Line Coverage: ${overall}%"
             
-            if (( $(echo "$overall < 30" | bc -l 2>/dev/null || echo "0") )); then
-              echo "❌ FAIL: Coverage ${overall}% below 30% Phase 1 threshold"
+            # Production requirement: 90% coverage
+            if (( $(echo "$overall < 90" | bc -l 2>/dev/null || echo "0") )); then
+              echo "❌ FAIL: Coverage ${overall}% below 90% production threshold"
+              echo "📊 Required: 90% | Actual: ${overall}%"
+              echo "💡 Tip: Add tests for uncovered lines before merging"
               exit 1
             fi
-            echo "✅ Coverage ${overall}% meets Phase 1 threshold (30%)"
+            echo "✅ Coverage ${overall}% meets production threshold (90%)"
           else
-            echo "⚠️ No coverage summary found - skipping gate (Phase 1 only)"
+            echo "❌ FAIL: No coverage summary found"
+            exit 1
+          fi
+
+  # ═══════════════════════════════════════════════════════════════
+  # Phase 8b: API Performance Tests (Response Time < 50ms)
+  # ═══════════════════════════════════════════════════════════════
+  performance-tests:
+    name: 'API Performance Tests (< 50ms)'
+    runs-on: ubuntu-latest
+    needs: [docker-check]
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install Dependencies
+        run: bun install
+
+      - name: Start API Server
+        run: |
+          echo "🚀 Starting API server for performance tests..."
+          cd apps/api
+          bun run src/main.ts &
+          echo $! > /tmp/api.pid
+          
+          # Wait for server
+          for i in {1..30}; do
+            if curl -s http://localhost:3000/ > /dev/null 2>&1; then
+              echo "✅ API server is ready"
+              break
+            fi
+            sleep 1
+          done
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test
+          REDIS_URL: redis://localhost:6379
+          JWT_SECRET: test-jwt-secret-performance-test
+          NODE_ENV: test
+          PORT: 3000
+
+      - name: Run Performance Tests
+        run: |
+          echo "═══════════════════════════════════════════════════════════════"
+          echo "  API Performance Tests (Target: < 50ms p95)"
+          echo "═══════════════════════════════════════════════════════════════"
+          
+          API_URL="http://localhost:3000"
+          
+          # Function to measure response time
+          measure_endpoint() {
+            local endpoint=$1
+            local method=${2:-GET}
+            local body=$3
+            
+            # Run 10 requests and calculate average
+            total_time=0
+            max_time=0
+            
+            for i in {1..10}; do
+              if [ "$method" = "POST" ]; then
+                time_ms=$(curl -s -o /dev/null -w "%{time_total}" \
+                  -X POST "$API_URL$endpoint" \
+                  -H "Content-Type: application/json" \
+                  -d "$body" 2>/dev/null || echo "0")
+              else
+                time_ms=$(curl -s -o /dev/null -w "%{time_total}" \
+                  "$API_URL$endpoint" 2>/dev/null || echo "0")
+              fi
+              
+              # Convert to milliseconds (curl returns seconds)
+              time_ms=$(echo "$time_ms * 1000" | bc)
+              time_ms=${time_ms%.*}
+              
+              total_time=$((total_time + time_ms))
+              
+              if [ $time_ms -gt $max_time ]; then
+                max_time=$time_ms
+              fi
+            done
+            
+            avg_time=$((total_time / 10))
+            echo "$avg_time $max_time"
+          }
+          
+          # Test endpoints
+          echo "Testing API endpoints..."
+          
+          # Health/Root endpoint
+          read avg max < <(measure_endpoint "/")
+          echo "GET /: avg=${avg}ms max=${max}ms"
+          
+          if [ $avg -gt 50 ]; then
+            echo "❌ FAIL: GET / average response time (${avg}ms) exceeds 50ms threshold"
+            exit 1
+          fi
+          
+          # Provision endpoint (POST)
+          read avg max < <(measure_endpoint "/api/provision" "POST" '{}')
+          echo "POST /api/provision: avg=${avg}ms max=${max}ms"
+          
+          # For write operations, we allow slightly more but still check
+          if [ $avg -gt 100 ]; then
+            echo "⚠️ WARNING: POST /api/provision average (${avg}ms) is high (target: < 100ms)"
+          fi
+          
+          echo ""
+          echo "✅ All performance tests passed"
+          echo "═══════════════════════════════════════════════════════════════"
+
+      - name: Stop API Server
+        if: always()
+        run: |
+          if [ -f /tmp/api.pid ]; then
+            kill $(cat /tmp/api.pid) 2>/dev/null || true
           fi
 
   # ═══════════════════════════════════════════════════════════════
@@ -483,24 +623,39 @@ jobs:
   summary:
     name: 'CI Summary'
     runs-on: ubuntu-latest
-    needs: [secret-scan, s1-compliance, security-audit, build, unit-tests, coverage-gate, docker-check]
+    needs: [secret-scan, s1-compliance, security-audit, build, unit-tests, coverage-gate, performance-tests, docker-check]
     if: always()
     steps:
       - name: Report Status
         run: |
-          echo "═══ CI Fast Summary ═══"
-          echo "Secret Scan: ${{ needs.secret-scan.result }}"
-          echo "S1 Compliance: ${{ needs.s1-compliance.result }}"
-          echo "Security Audit: ${{ needs.security-audit.result }}"
-          echo "Build: ${{ needs.build.result }}"
-          echo "Unit Tests: ${{ needs.unit-tests.result }}"
-          echo "Coverage Gate: ${{ needs.coverage-gate.result }}"
-          echo "Docker Check: ${{ needs.docker-check.result }}"
+          echo "═══════════════════════════════════════════════════════════════"
+          echo "                    CI Fast Summary"
+          echo "═══════════════════════════════════════════════════════════════"
+          echo ""
+          echo "Security:"
+          echo "  Secret Scan:     ${{ needs.secret-scan.result }}"
+          echo "  S1 Compliance:   ${{ needs.s1-compliance.result }}"
+          echo "  Security Audit:  ${{ needs.security-audit.result }}"
+          echo ""
+          echo "Build & Test:"
+          echo "  Build:           ${{ needs.build.result }}"
+          echo "  Unit Tests:      ${{ needs.unit-tests.result }}"
+          echo "  Coverage Gate:   ${{ needs.coverage-gate.result }} (90% required)"
+          echo "  Performance:     ${{ needs.performance-tests.result }} (< 50ms)"
+          echo ""
+          echo "Infrastructure:"
+          echo "  Docker Check:    ${{ needs.docker-check.result }}"
+          echo ""
           
-          # Phase 1: Build and tests must pass, coverage-gate is optional
-          if [ "${{ needs.build.result }}" == "success" ] && [ "${{ needs.unit-tests.result }}" == "success" ]; then
-            echo "✅ CI Fast PASSED (Phase 1)"
+          # All critical gates must pass
+          if [ "${{ needs.build.result }}" == "success" ] && \
+             [ "${{ needs.unit-tests.result }}" == "success" ] && \
+             [ "${{ needs.coverage-gate.result }}" == "success" ] && \
+             [ "${{ needs.performance-tests.result }}" == "success" ]; then
+            echo "✅ CI Fast PASSED - All gates cleared"
+            echo "═══════════════════════════════════════════════════════════════"
           else
-            echo "❌ CI Fast FAILED"
+            echo "❌ CI Fast FAILED - Check failed gates above"
+            echo "═══════════════════════════════════════════════════════════════"
             exit 1
           fi

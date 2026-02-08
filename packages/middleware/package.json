@@ -19,7 +19,11 @@
   "dependencies": {
     "@apex/config": "workspace:*",
     "@apex/db": "workspace:*",
-    "redis": "^4.6.0"
+    "@nestjs/common": "^10.0.0",
+    "drizzle-orm": "^0.29.0",
+    "express": "^4.18.0",
+    "redis": "^4.6.0",
+    "zod": "^3.22.4"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

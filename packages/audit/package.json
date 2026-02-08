@@ -18,7 +18,8 @@
   "dependencies": {
     "@nestjs/common": "^10.0.0",
     "@apex/db": "workspace:*",
-    "@apex/middleware": "workspace:*"
+    "@apex/middleware": "workspace:*",
+    "zod": "^3.22.4"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

@@ -13,13 +13,17 @@
     "check": "biome check --apply .",
     "ci": "biome ci .",
     "test": "turbo run test",
-    "typecheck": "turbo run typecheck"
+    "typecheck": "turbo run typecheck",
+    "postinstall": "echo 'Run: bun install'"
   },
   "devDependencies": {
     "@biomejs/biome": "1.5.3",
     "turbo": "latest"
   },
   "packageManager": "bun@1.0.0",
+  "engines": {
+    "bun": ">=1.0.0"
+  },
   "overrides": {
     "glob": "^10.4.5",
     "rimraf": "^5.0.5",

@@ -82,10 +82,10 @@ export async function createStorageBucket(
     await client.setBucketPolicy(bucketName, JSON.stringify(policy));
 
     // Set bucket tagging with plan info
-    await client.setBucketTagging(bucketName, {
-      plan,
-      tenant: subdomain,
-    });
+    await client.setBucketTagging(bucketName, [
+      { Key: 'plan', Value: plan },
+      { Key: 'tenant', Value: subdomain },
+    ]);
 
     // Create folder structure
     await client.putObject(

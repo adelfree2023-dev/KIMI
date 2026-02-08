@@ -298,7 +298,7 @@ export async function getTenantStats(): Promise<{
     byStatus[tenant.status] = (byStatus[tenant.status] || 0) + 1;
     byPlan[tenant.plan] = (byPlan[tenant.plan] || 0) + 1;
 
-    if (new Date(tenant.createdAt) > sevenDaysAgo) {
+    if (tenant.createdAt && new Date(tenant.createdAt) > sevenDaysAgo) {
       recent++;
     }
   }
@@ -334,7 +334,7 @@ function mapToOverviewRecord(dbRecord: Tenant): TenantOverviewRecord {
     name: dbRecord.name,
     plan: dbRecord.plan as TenantPlan,
     status: dbRecord.status as TenantStatus,
-    createdAt: dbRecord.createdAt,
-    updatedAt: dbRecord.updatedAt,
+    createdAt: dbRecord.createdAt ?? new Date(),
+    updatedAt: dbRecord.updatedAt ?? new Date(),
   };
 }

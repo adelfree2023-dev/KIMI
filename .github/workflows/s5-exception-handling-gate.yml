@@ -49,13 +49,14 @@ jobs:
 
           # Check that stack traces are not sent to client
           # Exclude internal logging (logger.error) - that's fine and necessary
+          # Exclude CLI files (console output is not API response)
           DANGEROUS_PATTERNS=$(grep -rn "stack.*response\|error\.stack\|stackTrace.*send\|return.*stack" packages/*/src apps/*/src --include="*.ts" 2>/dev/null | \
-            grep -v "node_modules\|test\|\.spec\|logger\|Logger\|log\|Log" | wc -l)
+            grep -v "node_modules\|test\|\.spec\|logger\|Logger\|log\|Log\|/cli/\|\\.cli\\." | wc -l)
 
           if [ "$DANGEROUS_PATTERNS" -gt 0 ]; then
             echo "🚨 CRITICAL: Potential stack trace leakage detected!"
             grep -rn "stack.*response\|error\.stack\|stackTrace.*send\|return.*stack" packages/*/src apps/*/src --include="*.ts" 2>/dev/null | \
-              grep -v "node_modules\|test\|\.spec\|logger\|Logger\|log\|Log" | head -10
+              grep -v "node_modules\|test\|\.spec\|logger\|Logger\|log\|Log\|/cli/\|\\.cli\\." | head -10
             echo ""
             echo "Stack traces reveal:"
             echo "  - Internal file paths"

@@ -132,6 +132,24 @@ describe('RateLimitGuard', () => {
       expect.any(Number)
     );
   });
+
+  it('should block IP after 5 violations', async () => {
+    vi.spyOn(RedisRateLimitStore.prototype, 'increment').mockResolvedValue({ count: 101, ttl: 60 });
+    vi.spyOn(RedisRateLimitStore.prototype, 'incrementViolations').mockResolvedValue(5);
+    const blockSpy = vi.spyOn(RedisRateLimitStore.prototype, 'block').mockResolvedValue(undefined);
+
+    await expect(guard.canActivate(mockContext)).rejects.toThrow('Rate limit exceeded');
+    expect(blockSpy).toHaveBeenCalled();
+  });
+
+  it('should not block before 5 violations', async () => {
+    vi.spyOn(RedisRateLimitStore.prototype, 'increment').mockResolvedValue({ count: 101, ttl: 60 });
+    vi.spyOn(RedisRateLimitStore.prototype, 'incrementViolations').mockResolvedValue(3);
+    const blockSpy = vi.spyOn(RedisRateLimitStore.prototype, 'block').mockResolvedValue(undefined);
+
+    await expect(guard.canActivate(mockContext)).rejects.toThrow('Rate limit exceeded');
+    expect(blockSpy).not.toHaveBeenCalled();
+  });
 });
 
 describe('RedisRateLimitStore Branches', () => {

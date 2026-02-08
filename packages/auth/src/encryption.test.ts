@@ -68,11 +68,8 @@ describe('EncryptionService', () => {
   });
 
   it('should initialize with provided master key', () => {
-    process.env.ENCRYPTION_MASTER_KEY = 'test-encryption-key-32-chars-long!';
+    process.env.ENCRYPTION_MASTER_KEY = 'Valid-Prod-Key-32-Chars-With-1$!';
     process.env.NODE_ENV = 'production'; // Enforce strict checks but with valid key
-    // Need to bypass the strict check for specific chars for this test or use a compliant key
-    // The service requires uppercase, lowercase, number, special in production
-    process.env.ENCRYPTION_MASTER_KEY = 'Test-Encryption-Key-32-Chars-Long!1';
 
     service = new EncryptionService();
     expect(service).toBeDefined();

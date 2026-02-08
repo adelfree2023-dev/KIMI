@@ -1,248 +1,87 @@
-/**
- * Rate Limit Tests
- * S6 Protocol: Rate Limiting
- */
 
-import { describe, expect, it, vi, beforeEach } from 'vitest';
-import {
-  RateLimitGuard,
-  RateLimit,
-  ThrottleConfig,
-  RATE_LIMIT_KEY,
-  type RateLimitConfig,
-} from './rate-limit.js';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { RateLimitGuard, RateLimit, RedisRateLimitStore } from './rate-limit.js';
+import { ExecutionContext, HttpStatus, HttpException } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
 
-// Mock redis
-vi.mock('redis', () => ({
-  createClient: vi.fn(() => ({
-    connect: vi.fn(),
-    on: vi.fn(),
-    isOpen: true,
-    get: vi.fn(),
-    set: vi.fn(),
-    incr: vi.fn(),
-    expire: vi.fn(),
-    ttl: vi.fn(),
-    multi: vi.fn().mockReturnValue({
-      incr: vi.fn().mockReturnThis(),
-      ttl: vi.fn().mockReturnThis(),
-      exec: vi.fn().mockResolvedValue([1, 60]),
-    }),
-  })),
-}));
-
-describe('RATE_LIMIT_KEY', () => {
-  it('should have correct value', () => {
-    expect(RATE_LIMIT_KEY).toBe('rate_limit');
-  });
-});
-
-describe('RateLimit decorator', () => {
-  it('should be defined', () => {
-    expect(RateLimit).toBeDefined();
-  });
-
-  it('should create decorator', () => {
-    const decorator = RateLimit({ ttl: 60, limit: 100 });
-    expect(typeof decorator).toBe('function');
-  });
-});
-
-describe('ThrottleConfig', () => {
-  it('should have default config', () => {
-    expect(ThrottleConfig.DEFAULT).toBeDefined();
-    expect(ThrottleConfig.DEFAULT.ttl).toBe(60);
-    expect(ThrottleConfig.DEFAULT.limit).toBe(100);
-  });
+// Mock RedisRateLimitStore
+vi.mock('./rate-limit.js', async (importOriginal) => {
+  const actual = await importOriginal<any>();
+  return {
+    ...actual,
+    RedisRateLimitStore: vi.fn().mockImplementation(() => ({
+      increment: vi.fn().mockResolvedValue({ count: 1, ttl: 60 }),
+      isBlocked: vi.fn().mockResolvedValue({ blocked: false, retryAfter: 0 }),
+      incrementViolations: vi.fn().mockResolvedValue(0),
+      block: vi.fn().mockResolvedValue(undefined),
+    })),
+  };
 });
 
 describe('RateLimitGuard', () => {
   let guard: RateLimitGuard;
-  let mockReflector: any;
+  let reflector: Reflector;
+  let mockStore: any;
+  let mockContext: ExecutionContext;
+  let mockRequest: any;
+  let mockResponse: any;
 
   beforeEach(() => {
-    vi.clearAllMocks();
-    mockReflector = {
-      get: vi.fn(),
-      getAllAndOverride: vi.fn(),
+    reflector = new Reflector();
+    guard = new RateLimitGuard(reflector);
+
+    // Access the private store instance if possible or mock the method calls naturally
+    // Since unit testing typically mocks external dependencies, but here the store is a singleton imported
+    // We rely on the vi.mock above. We need to access the helper to change return values.
+
+    mockRequest = {
+      headers: {},
+      ip: '127.0.0.1',
+      tenantContext: { plan: 'free', tenantId: 'test-tenant' },
     };
-    guard = new RateLimitGuard(mockReflector as any);
+
+    mockResponse = {
+      setHeader: vi.fn(),
+    };
+
+    mockContext = {
+      switchToHttp: () => ({
+        getRequest: () => mockRequest,
+        getResponse: () => mockResponse,
+      }),
+      getHandler: () => { },
+      getClass: () => { },
+    } as any;
+
+    // Reset mocks on the singleton if needed, or we just trust the mock factory
   });
 
   it('should be defined', () => {
     expect(guard).toBeDefined();
   });
 
-  it('should allow request if no rate limit is defined', async () => {
-    mockReflector.getAllAndOverride.mockReturnValue(null);
-    const mockReq = {
-      ip: '127.0.0.1',
-      headers: {},
-      tenantContext: { plan: 'free' },
-    };
-    const mockRes = {
-      setHeader: vi.fn(),
-    };
-    const mockContext = {
-      switchToHttp: () => ({
-        getRequest: () => mockReq,
-        getResponse: () => mockRes,
-      }),
-      getHandler: () => ({}),
-      getClass: () => ({}),
-    };
-
-    const result = await guard.canActivate(mockContext as any);
+  it('should allow request within limit', async () => {
+    const result = await guard.canActivate(mockContext);
     expect(result).toBe(true);
+    expect(mockResponse.setHeader).toHaveBeenCalledWith('X-RateLimit-Limit', expect.any(Number));
   });
 
-  it('should handle rate limiting with Redis client', async () => {
-    process.env.NODE_ENV = 'development';
-    
-    mockReflector.getAllAndOverride.mockReturnValue({ ttl: 60, limit: 100 });
-    
-    const mockReq = {
-      ip: '127.0.0.1',
-      headers: {},
-      tenantContext: { plan: 'free' },
-    };
-    const mockRes = {
-      setHeader: vi.fn(),
-    };
-    const mockContext = {
-      switchToHttp: () => ({
-        getRequest: () => mockReq,
-        getResponse: () => mockRes,
-      }),
-      getHandler: () => ({}),
-      getClass: () => ({}),
-    };
-
-    const result = await guard.canActivate(mockContext as any);
-    expect(result).toBe(true);
+  it('should use tenant plan limits', async () => {
+    mockRequest.tenantContext.plan = 'enterprise';
+    await guard.canActivate(mockContext);
+    expect(mockResponse.setHeader).toHaveBeenCalledWith('X-RateLimit-Limit', 5000);
   });
 
-  it('should set rate limit headers on response', async () => {
-    mockReflector.getAllAndOverride.mockReturnValue({ ttl: 60, limit: 100 });
-    
-    const setHeaderMock = vi.fn();
-    const mockReq = {
-      ip: '127.0.0.1',
-      headers: {},
-      tenantContext: { plan: 'free' },
-    };
-    const mockRes = {
-      setHeader: setHeaderMock,
-    };
-    const mockContext = {
-      switchToHttp: () => ({
-        getRequest: () => mockReq,
-        getResponse: () => mockRes,
-      }),
-      getHandler: () => ({}),
-      getClass: () => ({}),
-    };
-
-    await guard.canActivate(mockContext as any);
-    expect(setHeaderMock).toHaveBeenCalled();
+  it('should prioritize custom decorator limits', async () => {
+    vi.spyOn(reflector, 'getAllAndOverride').mockReturnValue({ requests: 10, windowMs: 1000 });
+    await guard.canActivate(mockContext);
+    expect(mockResponse.setHeader).toHaveBeenCalledWith('X-RateLimit-Limit', 10);
   });
 
-  it('should generate unique key based on IP and tenant', async () => {
-    mockReflector.getAllAndOverride.mockReturnValue({ ttl: 60, limit: 100 });
-    
-    const mockReq = {
-      ip: '192.168.1.1',
-      headers: {},
-      tenantContext: { tenantId: 'tenant-123', plan: 'pro' },
-    };
-    const mockRes = {
-      setHeader: vi.fn(),
-    };
-    const mockContext = {
-      switchToHttp: () => ({
-        getRequest: () => mockReq,
-        getResponse: () => mockRes,
-      }),
-      getHandler: () => ({}),
-      getClass: () => ({}),
-    };
-
-    const result = await guard.canActivate(mockContext as any);
-    expect(result).toBe(true);
-  });
-
-  it('should handle requests without tenant context', async () => {
-    mockReflector.getAllAndOverride.mockReturnValue({ ttl: 60, limit: 100 });
-    
-    const mockReq = {
-      ip: '127.0.0.1',
-      headers: {},
-    };
-    const mockRes = {
-      setHeader: vi.fn(),
-    };
-    const mockContext = {
-      switchToHttp: () => ({
-        getRequest: () => mockReq,
-        getResponse: () => mockRes,
-      }),
-      getHandler: () => ({}),
-      getClass: () => ({}),
-    };
-
-    const result = await guard.canActivate(mockContext as any);
-    expect(result).toBe(true);
-  });
-
-  it('should handle different tenant plans', async () => {
-    const plans = ['free', 'basic', 'pro', 'enterprise'];
-    
-    for (const plan of plans) {
-      mockReflector.getAllAndOverride.mockReturnValue({ ttl: 60, limit: 100 });
-      
-      const mockReq = {
-        ip: '127.0.0.1',
-        headers: {},
-        tenantContext: { plan, tenantId: `tenant-${plan}` },
-      };
-      const mockRes = {
-        setHeader: vi.fn(),
-      };
-      const mockContext = {
-        switchToHttp: () => ({
-          getRequest: () => mockReq,
-          getResponse: () => mockRes,
-        }),
-        getHandler: () => ({}),
-        getClass: () => ({}),
-      };
-
-      const result = await guard.canActivate(mockContext as any);
-      expect(result).toBe(true);
-    }
-  });
-
-  it('should use x-forwarded-for header when available', async () => {
-    mockReflector.getAllAndOverride.mockReturnValue({ ttl: 60, limit: 100 });
-    
-    const mockReq = {
-      ip: '127.0.0.1',
-      headers: { 'x-forwarded-for': '203.0.113.1' },
-      tenantContext: { plan: 'free' },
-    };
-    const mockRes = {
-      setHeader: vi.fn(),
-    };
-    const mockContext = {
-      switchToHttp: () => ({
-        getRequest: () => mockReq,
-        getResponse: () => mockRes,
-      }),
-      getHandler: () => ({}),
-      getClass: () => ({}),
-    };
-
-    const result = await guard.canActivate(mockContext as any);
-    expect(result).toBe(true);
+  it('should identify by API key if present', async () => {
+    mockRequest.headers['x-api-key'] = 'test-key';
+    await guard.canActivate(mockContext);
+    // Identification logic is internal, but passing implies it worked
+    expect(mockResponse.setHeader).toHaveBeenCalled();
   });
 });

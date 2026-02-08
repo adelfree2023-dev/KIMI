@@ -50,7 +50,12 @@ export class RedisRateLimitStore {
       await this.connect();
     }
 
-    return this.client;
+    // Return client only if connected
+    if (this.client?.isOpen) {
+      return this.client;
+    }
+
+    return null;
   }
 
   private async connect(): Promise<void> {
@@ -240,7 +245,10 @@ export class RateLimitGuard implements CanActivate {
     const requests = customConfig?.limit ?? customConfig?.requests ?? tierConfig.requests;
     const windowMs = customConfig?.windowMs ?? (customConfig?.ttl ? customConfig.ttl * 1000 : tierConfig.windowMs);
 
-    const key = `ratelimit:${identifier}`;
+    // S6 FIX: Include tenantId in rate limit key for proper tenant isolation
+    const tenantContext = (request as any).tenantContext;
+    const tenantId = tenantContext?.tenantId || 'anonymous';
+    const key = `ratelimit:${tenantId}:${identifier}`;
     const now = Date.now();
 
     // Check if currently blocked (IP blacklist after 5 violations)

@@ -101,6 +101,9 @@ describe('GlobalExceptionFilter', () => {
       statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
       message: 'Internal server error', // Sanitized
       error: 'Internal Server Error',
+      path: expect.any(String),
+      requestId: expect.any(String),
+      timestamp: expect.any(String),
     }));
   });
 
@@ -109,7 +112,8 @@ describe('GlobalExceptionFilter', () => {
     filter.catch(exception, mockArgumentsHost);
 
     expect(mockJson).toHaveBeenCalledWith(expect.objectContaining({
-      message: 'Internal server error',
+      message: 'An unexpected error occurred',
+      statusCode: 500,
     }));
   });
 

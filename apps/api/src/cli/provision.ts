@@ -59,7 +59,7 @@ async function main() {
       logger: options.quiet ? false : ['error'],
     });
 
-    const provisioningService = app.get(ProvisioningService);
+    const provisioningService = app.get<ProvisioningService>('PROVISIONING_SERVICE' as any);
 
     // Execute provisioning
     const result = await provisioningService.provision({

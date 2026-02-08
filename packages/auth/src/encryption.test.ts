@@ -68,7 +68,7 @@ describe('EncryptionService', () => {
   });
 
   it('should initialize with provided master key', () => {
-    process.env.ENCRYPTION_MASTER_KEY = 'Valid-Prod-Pass-32-Chars-With-1$!'; // Avoid 'key' word
+    process.env.ENCRYPTION_MASTER_KEY = 'ValidProdPass32CharsWith1$!Abc'; // Avoid 'key' word, use only allowed chars
     process.env.NODE_ENV = 'production'; // Enforce strict checks but with valid key
 
     service = new EncryptionService();
@@ -106,10 +106,10 @@ describe('EncryptionService', () => {
 
   it('should throw in production if key lacks complexity', () => {
     process.env.NODE_ENV = 'production';
-    // Use a key without numbers or special chars but long enough - but 'key' word is forbidden in prod
-    // So this will throw 'forbidden pattern' first, not 'must contain'
-    process.env.ENCRYPTION_MASTER_KEY = 'masterpasswithoutnumbersorspecialcharslongenough';
-    expect(() => new EncryptionService()).toThrow('forbidden pattern');
+    // Use a key without forbidden patterns but lacks complexity (no special chars)
+    // Must be 32+ chars, no 'test', 'default', 'key', 'secret', etc.
+    process.env.ENCRYPTION_MASTER_KEY = 'MasterPassWithoutSpecialCharsLongEnough';
+    expect(() => new EncryptionService()).toThrow('must contain');
   });
 
   it('should delegate methods to utility functions', () => {

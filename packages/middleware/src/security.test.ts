@@ -29,7 +29,7 @@ describe('SecurityMiddleware', () => {
     middleware.use(mockRequest as Request, mockResponse as Response, nextFunction);
 
     expect(mockResponse.setHeader).toHaveBeenCalledWith('X-DNS-Prefetch-Control', 'off');
-    expect(mockResponse.setHeader).toHaveBeenCalledWith('X-Frame-Options', 'SAMEORIGIN');
+    expect(mockResponse.setHeader).toHaveBeenCalledWith('X-Frame-Options', 'DENY');
     expect(mockResponse.setHeader).toHaveBeenCalledWith('X-Content-Type-Options', 'nosniff');
     expect(mockResponse.setHeader).toHaveBeenCalledWith('Referrer-Policy', 'strict-origin-when-cross-origin');
     expect(nextFunction).toHaveBeenCalled();

@@ -1,43 +1,26 @@
 
 import 'reflect-metadata';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { RateLimitGuard, RateLimit, RedisRateLimitStore, RATE_LIMIT_KEY } from './rate-limit.js';
-import { ExecutionContext, HttpStatus, HttpException, SetMetadata } from '@nestjs/common';
+import { RateLimitGuard, RateLimit, RedisRateLimitStore } from './rate-limit.js';
+import { ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-
-// Mock RedisRateLimitStore methods
-const mockIncrement = vi.fn().mockResolvedValue({ count: 1, ttl: 60 });
-const mockIsBlocked = vi.fn().mockResolvedValue({ blocked: false, retryAfter: 0 });
-const mockIncrementViolations = vi.fn().mockResolvedValue(0);
-const mockBlock = vi.fn().mockResolvedValue(undefined);
-
-vi.mock('./rate-limit.js', async (importOriginal) => {
-  const actual = await importOriginal<any>();
-  return {
-    ...actual,
-    RedisRateLimitStore: vi.fn().mockImplementation(() => ({
-      increment: mockIncrement,
-      isBlocked: mockIsBlocked,
-      incrementViolations: mockIncrementViolations,
-      block: mockBlock,
-    })),
-  };
-});
 
 describe('RateLimitGuard', () => {
   let guard: RateLimitGuard;
   let reflector: Reflector;
-  let mockStore: any;
   let mockContext: ExecutionContext;
   let mockRequest: any;
   let mockResponse: any;
 
+  // Mock the singleton store methods
   beforeEach(() => {
-    // Reset mocks
-    mockIncrement.mockResolvedValue({ count: 1, ttl: 60 });
-    mockIsBlocked.mockResolvedValue({ blocked: false, retryAfter: 0 });
-    mockIncrementViolations.mockResolvedValue(0);
-    mockBlock.mockResolvedValue(undefined);
+    vi.clearAllMocks();
+    
+    // Mock the singleton store instance methods
+    vi.spyOn(RedisRateLimitStore.prototype, 'isBlocked').mockResolvedValue({ blocked: false, retryAfter: 0 });
+    vi.spyOn(RedisRateLimitStore.prototype, 'increment').mockResolvedValue({ count: 1, ttl: 60 });
+    vi.spyOn(RedisRateLimitStore.prototype, 'incrementViolations').mockResolvedValue(0);
+    vi.spyOn(RedisRateLimitStore.prototype, 'block').mockResolvedValue(undefined);
 
     reflector = new Reflector();
     guard = new RateLimitGuard(reflector);
@@ -60,8 +43,10 @@ describe('RateLimitGuard', () => {
       getHandler: () => function testHandler() {},
       getClass: () => class TestController {},
     } as any;
+  });
 
-    vi.clearAllMocks();
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   it('should be defined', () => {

@@ -256,7 +256,7 @@ describe('Audit Service (S4 Protocol)', () => {
       await query();
 
       expect(mockClient.query).toHaveBeenCalledWith(
-        expect.stringContaining('ORDER BY timestamp DESC'),
+        expect.stringContaining('ORDER BY created_at DESC'),
         expect.any(Array)
       );
     });
@@ -276,7 +276,7 @@ describe('Audit Service (S4 Protocol)', () => {
       expect(queryCall[1]).toContain('TENANT_PROVISIONED');
       expect(queryCall[1]).toContain('SUCCESS');
       expect(queryCall[1]).toContain('test-store');
-      expect(queryCall[1]).toContain('basic');
+      expect(queryCall[1][5]).toContain('basic');
     });
 
     it('should log failed provisioning with error', async () => {
@@ -292,7 +292,7 @@ describe('Audit Service (S4 Protocol)', () => {
 
       const queryCall = mockClient.query.mock.calls[1];
       expect(queryCall[1]).toContain('FAILURE');
-      expect(queryCall[1]).toContain('Schema creation failed');
+      expect(queryCall[1][5]).toContain('Schema creation failed');
       expect(queryCall[1]).toContain('HIGH'); // Failures are HIGH severity
     });
   });

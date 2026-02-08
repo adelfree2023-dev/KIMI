@@ -8,7 +8,8 @@
     "dev": "nest start --watch",
     "test": "vitest run",
     "test:cov": "vitest run --coverage",
-    "lint": "biome check ."
+    "lint": "biome check .",
+    "cli": "bun run src/cli/provision.ts"
   },
   "dependencies": {
     "@nestjs/common": "^10.0.0",

@@ -9,7 +9,14 @@
 'use client';
 
 import { useState } from 'react';
-import type { Product } from '@apex/validators';
+
+// Inline Product type (avoiding workspace dependency)
+interface Product {
+    id: string;
+    name: string;
+    price: number;
+    inStock: boolean;
+}
 
 export interface AddToCartButtonProps {
     product: Product;

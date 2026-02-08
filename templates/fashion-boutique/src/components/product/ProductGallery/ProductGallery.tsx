@@ -10,15 +10,20 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import type { ProductImage } from '@apex/validators';
+
+// Inline ProductImage type
+interface ProductImage {
+    url: string;
+    alt: string;
+    isPrimary?: boolean;
+}
 
 export interface ProductGalleryProps {
     images: ProductImage[];
 }
 
 export function ProductGallery({ images }: ProductGalleryProps) {
-    const [selectedIndex, setSelectedIndex] = useState(0);
-    const selectedImage = images[selectedIndex];
+    const [selectedImage, setSelectedImage] = useState(0);
 
     if (!images || images.length === 0) {
         return (
@@ -31,14 +36,13 @@ export function ProductGallery({ images }: ProductGalleryProps) {
     return (
         <div className="space-y-4">
             {/* Main Image */}
-            <div className="relative aspect-square overflow-hidden rounded-lg bg-gray-100">
+            <div className="aspect-square relative overflow-hidden rounded-lg border border-gray-200">
                 <Image
-                    src={selectedImage.url}
-                    alt={selectedImage.alt || 'Product image'}
+                    src={images[selectedImage].url}
+                    alt={images[selectedImage].alt}
                     fill
                     className="object-cover"
                     priority
-                    sizes="(max-width: 768px) 100vw, 50vw"
                 />
             </div>
 
@@ -48,18 +52,17 @@ export function ProductGallery({ images }: ProductGalleryProps) {
                     {images.map((image, index) => (
                         <button
                             key={index}
-                            onClick={() => setSelectedIndex(index)}
-                            className={`relative aspect-square overflow-hidden rounded-md border-2 transition-all ${index === selectedIndex
+                            onClick={() => setSelectedImage(index)}
+                            className={`aspect-square relative overflow-hidden rounded-md border-2 transition-all ${selectedImage === index
                                     ? 'border-primary'
                                     : 'border-gray-200 hover:border-gray-300'
                                 }`}
                         >
                             <Image
                                 src={image.url}
-                                alt={image.alt || `Thumbnail ${index + 1}`}
+                                alt={image.alt}
                                 fill
                                 className="object-cover"
-                                sizes="(max-width: 768px) 25vw, 12.5vw"
                             />
                         </button>
                     ))}

@@ -6,10 +6,25 @@
  * @module components/product/ProductCard
  */
 
-import type { Product } from '@apex/validators';
 import Image from 'next/image';
 import Link from 'next/link';
 import { formatPrice, calculateDiscount } from '@/lib/formatters';
+
+// Inline Product type (avoiding workspace dependency)
+interface Product {
+    id: string;
+    slug: string;
+    name: string;
+    price: number;
+    currency: string;
+    compareAtPrice?: number | null;
+    inStock: boolean;
+    images: Array<{ url: string; alt: string; isPrimary?: boolean }>;
+    tags?: string[];
+    brand?: string;
+    reviewCount?: number;
+    averageRating?: number;
+}
 
 export interface ProductCardProps {
     product: Product;
@@ -24,7 +39,7 @@ export function ProductCard({
     onQuickView,
     showQuickView = true,
 }: ProductCardProps) {
-    const discount = calculateDiscount(product.price, product.compareAtPrice);
+    const discount = calculateDiscount(product.price, product.compareAtPrice || null);
     const primaryImage = product.images.find((img) => img.isPrimary) || product.images[0];
 
     return (
@@ -47,7 +62,7 @@ export function ProductCard({
                         -{discount}%
                     </div>
                 )}
-                {product.tags.includes('new') && (
+                {product.tags?.includes('new') && (
                     <div className="absolute top-2 left-2 bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded">
                         NEW
                     </div>
@@ -94,10 +109,10 @@ export function ProductCard({
                 </div>
 
                 {/* Rating */}
-                {product.reviewCount > 0 && (
+                {product.reviewCount && product.reviewCount > 0 && (
                     <div className="mt-2 flex items-center gap-1 text-xs text-gray-600">
                         <span className="text-yellow-400">★</span>
-                        <span>{product.averageRating.toFixed(1)}</span>
+                        <span>{product.averageRating?.toFixed(1)}</span>
                         <span>({product.reviewCount})</span>
                     </div>
                 )}

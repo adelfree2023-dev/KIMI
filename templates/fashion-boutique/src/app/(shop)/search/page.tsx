@@ -8,20 +8,20 @@
 
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { ProductCard } from '@/components/product/ProductCard';
 import { useSearchParams } from 'next/navigation';
 
-export default function SearchPage() {
+function SearchContent() {
     const searchParams = useSearchParams();
     const query = searchParams.get('q') || '';
     const [searchQuery, setSearchQuery] = useState(query);
 
     // TODO: Implement actual search
-    const results = [];
+    const results: any[] = [];
 
     return (
-        <div className="container mx-auto px-4 py-8">
+        <>
             {/* Search Bar */}
             <div className="mb-8">
                 <div className="flex gap-2">
@@ -67,6 +67,16 @@ export default function SearchPage() {
                     <p className="text-gray-600">Enter a search term to find products</p>
                 </div>
             )}
+        </>
+    );
+}
+
+export default function SearchPage() {
+    return (
+        <div className="container mx-auto px-4 py-8">
+            <Suspense fallback={<div>Loading search...</div>}>
+                <SearchContent />
+            </Suspense>
         </div>
     );
 }

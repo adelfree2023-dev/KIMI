@@ -62,7 +62,7 @@ describe('ProvisioningService', () => {
     }).compile();
 
     service = module.get<ProvisioningService>(ProvisioningService);
-    _audit = module.get<AuditService>(AuditService);
+    _audit = module.get<AuditService>('AUDIT_SERVICE');
 
     // Default mock behavior for database
     vi.mocked(publicPool.connect).mockResolvedValue(mockClient as any);

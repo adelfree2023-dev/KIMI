@@ -238,13 +238,13 @@ describe('Storage Manager', () => {
 
   describe('getStorageStats', () => {
     it('should calculate total usage from all objects', async () => {
-      mockClient.listObjects.mockReturnValue(
-        (async function* () {
-          yield { name: 'file1.jpg', size: 1024 };
-          yield { name: 'file2.jpg', size: 2048 };
-          yield { name: 'file3.jpg', size: 4096 };
-        })()
-      );
+      mockClient.listObjects.mockReturnValue({
+        toArray: async () => [
+          { name: 'file1.jpg', size: 1024, lastModified: new Date() },
+          { name: 'file2.jpg', size: 2048, lastModified: new Date() },
+          { name: 'file3.jpg', size: 4096, lastModified: new Date() },
+        ]
+      });
       mockClient.getBucketTagging.mockResolvedValue({ plan: 'free' });
 
       const result = await getStorageStats('uuid-123');

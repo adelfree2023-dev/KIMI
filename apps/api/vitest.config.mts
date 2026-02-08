@@ -6,9 +6,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export default defineConfig({
-  test: {
-    globals: true,
-    environment: 'node',
+  resolve: {
     alias: {
       '@apex/config': path.resolve(__dirname, '../../packages/config/src/index.ts'),
       '@apex/db': path.resolve(__dirname, '../../packages/db/src/index.ts'),
@@ -19,6 +17,10 @@ export default defineConfig({
       '@apex/provisioning': path.resolve(__dirname, '../../packages/provisioning/src/index.ts'),
       '@apex/ui': path.resolve(__dirname, '../../packages/ui/src/index.ts'),
     },
+  },
+  test: {
+    globals: true,
+    environment: 'node',
     coverage: {
       provider: 'v8',
       all: true,

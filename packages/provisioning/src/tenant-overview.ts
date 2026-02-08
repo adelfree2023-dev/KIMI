@@ -259,7 +259,7 @@ export async function deleteTenant(id: string): Promise<{ success: boolean; erro
   } catch (error) {
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error during deletion',
+      error: error instanceof Error ? error.message : String(error),
     };
   }
 }

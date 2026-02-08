@@ -73,8 +73,7 @@ export async function seedTenantData(
   } catch (error) {
     console.error(`Seeding failed for ${options.subdomain}:`, error);
     throw new Error(
-      `Seeding Failure: ${
-        error instanceof Error ? error.message : 'Unknown error'
+      `Seeding Failure: ${error instanceof Error ? error.message : String(error)
       }`
     );
   }

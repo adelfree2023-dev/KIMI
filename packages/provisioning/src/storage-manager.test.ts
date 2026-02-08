@@ -137,6 +137,10 @@ describe('Storage Manager', () => {
       // Test Pro plan (100GB)
       const proResult = await createStorageBucket('uuid-2', 'pro');
       expect(proResult.quotaBytes).toBe(100 * 1024 * 1024 * 1024);
+
+      // Test Invalid plan (fallback to free 1GB)
+      const invalidResult = await createStorageBucket('uuid-3', 'invalid' as any);
+      expect(invalidResult.quotaBytes).toBe(1024 * 1024 * 1024);
     });
 
     it('should create folder structure', async () => {
@@ -231,6 +235,28 @@ describe('Storage Manager', () => {
       const result = await deleteStorageBucket('uuid-123', true);
       expect(result).toBe(true);
     });
+
+    it('should handle generic errors in deleteStorageBucket', async () => {
+      mockClient.bucketExists.mockResolvedValue(true);
+      mockClient.listObjects.mockReturnValue({
+        toArray: async () => []
+      });
+      mockClient.removeBucket.mockRejectedValue(new Error('Random Fail'));
+
+      const result = await deleteStorageBucket('uuid-123');
+      expect(result).toBe(false);
+    });
+
+    it('should handle non-Error objects in deleteStorageBucket catch block', async () => {
+      mockClient.bucketExists.mockResolvedValue(true);
+      mockClient.listObjects.mockReturnValue({
+        toArray: async () => []
+      });
+      mockClient.removeBucket.mockRejectedValue('String Error');
+
+      const result = await deleteStorageBucket('uuid-123');
+      expect(result).toBe(false);
+    });
   });
 
   describe('getStorageStats', () => {
@@ -265,6 +291,29 @@ describe('Storage Manager', () => {
       expect(result.totalSize).toBe(0);
       expect(result.totalObjects).toBe(0);
       expect(result.usagePercent).toBe(0);
+    });
+
+    it('should fallback to default quota if getBucketTagging fails', async () => {
+      mockClient.listObjects.mockReturnValue({
+        toArray: async () => []
+      });
+      mockClient.getBucketTagging.mockRejectedValue(new Error('Tags Fail'));
+
+      const result = await getStorageStats('uuid-123');
+      expect(result.quotaBytes).toBe(1024 * 1024 * 1024); // DEFAULT (free)
+    });
+
+    it('should handle objects with missing lastModified in getStorageStats', async () => {
+      mockClient.listObjects.mockReturnValue({
+        toArray: async () => [
+          { name: 'file1.jpg', size: 1024 } // No lastModified
+        ]
+      });
+      mockClient.getBucketTagging.mockResolvedValue([{ Key: 'plan', Value: 'pro' }]);
+
+      const result = await getStorageStats('uuid-123');
+      expect(result.lastModified).toBeInstanceOf(Date);
+      expect(result.quotaBytes).toBe(100 * 1024 * 1024 * 1024);
     });
   });
 

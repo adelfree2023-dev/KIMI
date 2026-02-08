@@ -41,8 +41,41 @@ describe('Tenant Seeder', () => {
     expect(mockDb.insert).toHaveBeenCalledTimes(3);
   });
 
+  it('should handle seeding errors and throw', async () => {
+    mockDb.insert.mockImplementationOnce(() => {
+      throw new Error('DB Fail');
+    });
+
+    await expect(seedTenantData({
+      subdomain: 'test',
+      adminEmail: 'admin@test.com',
+      storeName: 'Test Store',
+    })).rejects.toThrow('Seeding Failure: DB Fail');
+  });
+
+  it('should handle non-Error objects in seeding catch block', async () => {
+    mockDb.insert.mockImplementationOnce(() => {
+      throw 'Raw string error';
+    });
+
+    await expect(seedTenantData({
+      subdomain: 'test',
+      adminEmail: 'admin@test.com',
+      storeName: 'Test Store',
+    })).rejects.toThrow('Seeding Failure: Raw string error');
+  });
+
   it('should check if seeded correctly', async () => {
     const seeded = await isSeeded('test');
     expect(seeded).toBe(true);
+  });
+
+  it('should return false if isSeeded checks fail', async () => {
+    mockDb.select.mockImplementationOnce(() => {
+      throw new Error('Select fail');
+    });
+
+    const seeded = await isSeeded('test');
+    expect(seeded).toBe(false);
   });
 });

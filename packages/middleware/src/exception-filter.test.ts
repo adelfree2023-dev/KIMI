@@ -61,6 +61,15 @@ describe('GlobalExceptionFilter', () => {
     }));
   });
 
+  it('should handle HttpException with string response', () => {
+    const exception = new HttpException('Simple String Error', HttpStatus.BAD_REQUEST);
+    filter.catch(exception, mockArgumentsHost);
+
+    expect(mockJson).toHaveBeenCalledWith(expect.objectContaining({
+      message: 'Simple String Error',
+    }));
+  });
+
   it('should handle HttpException with object response', () => {
     const responseObj = { message: 'Custom Error', error: 'Custom' };
     const exception = new HttpException(responseObj, HttpStatus.BAD_REQUEST);
@@ -127,8 +136,7 @@ describe('GlobalExceptionFilter', () => {
   });
 
   it('should include stack trace in development', () => {
-    const originalEnv = process.env.NODE_ENV;
-    process.env.NODE_ENV = 'development';
+    vi.stubEnv('NODE_ENV', 'development');
 
     const exception = new Error('Test Error');
     filter.catch(exception, mockArgumentsHost);
@@ -137,12 +145,36 @@ describe('GlobalExceptionFilter', () => {
       stack: expect.any(String),
     }));
 
-    process.env.NODE_ENV = originalEnv;
+    vi.unstubAllEnvs();
+  });
+
+  it('should handle non-Error objects in logError branch', () => {
+    // This is tested indirectly by catching a string
+    const exception = 'Raw string exception';
+    filter.catch(exception, mockArgumentsHost);
+
+    expect(mockStatus).toHaveBeenCalledWith(HttpStatus.INTERNAL_SERVER_ERROR);
+    expect(mockJson).toHaveBeenCalledWith(expect.objectContaining({
+      message: 'Internal server error',
+    }));
+  });
+
+  it('should report to error tracking in production for 500 errors', () => {
+    vi.stubEnv('NODE_ENV', 'production');
+
+    // Spy on the private reportToErrorTracking via prototype if possible or just verify execution
+    const reportSpy = vi.spyOn(GlobalExceptionFilter.prototype as any, 'reportToErrorTracking');
+
+    const exception = new Error('Production 500');
+    filter.catch(exception, mockArgumentsHost);
+
+    expect(reportSpy).toHaveBeenCalled();
+
+    vi.unstubAllEnvs();
   });
 
   it('should NOT include stack trace in production', () => {
-    const originalEnv = process.env.NODE_ENV;
-    process.env.NODE_ENV = 'production';
+    vi.stubEnv('NODE_ENV', 'production');
 
     const exception = new Error('Test Error');
     filter.catch(exception, mockArgumentsHost);
@@ -151,7 +183,7 @@ describe('GlobalExceptionFilter', () => {
       stack: expect.anything(),
     }));
 
-    process.env.NODE_ENV = originalEnv;
+    vi.unstubAllEnvs();
   });
 });
 

@@ -4,6 +4,26 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { RateLimitGuard, RateLimit, RedisRateLimitStore } from './rate-limit.js';
 import { ExecutionContext, HttpException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+import { createClient } from 'redis';
+
+// Mock Redis
+vi.mock('redis', () => ({
+  createClient: vi.fn().mockImplementation(() => ({
+    on: vi.fn(),
+    connect: vi.fn().mockResolvedValue(undefined),
+    isOpen: true,
+    multi: vi.fn().mockReturnValue({
+      incr: vi.fn().mockReturnThis(),
+      ttl: vi.fn().mockReturnThis(),
+      exec: vi.fn().mockResolvedValue([1, 60]),
+    }),
+    expire: vi.fn().mockResolvedValue(undefined),
+    get: vi.fn().mockResolvedValue(null),
+    incr: vi.fn().mockResolvedValue(1),
+    ttl: vi.fn().mockResolvedValue(-1),
+    setEx: vi.fn().mockResolvedValue('OK'),
+  })),
+}));
 
 describe('RateLimitGuard', () => {
   let guard: RateLimitGuard;
@@ -93,6 +113,70 @@ describe('RateLimitGuard', () => {
     mockRequest.headers = {};
     const result = await guard.canActivate(mockContext);
     expect(result).toBe(true);
+  });
+
+  it('should identify IP from x-forwarded-for header', async () => {
+    mockRequest.headers['x-forwarded-for'] = '1.2.3.4, 5.6.7.8';
+    await guard.canActivate(mockContext);
+    expect(RedisRateLimitStore.prototype.increment).toHaveBeenCalledWith(
+      expect.stringContaining('ip:1.2.3.4'),
+      expect.any(Number)
+    );
+  });
+
+  it('should identify IP from x-real-ip header', async () => {
+    mockRequest.headers['x-real-ip'] = '9.10.11.12';
+    await guard.canActivate(mockContext);
+    expect(RedisRateLimitStore.prototype.increment).toHaveBeenCalledWith(
+      expect.stringContaining('ip:9.10.11.12'),
+      expect.any(Number)
+    );
+  });
+});
+
+describe('RedisRateLimitStore Branches', () => {
+  let store: RedisRateLimitStore;
+
+  beforeEach(() => {
+    store = new RedisRateLimitStore();
+    vi.clearAllMocks();
+  });
+
+  it('should fallback to memory in non-production on Redis failure', async () => {
+    vi.stubEnv('NODE_ENV', 'development');
+    // Force Redis connect to fail
+    const mockRedis = {
+      on: vi.fn(),
+      connect: vi.fn().mockRejectedValue(new Error('Redis Down')),
+      isOpen: false,
+    };
+    vi.mocked(createClient).mockReturnValue(mockRedis as any);
+
+    // Call increment - should trigger connect and fallback
+    await store.increment('test-key', 60000);
+
+    // Check if it used memory (by checking if getClient returns null)
+    const client = await store.getClient();
+    expect(client).toBeNull();
+
+    vi.unstubAllEnvs();
+  });
+
+  it('should throw in production if Redis is unavailable', async () => {
+    vi.stubEnv('NODE_ENV', 'production');
+
+    // Mock getClient to return null
+    vi.spyOn(store, 'getClient').mockResolvedValue(null);
+
+    await expect(store.increment('test-key', 60000)).rejects.toThrow(HttpException);
+
+    vi.unstubAllEnvs();
+  });
+
+  it('should return null if already connecting', async () => {
+    store['connecting'] = true;
+    const client = await store.getClient();
+    expect(client).toBeNull();
   });
 });
 

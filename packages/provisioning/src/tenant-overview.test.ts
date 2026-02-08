@@ -3,7 +3,7 @@
  * Super-#01: Tenant Overview Table
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import {
   getTenantList,
   getTenantById,
@@ -54,7 +54,7 @@ const { mockTenants } = vi.hoisted(() => ({
 vi.mock('@apex/db', () => {
   const mockQuery = {
     where: vi.fn().mockReturnThis(),
-    limit: vi.fn().mockImplementation((n) => ({
+    limit: vi.fn().mockImplementation((n: number) => ({
       offset: vi.fn().mockImplementation(() => Promise.resolve(mockTenants.slice(0, n))),
       then: (onfulfilled: any) => Promise.resolve(mockTenants.slice(0, n)).then(onfulfilled),
     })),
@@ -121,11 +121,29 @@ describe('Tenant Overview Service', () => {
     });
 
     it('should support sorting by different fields', async () => {
-      const resultByName = await getTenantList({ sortBy: 'name', sortOrder: 'asc' });
-      expect(resultByName.tenants).toBeDefined();
-
       const resultByDate = await getTenantList({ sortBy: 'createdAt', sortOrder: 'desc' });
       expect(resultByDate.tenants).toBeDefined();
+
+      const resultBySubdomain = await getTenantList({ sortBy: 'subdomain', sortOrder: 'asc' });
+      expect(resultBySubdomain.tenants).toBeDefined();
+
+      const resultByPlan = await getTenantList({ sortBy: 'plan', sortOrder: 'desc' });
+      expect(resultByPlan.tenants).toBeDefined();
+
+      const resultByDefault = await getTenantList({ sortBy: undefined });
+      expect(resultByDefault.tenants).toBeDefined();
+    });
+
+    it('should handle empty count result in getTenantList', async () => {
+      const { publicDb } = await import('@apex/db');
+      vi.mocked(publicDb.select).mockReturnValueOnce({
+        from: vi.fn().mockReturnValue({
+          where: vi.fn().mockResolvedValue([]), // Empty count array
+        }),
+      } as any);
+
+      const result = await getTenantList();
+      expect(result.pagination.total).toBe(0);
     });
   });
 
@@ -234,6 +252,26 @@ describe('Tenant Overview Service', () => {
       const result = await deleteTenant('tenant-2');
       expect(result.success).toBe(true);
     });
+
+    it('should handle non-Error objects in deleteTenant catch block', async () => {
+      const { publicDb } = await import('@apex/db');
+      // Mock existing tenant
+      vi.mocked(publicDb.select).mockReturnValueOnce({
+        from: vi.fn().mockReturnValue({
+          where: vi.fn().mockReturnThis(),
+          limit: vi.fn().mockResolvedValue([mockTenants[1]]), // Suspended
+        }),
+      } as any);
+
+      // Mock delete to throw raw string
+      vi.mocked(publicDb.delete).mockImplementation(() => {
+        throw 'Raw Delete Fail';
+      });
+
+      const result = await deleteTenant('tenant-2');
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Raw Delete Fail');
+    });
   });
 
   describe('getTenantStats', () => {
@@ -249,6 +287,18 @@ describe('Tenant Overview Service', () => {
       expect(typeof stats.byStatus.active).toBe('number');
       expect(typeof stats.byPlan.free).toBe('number');
       expect(typeof stats.recent).toBe('number');
+    });
+
+    it('should handle records with missing dates in getTenantStats', async () => {
+      const { publicDb } = await import('@apex/db');
+      vi.mocked(publicDb.select).mockReturnValueOnce({
+        from: vi.fn().mockResolvedValue([
+          { status: 'active', plan: 'free' } // Missing createdAt
+        ]),
+      } as any);
+
+      const stats = await getTenantStats();
+      expect(stats.total).toBe(1);
     });
   });
 

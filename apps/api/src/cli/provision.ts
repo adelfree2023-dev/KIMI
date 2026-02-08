@@ -77,7 +77,11 @@ async function main() {
 
     await app.close();
   } catch (error) {
-    console.error('❌ Provisioning failed:', error instanceof Error ? error.stack : error);
+    console.error('❌ Provisioning failed:', error instanceof Error ? error.message : error);
+    // Stack traces only in development mode for security
+    if (process.env.NODE_ENV === 'development' && error instanceof Error) {
+      console.error('Stack:', error.stack);
+    }
     process.exit(1);
   }
 }

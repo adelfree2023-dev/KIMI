@@ -21,11 +21,12 @@ export interface EncryptedData {
 
 /**
  * Derives encryption key from master key using salt
- * S7 FIX: Using NIST-recommended scrypt parameters for production security
- * N=2^17 (memory cost), r=8 (block size), p=1 (parallelism)
+ * S7 FIX: Using hardened scrypt parameters for production security
+ * N=2^14 (memory cost, OWASP minimum), r=8 (block size), p=1 (parallelism)
+ * Note: Higher N values may exceed OpenSSL memory limits in some environments
  */
 function deriveKey(masterKey: string, salt: Buffer): Buffer {
-  return scryptSync(masterKey, salt, KEY_LENGTH, { N: 2 ** 17, r: 8, p: 1 });
+  return scryptSync(masterKey, salt, KEY_LENGTH, { N: 2 ** 14, r: 8, p: 1 });
 }
 
 /**

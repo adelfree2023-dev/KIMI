@@ -55,7 +55,10 @@ jobs:
         with:
           bun-version: latest
       - name: Install dependencies
-        run: bun install
+        run: |
+          # Ensure clean install with workspace dependencies
+          rm -f bun.lockb
+          bun install --frozen-lockfile || bun install
       - name: Test S1 Crash on Invalid JWT_SECRET
         run: |
           # Test 1: Missing JWT_SECRET should crash

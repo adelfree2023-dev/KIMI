@@ -47,23 +47,14 @@ describe('Storage Manager', () => {
   let mockClient: any;
 
   beforeEach(() => {
-    // Force initialization of minioClient if it's null
-    if (!minioClient) {
-      try {
-        // This will call new Minio.Client() which is mocked
-        import('./storage-manager.js').then(m => m.getSignedUploadUrl('t', 'o'));
-      } catch (e) { }
-    }
-
-    // Direct mock for simplicity if minioClient is still not playing nice
-    mockClient = minioClient || (Minio.Client as any).mock.results[0]?.value;
-
-    // If still null, create a manual mock capture
-    if (!mockClient) {
-      mockClient = new Minio.Client({} as any);
-    }
-
     vi.clearAllMocks();
+    // Force recreate/capture of mock client
+    mockClient = new Minio.Client({} as any);
+    // Overwrite the singleton instance with our new mock for this test
+    (Minio.Client as any).mockImplementation(() => mockClient);
+
+    // Trigger lazy init if needed
+    createStorageBucket('init');
   });
 
   describe('createStorageBucket', () => {

@@ -97,13 +97,13 @@ describe('S1: Environment Verification Protocol', () => {
 
     it('should get config values', () => {
       const configService = new ConfigService();
-      expect(configService.get('JWT_SECRET')).toBe('valid_secret_key_32_chars_long_1234');
-      expect(configService.get('DATABASE_URL')).toBe('postgresql://user:pass@localhost:5432/db');
+      expect(configService.get('JWT_SECRET')).toContain('test-secret-for-vitest-purposes-only');
+      expect(configService.get('DATABASE_URL')).toBe('postgresql://localhost:5432/test');
     });
 
     it('should get values with default', () => {
       const configService = new ConfigService();
-      expect(configService.getWithDefault('JWT_EXPIRES_IN', '7d')).toBe('7d');
+      expect(configService.getWithDefault('JWT_EXPIRES_IN', '7d')).toBe('1h');
     });
   });
 

@@ -24,6 +24,11 @@ vi.mock('redis', () => ({
     incr: vi.fn(),
     expire: vi.fn(),
     ttl: vi.fn(),
+    multi: vi.fn().mockReturnValue({
+      incr: vi.fn().mockReturnThis(),
+      ttl: vi.fn().mockReturnThis(),
+      exec: vi.fn().mockResolvedValue([1, 60]),
+    }),
   })),
 }));
 

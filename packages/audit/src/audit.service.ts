@@ -48,10 +48,16 @@ export class AuditService {
     const tenantId = entry.tenantId || getCurrentTenantId() || 'system';
     const timestamp = new Date();
 
-    // 1. Console Logging (for immediate observability)
-    this.logger.log(
-      `[AUDIT] ${tenantId} | ${entry.action} | ${entry.entityType}:${entry.entityId}`
-    );
+    // 1. Console Logging (for immediate observability and S4 monitoring)
+    const logOutput = JSON.stringify({
+      level: 'audit',
+      tenantId,
+      timestamp,
+      ...entry,
+    });
+    // eslint-disable-next-line no-console
+    console.log(logOutput);
+    this.logger.log(`[AUDIT] ${entry.action} - ${entry.entityId}`);
 
     // 2. Persistent Logging (S4 Protocol)
     // CRITICAL FIX (S2): Explicitly set search_path to public before query
@@ -84,7 +90,10 @@ export class AuditService {
           entry.action,
           entry.entityType,
           entry.entityId,
-          JSON.stringify(entry.metadata || {}),
+          JSON.stringify({
+            ...(entry.metadata || {}),
+            ...(entry.errorMessage ? { error: entry.errorMessage } : {}),
+          }),
           entry.ipAddress || null,
           entry.userAgent || null,
           entry.severity || 'INFO',
@@ -94,9 +103,8 @@ export class AuditService {
       );
     } catch (error) {
       // Critical failure if audit logging fails
-      this.logger.error('S4 VIOLATION: Failed to persist audit log!', error);
-      // In high-security mode, we might want to crash the process here
-      // throw new Error('Audit Persistence Failure');
+      // In high-security mode, we must fail the operation if audit logging fails
+      throw new Error('Audit Persistence Failure');
     } finally {
       // 🔒 S2 Enforcement: Reset search_path before releasing to pool
       try {
@@ -247,7 +255,7 @@ export async function query(
     let paramIndex = 1;
 
     if (options.tenantId) {
-      conditions.push(`target_tenant_id = $${paramIndex++}`);
+      conditions.push(`tenant_id = $${paramIndex++}`);
       values.push(options.tenantId);
     }
     if (options.action) {

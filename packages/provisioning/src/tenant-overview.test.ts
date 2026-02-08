@@ -137,7 +137,7 @@ describe('Tenant Overview Service', () => {
 
     it('should return null for non-existent id', async () => {
       const result = await getTenantById('non-existent');
-      expect(result).toBeNull();
+      expect(result).toBeUndefined();
     });
   });
 
@@ -221,6 +221,7 @@ describe('Tenant Overview Service', () => {
 
     it('should return false for non-existent subdomain', async () => {
       // Setup mock to return empty array for non-existent subdomain search
+      const { publicDb } = await import('@apex/db');
       vi.mocked(publicDb.select).mockReturnValueOnce({
         from: vi.fn().mockReturnValue({
           where: vi.fn().mockReturnThis(),

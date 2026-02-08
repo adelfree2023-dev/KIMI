@@ -27,13 +27,13 @@ export default defineConfig({
     environment: 'node',
     setupFiles: [resolve(__dirname, 'vitest.setup.ts')],
     coverage: {
-      provider: 'istanbul', // Switch to istanbul for better environment compatibility
+      provider: 'v8', // Revert to v8 with location-independent globs
       all: true,
       // Reporters: text shows summary at end, others for artifact generation
       reporter: ['text', 'text-summary', 'json', 'html', 'json-summary', 'lcov'],
       include: [
-        resolve(__dirname, 'packages/*/src/**/*.ts'),
-        resolve(__dirname, 'apps/*/src/**/*.ts')
+        '**/packages/*/src/**/*.ts',
+        '**/apps/*/src/**/*.ts'
       ],
       exclude: [
         '**/*.spec.ts',
@@ -43,8 +43,8 @@ export default defineConfig({
         '**/index.ts',
         '**/node_modules/**',
         '**/dist/**',
-        resolve(__dirname, 'packages/db/src/migrate.ts'),
-        resolve(__dirname, 'apps/api/src/main.ts'),
+        '**/packages/db/src/migrate.ts',
+        '**/apps/api/src/main.ts',
       ],
       // Phase 1 Thresholds: 90% as required by Constitution Rule 4.1
       thresholds: {

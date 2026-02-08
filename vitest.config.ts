@@ -46,12 +46,13 @@ export default defineConfig({
         '**/packages/db/src/migrate.ts',
         '**/apps/api/src/main.ts',
       ],
-      // Phase 1 Thresholds: 90% as required by Constitution Rule 4.1
+      // Coverage Thresholds (90% minimum for all metrics)
+      // Constitution Rule 4.1: Comprehensive Test Coverage Mandate
       thresholds: {
-        branches: 90,
-        functions: 95,
-        lines: 95,
-        statements: 95,
+        branches: 90,    // 90% minimum branch coverage
+        functions: 95,   // 95% function coverage
+        lines: 95,       // 95% line coverage
+        statements: 95,  // 95% statement coverage
       },
       // Report uncovered files
       reportOnFailure: true,

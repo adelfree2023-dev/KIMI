@@ -32,7 +32,7 @@ async function verifyTenantExists(tenantId: string): Promise<boolean> {
       'SELECT 1 FROM public.tenants WHERE id = $1 OR subdomain = $2 LIMIT 1',
       [tenantId, tenantId]
     );
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   } catch {
     return false;
   }

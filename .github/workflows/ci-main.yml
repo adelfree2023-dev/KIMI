@@ -761,7 +761,8 @@ jobs:
                 /^0\./,
                 /^::1$/,
                 /^fc00:/,
-                /^fe80:/
+                /^fe80:/,
+                /^localhost$/i  // localhost hostname
               ];
               
               ssrfPayloads.forEach(url => {

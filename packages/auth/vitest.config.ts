@@ -1,11 +1,12 @@
 import { defineConfig, mergeConfig } from 'vitest/config';
-import rootConfig from '../../vitest.config';
+import baseConfig from '../../vitest.config.js';
 
 export default mergeConfig(
-    rootConfig,
+    baseConfig,
     defineConfig({
         test: {
             name: 'auth',
+            environment: 'node',
         },
     })
 );

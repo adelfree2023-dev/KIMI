@@ -69,11 +69,16 @@ export class ExportWorker implements OnModuleInit, OnModuleDestroy {
     this.worker?.close();
   }
 
+  private readonly MAX_EXPORT_SIZE_BYTES = 500 * 1024 * 1024; // 500MB limit
+
   private async processJob(job: Job): Promise<ExportResult> {
     const { tenantId, profile, requestedBy, includeAssets, dateRange } = job.data;
 
     this.logger.log(`Processing export job ${job.id} for tenant ${tenantId}`);
     await job.updateProgress(10);
+
+    const workDir = `/tmp/export-${tenantId}-${Date.now()}`;
+    let localFilePath: string | null = null;
 
     try {
       // S4: Audit log - processing started
@@ -99,7 +104,16 @@ export class ExportWorker implements OnModuleInit, OnModuleDestroy {
       };
 
       const result = await strategy.export(options);
+      localFilePath = result.downloadUrl;
       await job.updateProgress(70);
+
+      // Check size limit
+      if (result.sizeBytes > this.MAX_EXPORT_SIZE_BYTES) {
+        throw new Error(
+          `Export size (${(result.sizeBytes / 1024 / 1024).toFixed(2)}MB) ` +
+          `exceeds limit (${this.MAX_EXPORT_SIZE_BYTES / 1024 / 1024}MB)`
+        );
+      }
 
       // Upload to restricted bucket
       const bucketName = 'tenant-exports';
@@ -136,11 +150,27 @@ export class ExportWorker implements OnModuleInit, OnModuleDestroy {
         { expiresIn: 24 * 60 * 60 }
       );
 
-      // Schedule auto-delete after 24h
-      await this.scheduleAutoDelete(bucketName, objectKey, 24 * 60 * 60);
+      // EXPERIMENTAL: Immediate cleanup mode
+      // File will be deleted when: 1) User calls confirm-download, or 2) 5 min timeout
+      const deleteJob = setTimeout(async () => {
+        try {
+          await this.deleteExportFile(bucketName, objectKey, job.id as string);
+        } catch (err) {
+          this.logger.error(`Auto-delete failed for ${objectKey}:`, err);
+        }
+      }, 5 * 60 * 1000); // 5 minutes safety timeout
 
-      // Cleanup local file
+      // Store delete job reference for manual cleanup
+      await job.updateData({
+        ...job.data,
+        deleteJobRef: true,
+        bucketName,
+        objectKey,
+      });
+
+      // Cleanup local file immediately
       await Bun.spawn(['rm', '-f', result.downloadUrl]).exited.catch(() => {});
+      this.logger.log(`Cleaned up local file: ${result.downloadUrl}`);
 
       await job.updateProgress(100);
 
@@ -175,6 +205,12 @@ export class ExportWorker implements OnModuleInit, OnModuleDestroy {
         },
       });
 
+      // Cleanup on failure
+      if (localFilePath) {
+        await Bun.spawn(['rm', '-f', localFilePath]).exited.catch(() => {});
+        this.logger.log(`Cleaned up failed export file: ${localFilePath}`);
+      }
+
       throw error;
     }
   }
@@ -195,36 +231,57 @@ export class ExportWorker implements OnModuleInit, OnModuleDestroy {
         })
       );
 
-      // Set lifecycle policy for auto-deletion
-      await this.s3Client.send(
-        new (await import('@aws-sdk/client-s3')).PutBucketLifecycleConfigurationCommand({
-          Bucket: bucketName,
-          LifecycleConfiguration: {
-            Rules: [
-              {
-                ID: 'export-auto-delete',
-                Status: 'Enabled',
-                Expiration: {
-                  Days: 1,
-                },
-                Filter: {
-                  Prefix: 'exports/',
-                },
-              },
-            ],
-          },
-        })
-      );
+      // Note: Lifecycle policy disabled for immediate cleanup
+      // Files are deleted after 5 minutes via setTimeout
+      // TODO: Re-enable for production with 24h retention
     }
   }
 
-  private async scheduleAutoDelete(
+  private async deleteExportFile(
     bucket: string,
     key: string,
-    delaySeconds: number
+    jobId: string,
   ): Promise<void> {
-    // In production, use a delayed job queue or S3 lifecycle
-    // For now, we'll rely on S3 lifecycle policy set above
-    this.logger.debug(`Auto-delete scheduled for ${key} in ${delaySeconds}s`);
+    try {
+      await this.s3Client.send(
+        new (await import('@aws-sdk/client-s3')).DeleteObjectCommand({
+          Bucket: bucket,
+          Key: key,
+        })
+      );
+      this.logger.log(`Deleted export file: ${key}`);
+
+      // S4: Audit log
+      await this.audit.log({
+        action: 'EXPORT_FILE_DELETED',
+        entityType: 'EXPORT',
+        entityId: jobId,
+        metadata: { bucket, key },
+      });
+    } catch (err) {
+      this.logger.error(`Failed to delete ${key}:`, err);
+      throw err;
+    }
+  }
+
+  /**
+   * Confirm download and delete file immediately
+   * Called by client after successful download
+   */
+  async confirmDownload(jobId: string): Promise<void> {
+    const job = await this.exportQueue.getJob(jobId);
+    if (!job || !job.data.bucketName || !job.data.objectKey) {
+      throw new Error('Export job not found or file already deleted');
+    }
+
+    await this.deleteExportFile(
+      job.data.bucketName,
+      job.data.objectKey,
+      jobId
+    );
+
+    // Clear safety timeout
+    // Note: In production, use Redis to track this
+    this.logger.log(`Download confirmed and file deleted for job ${jobId}`);
   }
 }

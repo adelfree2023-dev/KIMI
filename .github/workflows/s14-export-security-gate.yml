@@ -52,7 +52,7 @@ jobs:
       - name: Install Dependencies
         run: bun install
 
-      - name: S14.1: Tenant Isolation Verification
+      - name: "S14.1 - Tenant Isolation Verification"
         run: |
           echo "═══════════════════════════════════════════════════════════════"
           echo "  S14.1: Verifying S2 Tenant Isolation in Export System"
@@ -76,7 +76,7 @@ jobs:
           
           echo "✅ S14.1: Tenant isolation verified"
 
-      - name: S14.2: Export Strategy Validation
+      - name: "S14.2 - Export Strategy Validation"
         run: |
           echo "═══════════════════════════════════════════════════════════════"
           echo "  S14.2: Validating Export Strategy Pattern"
@@ -101,7 +101,7 @@ jobs:
           
           echo "✅ S14.2: All strategies properly implement validation"
 
-      - name: S14.3: Queue Security & Throttling
+      - name: "S14.3 - Queue Security & Throttling"
         run: |
           echo "═══════════════════════════════════════════════════════════════"
           echo "  S14.3: Verifying Queue Security & Concurrency"
@@ -120,7 +120,7 @@ jobs:
           
           echo "✅ S14.3: Queue throttling configured"
 
-      - name: S14.4: Storage Security (S7)
+      - name: "S14.4 - Storage Security (S7)"
         run: |
           echo "═══════════════════════════════════════════════════════════════"
           echo "  S14.4: Verifying Storage Security"
@@ -145,7 +145,7 @@ jobs:
           
           echo "✅ S14.4: Storage security verified"
 
-      - name: S14.5: Audit Logging (S4)
+      - name: "S14.5 - Audit Logging (S4)"
         run: |
           echo "═══════════════════════════════════════════════════════════════"
           echo "  S14.5: Verifying Audit Logging"
@@ -170,7 +170,7 @@ jobs:
           
           echo "✅ S14.5: Audit logging comprehensive"
 
-      - name: S14.6: Authorization & Access Control
+      - name: "S14.6 - Authorization & Access Control"
         run: |
           echo "═══════════════════════════════════════════════════════════════"
           echo "  S14.6: Verifying Access Control"
@@ -190,7 +190,7 @@ jobs:
           
           echo "✅ S14.6: Access control verified"
 
-      - name: S14.7: Data Integrity (Checksums)
+      - name: "S14.7 - Data Integrity (Checksums)"
         run: |
           echo "═══════════════════════════════════════════════════════════════"
           echo "  S14.7: Verifying Data Integrity"
@@ -204,7 +204,7 @@ jobs:
           
           echo "✅ S14.7: Data integrity checks present"
 
-      - name: S14.8: Cleanup & Resource Management
+      - name: "S14.8 - Cleanup & Resource Management"
         run: |
           echo "═══════════════════════════════════════════════════════════════"
           echo "  S14.8: Verifying Cleanup Procedures"

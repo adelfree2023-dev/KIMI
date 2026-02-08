@@ -11,15 +11,14 @@ import {
   Delete,
   Body,
   Param,
-  Query,
   HttpCode,
   HttpStatus,
-  UseGuards,
   Req,
   ForbiddenException,
   NotFoundException,
 } from '@nestjs/common';
 import { ExportService } from './export.service.js';
+import { ExportWorker } from './export.worker.js';
 import type { ExportProfile, ExportJob } from './types.js';
 import type { Request } from 'express';
 
@@ -42,7 +41,10 @@ class CreateExportDto {
 
 @Controller('api/v1/tenant/export')
 export class ExportController {
-  constructor(private readonly exportService: ExportService) {}
+  constructor(
+    private readonly exportService: ExportService,
+    private readonly exportWorker: ExportWorker,
+  ) {}
 
   /**
    * POST /api/v1/tenant/export
@@ -122,6 +124,36 @@ export class ExportController {
     }
 
     return this.exportService.listTenantExports(user.tenantId);
+  }
+
+  /**
+   * POST /api/v1/tenant/export/:id/confirm-download
+   * Confirm successful download and delete file immediately
+   */
+  @Post(':id/confirm-download')
+  @HttpCode(HttpStatus.OK)
+  async confirmDownload(
+    @Param('id') jobId: string,
+    @Req() req: AuthenticatedRequest,
+  ): Promise<{ message: string }> {
+    const user = req.user;
+    if (!user) {
+      throw new ForbiddenException('Authentication required');
+    }
+
+    // Get job to verify ownership
+    const job = await this.exportService.getJobStatus(jobId);
+    if (!job) {
+      throw new NotFoundException('Export job not found');
+    }
+
+    if (job.tenantId !== user.tenantId && user.role !== 'super_admin') {
+      throw new ForbiddenException('Access denied');
+    }
+
+    await this.exportWorker.confirmDownload(jobId);
+
+    return { message: 'Download confirmed and file deleted successfully' };
   }
 
   /**

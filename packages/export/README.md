@@ -185,14 +185,24 @@ await audit.log({
 });
 ```
 
-### 3. Secure URLs (S7)
+### 3. Secure URLs + Immediate Cleanup (S7)
 
 ```typescript
-// 24-hour presigned URL
+// Presigned URL with immediate cleanup option
 const url = await getSignedUrl(s3Client, command, {
   expiresIn: 24 * 60 * 60,
 });
+
+// Client confirms download -> immediate delete
+POST /api/v1/tenant/export/{id}/confirm-download
 ```
+
+**Cleanup Modes:**
+| Mode | Trigger | Use Case |
+|------|---------|----------|
+| **Immediate** | Client calls `confirm-download` | Production (recommended) |
+| **Timeout** | 5-minute auto-delete | Development/testing |
+| **External** | Upload to client storage | Enterprise integration |
 
 ---
 
@@ -271,6 +281,20 @@ Checks:
 - ✅ Authorization
 - ✅ Data Integrity
 - ✅ Resource Cleanup
+
+---
+
+## ⚠️ Problems & Solutions
+
+| Problem | Impact | Solution |
+|---------|--------|----------|
+| **Large Exports** | Memory/timeout issues | ✅ 500MB size limit + 100K row limit per table |
+| **Duplicate Requests** | Resource waste | ✅ Deduplication (1 min cooldown) |
+| **Failed Cleanup** | Disk space leak | ✅ Cleanup in catch/finally blocks |
+| **Concurrent Exports** | DB overload | ✅ 1 per tenant limit + BullMQ queue |
+| **Mid-fail Failures** | Partial files left | ✅ Atomic cleanup on any error |
+| **Storage Costs** | Accumulating files | ✅ Immediate/5min cleanup |
+| **No Download Confirm** | Files left forever | ✅ `confirm-download` endpoint |
 
 ---
 

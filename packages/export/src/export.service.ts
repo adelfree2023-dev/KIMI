@@ -65,7 +65,21 @@ export class ExportService {
     if (tenantJobs.length > 0) {
       throw new Error(
         `Export already in progress for tenant ${options.tenantId}. ` +
-        `Please wait for completion.`
+        `Job ID: ${tenantJobs[0].id}. Please wait for completion.`
+      );
+    }
+
+    // Check for duplicate requests (same profile within 1 minute)
+    const recentJobs = await this.exportQueue.getJobs(['completed']);
+    const recentDuplicate = recentJobs.find(
+      j => j.data.tenantId === options.tenantId &&
+           j.data.profile === options.profile &&
+           (Date.now() - j.processedOn!) < 60 * 1000
+    );
+
+    if (recentDuplicate) {
+      throw new Error(
+        `Duplicate export request. Similar export completed ${Math.floor((Date.now() - recentDuplicate.processedOn!) / 1000)}s ago.`
       );
     }
 

@@ -23,6 +23,11 @@ import { AnalyticsExportStrategy } from './strategies/analytics-export.strategy.
     LiteExportStrategy,
     NativeExportStrategy,
     AnalyticsExportStrategy,
+    // ExportWorker is also injectable for controller
+    {
+      provide: ExportWorker,
+      useClass: ExportWorker,
+    },
   ],
   exports: [ExportService],
 })

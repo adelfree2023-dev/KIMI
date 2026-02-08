@@ -15,6 +15,7 @@ import {
   defaultBlueprintTemplate,
   type BlueprintTemplate,
 } from './blueprint.js';
+import { publicDb } from '@apex/db';
 
 // Mock the database
 const mockBlueprints: Array<{
@@ -53,10 +54,15 @@ vi.mock('@apex/db', () => ({
         returning: () => {
           const record = {
             id: 'test-id',
+            name: 'Default',
+            description: null,
+            blueprint: JSON.stringify(defaultBlueprintTemplate),
+            isDefault: 'false',
+            plan: 'free',
             ...(v as Record<string, unknown>),
             createdAt: new Date(),
             updatedAt: new Date(),
-          };
+          } as any;
           mockBlueprints.push(record);
           return [record];
         },
@@ -307,6 +313,11 @@ describe('Blueprint Service', () => {
       expect(result).not.toBeNull();
       expect(result?.name).toBe('Non Default');
     });
+
+    it('should return null when no blueprints exist for specific plan', async () => {
+      const result = await getDefaultBlueprint('enterprise');
+      expect(result).toBeNull();
+    });
   });
 
   describe('updateBlueprint', () => {
@@ -320,6 +331,23 @@ describe('Blueprint Service', () => {
       expect(result).not.toBeNull();
       expect(result?.name).toBe('Updated Name');
       expect(result?.isDefault).toBe(true);
+    });
+
+    it('should return null if update fails (no record found)', async () => {
+      // Modify mock to return empty if id is wrong
+      const originalUpdate = publicDb.update;
+      (publicDb as any).update = () => ({
+        set: () => ({
+          where: () => ({
+            returning: () => [],
+          }),
+        }),
+      });
+
+      const result = await updateBlueprint('wrong-id', { name: 'Fail' });
+      expect(result).toBeNull();
+
+      publicDb.update = originalUpdate;
     });
   });
 

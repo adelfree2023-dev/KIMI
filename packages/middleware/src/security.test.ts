@@ -18,7 +18,7 @@ describe('SecurityMiddleware', () => {
       setHeader: vi.fn(),
       removeHeader: vi.fn(),
     };
-    nextFunction = vi.fn();
+    nextFunction = vi.fn() as unknown as NextFunction;
   });
 
   it('should be defined', () => {
@@ -140,5 +140,57 @@ describe('CsrfGuard', () => {
     } as unknown as ExecutionContext;
 
     expect(guard.canActivate(mockContext)).toBe(true);
+  });
+});
+
+import { defaultCorsConfig, getTenantCorsConfig } from './security.js';
+
+describe('CORS Configuration', () => {
+  describe('defaultCorsConfig.origin', () => {
+    const originFn = defaultCorsConfig.origin as (
+      origin: string | undefined,
+      callback: (err: Error | null, allow?: boolean) => void
+    ) => void;
+
+    it('should allow requests with no origin', () => {
+      const callback = vi.fn();
+      originFn(undefined, callback);
+      expect(callback).toHaveBeenCalledWith(null, true);
+    });
+
+    it('should allow whitelisted dev origins', () => {
+      const callback = vi.fn();
+      originFn('http://localhost:3000', callback);
+      expect(callback).toHaveBeenCalledWith(null, true);
+    });
+
+    it('should allow origins from ALLOWED_ORIGINS env', () => {
+      vi.stubEnv('ALLOWED_ORIGINS', 'https://myapp.com,https://api.myapp.com');
+      const callback = vi.fn();
+      originFn('https://myapp.com', callback);
+      expect(callback).toHaveBeenCalledWith(null, true);
+      vi.unstubAllEnvs();
+    });
+
+    it('should block non-whitelisted origins', () => {
+      const callback = vi.fn();
+      originFn('https://malicious.com', callback);
+      expect(callback).toHaveBeenCalledWith(expect.any(Error));
+    });
+  });
+
+  describe('getTenantCorsConfig', () => {
+    it('should include tenant domain and admin subdomain', () => {
+      const config = getTenantCorsConfig('example.com');
+      expect(config.origin).toContain('example.com');
+      expect(config.origin).toContain('admin.example.com');
+    });
+
+    it('should include dev origins in development environment', () => {
+      vi.stubEnv('NODE_ENV', 'development');
+      const config = getTenantCorsConfig('example.com');
+      expect(config.origin).toContain('http://localhost:3000');
+      vi.unstubAllEnvs();
+    });
   });
 });

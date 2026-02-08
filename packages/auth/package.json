@@ -9,7 +9,7 @@
     }
   },
   "scripts": {
-    "build": "bun build ./src/index.ts --outdir ./dist --target node && tsc --emitDeclarationOnly",
+    "build": "tsc --outDir ./dist --declaration --declarationMap --sourceMap && echo 'Build completed'",
     "test": "vitest run",
     "lint": "biome check ."
   },

@@ -46,15 +46,19 @@ vi.mock('@apex/config', () => ({
 describe('Storage Manager', () => {
   let mockClient: any;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks();
     // Force recreate/capture of mock client
     mockClient = new Minio.Client({} as any);
     // Overwrite the singleton instance with our new mock for this test
     (Minio.Client as any).mockImplementation(() => mockClient);
 
-    // Trigger lazy init if needed
-    createStorageBucket('init');
+    // Reset the internal singleton to force re-init with our mock
+    const sm = await import('./storage-manager.js');
+    (sm as any).minioClient = null;
+
+    // Trigger lazy init
+    await createStorageBucket('init');
   });
 
   describe('createStorageBucket', () => {

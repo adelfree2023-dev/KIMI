@@ -9,6 +9,7 @@ import {
   Controller,
   HttpCode,
   HttpStatus,
+  Inject,
   Logger,
   Post,
 } from '@nestjs/common';
@@ -20,7 +21,9 @@ export class ProvisioningController {
   private readonly logger = new Logger(ProvisioningController.name);
 
   constructor(
+    @Inject(ProvisioningService)
     private readonly provisioningService: ProvisioningService,
+    @Inject(AuditService)
     readonly _audit: AuditService
   ) { }
 

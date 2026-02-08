@@ -3,7 +3,7 @@
  * Orchestrates the 60-second store creation process
  */
 
-import type { AuditService } from '@apex/audit';
+import { AuditService } from '@apex/audit';
 import { publicPool } from '@apex/db';
 import {
   createStorageBucket,
@@ -30,7 +30,7 @@ export interface ProvisioningOptions {
 export class ProvisioningService {
   private readonly logger = new Logger(ProvisioningService.name);
 
-  constructor(private readonly audit: AuditService) {}
+  constructor(private readonly audit: AuditService) { }
 
   /**
    * Provision a new store in under 60 seconds
@@ -108,8 +108,7 @@ export class ProvisioningService {
       }
 
       throw new InternalServerErrorException(
-        `Provisioning Failed: ${
-          error instanceof Error ? error.message : 'Unknown'
+        `Provisioning Failed: ${error instanceof Error ? error.message : 'Unknown'
         }`
       );
     }

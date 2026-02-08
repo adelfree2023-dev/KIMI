@@ -28,75 +28,74 @@ const mockTenants: Array<{
   createdAt: Date;
   updatedAt: Date;
 }> = [
-  {
-    id: 'tenant-1',
-    subdomain: 'alpha',
-    name: 'Alpha Store',
-    plan: 'pro',
-    status: 'active',
-    createdAt: new Date('2026-01-01'),
-    updatedAt: new Date('2026-01-01'),
-  },
-  {
-    id: 'tenant-2',
-    subdomain: 'beta',
-    name: 'Beta Shop',
-    plan: 'free',
-    status: 'suspended',
-    createdAt: new Date('2026-01-15'),
-    updatedAt: new Date('2026-01-20'),
-  },
-  {
-    id: 'tenant-3',
-    subdomain: 'gamma',
-    name: 'Gamma Market',
-    plan: 'enterprise',
-    status: 'active',
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-];
+    {
+      id: 'tenant-1',
+      subdomain: 'alpha',
+      name: 'Alpha Store',
+      plan: 'pro',
+      status: 'active',
+      createdAt: new Date('2026-01-01'),
+      updatedAt: new Date('2026-01-01'),
+    },
+    {
+      id: 'tenant-2',
+      subdomain: 'beta',
+      name: 'Beta Shop',
+      plan: 'free',
+      status: 'suspended',
+      createdAt: new Date('2026-01-15'),
+      updatedAt: new Date('2026-01-20'),
+    },
+    {
+      id: 'tenant-3',
+      subdomain: 'gamma',
+      name: 'Gamma Market',
+      plan: 'enterprise',
+      status: 'active',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+  ];
 
-vi.mock('@apex/db', () => ({
-  tenants: {
-    id: 'id',
-    subdomain: 'subdomain',
-    name: 'name',
-    plan: 'plan',
-    status: 'status',
-    createdAt: 'created_at',
-    updatedAt: 'updated_at',
-  },
-  publicDb: {
-    select: () => ({
-      from: (table: string) => ({
-        where: (condition: unknown) => ({
-          limit: (n: number) => mockTenants.slice(0, n),
-          orderBy: () => mockTenants,
-        }),
-        orderBy: () => mockTenants,
-        limit: (n: number) => ({
-          offset: () => mockTenants.slice(0, n),
-        }),
+vi.mock('@apex/db', () => {
+  const mockQuery = {
+    where: vi.fn().mockReturnThis(),
+    limit: vi.fn().mockImplementation((n) => ({
+      offset: vi.fn().mockImplementation(() => Promise.resolve(mockTenants.slice(0, n))),
+      then: (onfulfilled: any) => Promise.resolve(mockTenants.slice(0, n)).then(onfulfilled),
+    })),
+    orderBy: vi.fn().mockReturnThis(),
+    then: (onfulfilled: any) => Promise.resolve(mockTenants).then(onfulfilled),
+    returning: vi.fn().mockResolvedValue([mockTenants[0]]),
+  };
+
+  return {
+    tenants: {
+      id: 'id',
+      subdomain: 'subdomain',
+      name: 'name',
+      plan: 'plan',
+      status: 'status',
+      createdAt: 'created_at',
+      updatedAt: 'updated_at',
+    },
+    publicDb: {
+      select: vi.fn().mockReturnValue({
+        from: vi.fn().mockReturnValue(mockQuery),
+        total: vi.fn().mockResolvedValue([{ total: mockTenants.length }]),
       }),
-    }),
-    insert: () => ({
-      values: () => ({ returning: () => [] }),
-    }),
-    update: () => ({
-      set: () => ({
-        where: () => ({
-          returning: () => [mockTenants[0]],
-        }),
+      update: vi.fn().mockReturnValue({
+        set: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        returning: vi.fn().mockResolvedValue([mockTenants[0]]),
       }),
-    }),
-    delete: () => ({
-      where: () => ({
-        returning: () => [{ id: 'deleted' }],
+      delete: vi.fn().mockReturnValue({
+        where: vi.fn().mockReturnThis(),
+        returning: vi.fn().mockResolvedValue([{ id: 'deleted' }]),
       }),
-    }),
-  },
-}));
+    },
+  };
+});
 
 describe('Tenant Overview Service', () => {
   describe('getTenantList', () => {
@@ -194,7 +193,8 @@ describe('Tenant Overview Service', () => {
       // Mock an active tenant
       const result = await deleteTenant('tenant-1');
       // Should fail because tenant is active
-      expect(result.success).toBe(true); // Mock returns success
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Suspend first');
     });
 
     it('should allow deletion of suspended tenants', async () => {
@@ -226,6 +226,15 @@ describe('Tenant Overview Service', () => {
     });
 
     it('should return false for non-existent subdomain', async () => {
+      // Setup mock to return empty array for non-existent subdomain search
+      vi.mocked(publicDb.select).mockReturnValueOnce({
+        from: vi.fn().mockReturnValue({
+          where: vi.fn().mockReturnThis(),
+          limit: vi.fn().mockResolvedValue([]),
+          then: (onfulfilled: any) => Promise.resolve([]).then(onfulfilled),
+        }),
+      } as any);
+
       const result = await killSwitch('non-existent');
       expect(result).toBe(false);
     });

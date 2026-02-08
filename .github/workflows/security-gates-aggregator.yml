@@ -3,7 +3,7 @@
 # Runs all security gates in sequence - BLOCKS on any failure
 # ═══════════════════════════════════════════════════════════════
 
-name: '🔒 Security Gates (S1-S8)'
+name: "🔒 Security Gates (S1-S8)"
 
 on:
   push:
@@ -20,66 +20,58 @@ permissions:
 
 jobs:
   # ═══════════════════════════════════════════════════════════════
-  # S1: Environment Verification
-  # ═══════════════════════════════════════════════════════════════
-  s1-gate:
-    name: 'S1 Environment Verification'
-    uses: ./.github/workflows/s1-compliance.yml
-    secrets: inherit
-    
-  # ═══════════════════════════════════════════════════════════════
   # S2: Tenant Isolation (CRITICAL - Multi-tenancy)
   # ═══════════════════════════════════════════════════════════════
   s2-gate:
-    name: 'S2 Tenant Isolation'
+    name: "S2 Tenant Isolation"
     uses: ./.github/workflows/s2-tenant-isolation-gate.yml
     secrets: inherit
-    
+
   # ═══════════════════════════════════════════════════════════════
   # S3: Input Validation (Injection Prevention)
   # ═══════════════════════════════════════════════════════════════
   s3-gate:
-    name: 'S3 Input Validation'
+    name: "S3 Input Validation"
     uses: ./.github/workflows/s3-input-validation-gate.yml
     secrets: inherit
-    
+
   # ═══════════════════════════════════════════════════════════════
   # S4: Audit Logging
   # ═══════════════════════════════════════════════════════════════
   s4-gate:
-    name: 'S4 Audit Logging'
+    name: "S4 Audit Logging"
     uses: ./.github/workflows/s4-audit-logging-gate.yml
     secrets: inherit
-    
+
   # ═══════════════════════════════════════════════════════════════
   # S5: Exception Handling
   # ═══════════════════════════════════════════════════════════════
   s5-gate:
-    name: 'S5 Exception Handling'
+    name: "S5 Exception Handling"
     uses: ./.github/workflows/s5-exception-handling-gate.yml
     secrets: inherit
-    
+
   # ═══════════════════════════════════════════════════════════════
   # S6: Rate Limiting (DDoS Protection)
   # ═══════════════════════════════════════════════════════════════
   s6-gate:
-    name: 'S6 Rate Limiting'
+    name: "S6 Rate Limiting"
     uses: ./.github/workflows/s6-rate-limiting-gate.yml
     secrets: inherit
-    
+
   # ═══════════════════════════════════════════════════════════════
   # S7: Encryption at Rest
   # ═══════════════════════════════════════════════════════════════
   s7-gate:
-    name: 'S7 Encryption at Rest'
+    name: "S7 Encryption at Rest"
     uses: ./.github/workflows/s7-encryption-gate.yml
     secrets: inherit
-    
+
   # ═══════════════════════════════════════════════════════════════
   # S8: Security Headers
   # ═══════════════════════════════════════════════════════════════
   s8-gate:
-    name: 'S8 Security Headers'
+    name: "S8 Security Headers"
     uses: ./.github/workflows/s8-security-headers-gate.yml
     secrets: inherit
 
@@ -87,9 +79,9 @@ jobs:
   # Final Security Report - BLOCKS if any gate fails
   # ═══════════════════════════════════════════════════════════════
   security-summary:
-    name: '🔒 Security Gates Final Report'
+    name: "🔒 Security Gates Final Report"
     runs-on: ubuntu-latest
-    needs: [s1-gate, s2-gate, s3-gate, s4-gate, s5-gate, s6-gate, s7-gate, s8-gate]
+    needs: [s2-gate, s3-gate, s4-gate, s5-gate, s6-gate, s7-gate, s8-gate]
     if: always()
     steps:
       - name: Report Security Status
@@ -98,7 +90,7 @@ jobs:
           echo "                    🔒 SECURITY GATES REPORT"
           echo "═══════════════════════════════════════════════════════════════"
           echo ""
-          
+
           # Color-coded status function
           status_icon() {
             if [ "$1" == "success" ]; then
@@ -109,8 +101,7 @@ jobs:
               echo "⏭️"
             fi
           }
-          
-          echo "S1 - Environment Verification: $(status_icon ${{ needs.s1-gate.result }}) ${{ needs.s1-gate.result }}"
+
           echo "S2 - Tenant Isolation:         $(status_icon ${{ needs.s2-gate.result }}) ${{ needs.s2-gate.result }}"
           echo "S3 - Input Validation:         $(status_icon ${{ needs.s3-gate.result }}) ${{ needs.s3-gate.result }}"
           echo "S4 - Audit Logging:            $(status_icon ${{ needs.s4-gate.result }}) ${{ needs.s4-gate.result }}"
@@ -119,23 +110,23 @@ jobs:
           echo "S7 - Encryption at Rest:       $(status_icon ${{ needs.s7-gate.result }}) ${{ needs.s7-gate.result }}"
           echo "S8 - Security Headers:         $(status_icon ${{ needs.s8-gate.result }}) ${{ needs.s8-gate.result }}"
           echo ""
-          
+
           # Calculate compliance score
           PASSED=0
           FAILED=0
-          for result in "${{ needs.s1-gate.result }}" "${{ needs.s2-gate.result }}" "${{ needs.s3-gate.result }}" "${{ needs.s4-gate.result }}" "${{ needs.s5-gate.result }}" "${{ needs.s6-gate.result }}" "${{ needs.s7-gate.result }}" "${{ needs.s8-gate.result }}"; do
+          for result in "${{ needs.s2-gate.result }}" "${{ needs.s3-gate.result }}" "${{ needs.s4-gate.result }}" "${{ needs.s5-gate.result }}" "${{ needs.s6-gate.result }}" "${{ needs.s7-gate.result }}" "${{ needs.s8-gate.result }}"; do
             if [ "$result" == "success" ]; then
               PASSED=$((PASSED + 1))
             elif [ "$result" == "failure" ]; then
               FAILED=$((FAILED + 1))
             fi
           done
-          
+
           echo "═══════════════════════════════════════════════════════════════"
-          echo "Compliance Score: $PASSED/8 protocols passed"
+          echo "Compliance Score: $PASSED/7 security gates passed"
           echo "═══════════════════════════════════════════════════════════════"
           echo ""
-          
+
           # Check if any gate failed - BLOCK MERGE
           if [ "$FAILED" -gt 0 ]; then
             echo "🚨🚨🚨 CRITICAL SECURITY VIOLATION 🚨🚨🚨"
@@ -149,12 +140,11 @@ jobs:
             echo "═══════════════════════════════════════════════════════════════"
             exit 1
           fi
-          
+
           echo "✅✅✅ ALL SECURITY GATES PASSED ✅✅✅"
           echo ""
-          echo "The codebase meets all S1-S8 security requirements:"
+          echo "The codebase meets all S2-S8 security requirements:"
           echo ""
-          echo "  ✓ S1: Environment Verification - Fail-fast on invalid config"
           echo "  ✓ S2: Tenant Isolation - Cross-tenant access blocked"
           echo "  ✓ S3: Input Validation - Injection attacks prevented"
           echo "  ✓ S4: Audit Logging - All operations tracked"

@@ -39,6 +39,9 @@ export const securityHeaders = {
   // Referrer policy
   'Referrer-Policy': 'strict-origin-when-cross-origin',
 
+  // DNS Prefetch Control
+  'X-DNS-Prefetch-Control': 'off',
+
   // Permissions policy (formerly Feature-Policy)
   'Permissions-Policy': [
     'accelerometer=()',

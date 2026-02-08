@@ -1,4 +1,5 @@
 
+import 'reflect-metadata';
 import { describe, it, expect, vi } from 'vitest';
 import { ExecutionContext } from '@nestjs/common';
 import { CurrentUser } from './current-user.decorator.js';

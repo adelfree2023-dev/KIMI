@@ -1,19 +1,25 @@
 
+import 'reflect-metadata';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { RateLimitGuard, RateLimit, RedisRateLimitStore } from './rate-limit.js';
-import { ExecutionContext, HttpStatus, HttpException } from '@nestjs/common';
+import { RateLimitGuard, RateLimit, RedisRateLimitStore, RATE_LIMIT_KEY } from './rate-limit.js';
+import { ExecutionContext, HttpStatus, HttpException, SetMetadata } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 
-// Mock RedisRateLimitStore
+// Mock RedisRateLimitStore methods
+const mockIncrement = vi.fn().mockResolvedValue({ count: 1, ttl: 60 });
+const mockIsBlocked = vi.fn().mockResolvedValue({ blocked: false, retryAfter: 0 });
+const mockIncrementViolations = vi.fn().mockResolvedValue(0);
+const mockBlock = vi.fn().mockResolvedValue(undefined);
+
 vi.mock('./rate-limit.js', async (importOriginal) => {
   const actual = await importOriginal<any>();
   return {
     ...actual,
     RedisRateLimitStore: vi.fn().mockImplementation(() => ({
-      increment: vi.fn().mockResolvedValue({ count: 1, ttl: 60 }),
-      isBlocked: vi.fn().mockResolvedValue({ blocked: false, retryAfter: 0 }),
-      incrementViolations: vi.fn().mockResolvedValue(0),
-      block: vi.fn().mockResolvedValue(undefined),
+      increment: mockIncrement,
+      isBlocked: mockIsBlocked,
+      incrementViolations: mockIncrementViolations,
+      block: mockBlock,
     })),
   };
 });
@@ -27,12 +33,14 @@ describe('RateLimitGuard', () => {
   let mockResponse: any;
 
   beforeEach(() => {
+    // Reset mocks
+    mockIncrement.mockResolvedValue({ count: 1, ttl: 60 });
+    mockIsBlocked.mockResolvedValue({ blocked: false, retryAfter: 0 });
+    mockIncrementViolations.mockResolvedValue(0);
+    mockBlock.mockResolvedValue(undefined);
+
     reflector = new Reflector();
     guard = new RateLimitGuard(reflector);
-
-    // Access the private store instance if possible or mock the method calls naturally
-    // Since unit testing typically mocks external dependencies, but here the store is a singleton imported
-    // We rely on the vi.mock above. We need to access the helper to change return values.
 
     mockRequest = {
       headers: {},
@@ -49,11 +57,11 @@ describe('RateLimitGuard', () => {
         getRequest: () => mockRequest,
         getResponse: () => mockResponse,
       }),
-      getHandler: () => { },
-      getClass: () => { },
+      getHandler: () => function testHandler() {},
+      getClass: () => class TestController {},
     } as any;
 
-    // Reset mocks on the singleton if needed, or we just trust the mock factory
+    vi.clearAllMocks();
   });
 
   it('should be defined', () => {

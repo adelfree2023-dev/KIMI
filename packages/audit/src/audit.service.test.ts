@@ -137,7 +137,7 @@ describe('Audit Service (S4 Protocol)', () => {
 
       const queryCall = mockClient.query.mock.calls.find(c => typeof c[0] === 'string' && /INSERT INTO public\.audit_logs/i.test(c[0]));
       expect(queryCall).toBeDefined();
-      expect(queryCall![1][5]).toContain('Database connection failed');
+      expect(queryCall![1][6]).toContain('Database connection failed'); // metadata is index 6 after adding userEmail
       expect(queryCall![1]).toContain('FAILURE');
     });
 
@@ -288,7 +288,7 @@ describe('Audit Service (S4 Protocol)', () => {
       const queryCall = mockClient.query.mock.calls.find(c => typeof c[0] === 'string' && /INSERT INTO public\.audit_logs/i.test(c[0]));
       expect(queryCall).toBeDefined();
       expect(queryCall![1]).toContain('FAILURE');
-      expect(queryCall![1][5]).toContain('Schema creation failed');
+      expect(queryCall![1][6]).toContain('Schema creation failed'); // metadata is index 6 after adding userEmail
       expect(queryCall![1]).toContain('HIGH'); // Failures are HIGH severity
     });
   });
@@ -309,7 +309,7 @@ describe('Audit Service (S4 Protocol)', () => {
       expect(queryCall![1]).toContain('CROSS_TENANT_ACCESS_ATTEMPT');
       expect(queryCall![1]).toContain('attacker-123');
       expect(queryCall![1]).toContain('victim-tenant');
-      expect(queryCall![1][5]).toContain('requestedResource');
+      expect(queryCall![1][6]).toContain('requestedResource'); // metadata is index 6 after adding userEmail
     });
 
     it('should always result in FAILURE for security events', async () => {

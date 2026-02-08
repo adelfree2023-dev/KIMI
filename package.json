@@ -22,7 +22,7 @@
     "@biomejs/biome": "1.5.3",
     "turbo": "latest"
   },
-  "packageManager": "bun@1.0.0",
+  "packageManager": "npm@10.0.0",
   "engines": {
     "bun": ">=1.0.0"
   },

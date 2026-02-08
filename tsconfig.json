@@ -10,6 +10,7 @@
     "declaration": true,
     "composite": true,
     "lib": ["ESNext", "DOM"],
+    "types": ["node", "bun-types"],
     /* 1. تفعيل الـ Decorators عشان NestJS */
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,

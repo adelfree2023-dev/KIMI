@@ -44,6 +44,8 @@ export const auditLogs = pgTable('audit_logs', {
   metadata: text('metadata'),
   ipAddress: text('ip_address'),
   userAgent: text('user_agent'),
+  severity: text('severity').default('INFO'), // S4: Audit severity level
+  result: text('result').default('SUCCESS'), // S4: Operation result
   createdAt: timestamp('created_at').defaultNow(),
 });
 

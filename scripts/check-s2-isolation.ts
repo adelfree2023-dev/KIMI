@@ -4,6 +4,7 @@
  * Advanced TypeScript-based SQL query analyzer
  * Detects tenant isolation violations in database layer
  */
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: This is a complex security scanner
 
 import { readdirSync, readFileSync, statSync } from 'fs';
 import { join, relative } from 'path';

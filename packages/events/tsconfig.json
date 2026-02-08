@@ -4,12 +4,9 @@
     "composite": true,
     "outDir": "./dist",
     "rootDir": "./src",
-    "jsx": "react-jsx",
     "types": [
       "node",
-      "bun-types",
-      "react",
-      "react-dom"
+      "bun-types"
     ],
     "declaration": true,
     "emitDeclarationOnly": true
@@ -19,6 +16,7 @@
   ],
   "exclude": [
     "node_modules",
-    "dist"
+    "dist",
+    "**/*.test.ts"
   ]
 }

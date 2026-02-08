@@ -9,19 +9,45 @@
     "isolatedModules": true,
     "declaration": true,
     "composite": true,
-    "lib": ["ESNext", "DOM"],
+    "lib": [
+      "ESNext",
+      "DOM"
+    ],
+    "types": [
+      "node",
+      "bun-types"
+    ],
     /* 1. تفعيل الـ Decorators عشان NestJS */
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     /* 2. تعريف المسارات (أهم جزء لحل الأخطاء) */
     "baseUrl": ".",
     "paths": {
-      "@apex/audit": ["packages/audit/src/index.ts"],
-      "@apex/db": ["packages/db/src/index.ts"],
-      "@apex/config": ["packages/config/src/index.ts"],
-      "@apex/provisioning": ["packages/provisioning/src/index.ts"],
-      "@apex/middleware": ["packages/middleware/src/index.ts"]
+      "@apex/audit": [
+        "packages/audit/src/index.ts"
+      ],
+      "@apex/db": [
+        "packages/db/src/index.ts"
+      ],
+      "@apex/config": [
+        "packages/config/src/index.ts"
+      ],
+      "@apex/provisioning": [
+        "packages/provisioning/src/index.ts"
+      ],
+      "@apex/middleware": [
+        "packages/middleware/src/index.ts"
+      ],
+      "@apex/events": [
+        "packages/events/src/index.ts"
+      ],
+      "@apex/ui": [
+        "packages/ui/src/index.ts"
+      ]
     }
   },
-  "exclude": ["node_modules", "dist"]
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
 }

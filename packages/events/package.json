@@ -12,8 +12,8 @@
     }
   },
   "scripts": {
-    "build": "tsup src/index.ts --format cjs,esm --dts",
-    "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
+    "build": "tsup src/index.ts --format cjs,esm --dts --tsconfig ./tsconfig.json",
+    "dev": "tsup src/index.ts --format cjs,esm --dts --watch --tsconfig ./tsconfig.json",
     "test": "vitest run",
     "test:watch": "vitest"
   },
@@ -21,6 +21,8 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
+    "@types/node": "^20.0.0",
+    "bun-types": "latest",
     "tsup": "^8.0.1",
     "typescript": "^5.3.3",
     "vitest": "^1.2.0"

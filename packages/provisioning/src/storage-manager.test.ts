@@ -46,7 +46,22 @@ describe('Storage Manager', () => {
   let mockClient: any;
 
   beforeEach(() => {
-    mockClient = minioClient;
+    // Force initialization of minioClient if it's null
+    if (!minioClient) {
+      try {
+        // This will call new Minio.Client() which is mocked
+        import('./storage-manager.js').then(m => m.getSignedUploadUrl('t', 'o'));
+      } catch (e) { }
+    }
+
+    // Direct mock for simplicity if minioClient is still not playing nice
+    mockClient = minioClient || (Minio.Client as any).mock.results[0]?.value;
+
+    // If still null, create a manual mock capture
+    if (!mockClient) {
+      mockClient = new Minio.Client({} as any);
+    }
+
     vi.clearAllMocks();
   });
 
@@ -180,7 +195,7 @@ describe('Storage Manager', () => {
     it('should delete empty bucket', async () => {
       mockClient.bucketExists.mockResolvedValue(true);
       mockClient.listObjects.mockReturnValue(
-        (async function* () {})() // Empty async generator
+        (async function* () { })() // Empty async generator
       );
       mockClient.removeBucket.mockResolvedValue(undefined);
 
@@ -242,7 +257,7 @@ describe('Storage Manager', () => {
     });
 
     it('should handle empty bucket', async () => {
-      mockClient.listObjects.mockReturnValue((async function* () {})());
+      mockClient.listObjects.mockReturnValue((async function* () { })());
       mockClient.getBucketTagging.mockResolvedValue({ plan: 'free' });
 
       const result = await getStorageStats('uuid-123');

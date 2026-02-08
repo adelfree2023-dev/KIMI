@@ -55,7 +55,7 @@ describe('ProvisioningService', () => {
       providers: [
         ProvisioningService,
         {
-          provide: AuditService,
+          provide: 'AUDIT_SERVICE',
           useValue: mockAuditService,
         },
       ],

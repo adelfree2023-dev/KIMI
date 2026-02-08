@@ -214,6 +214,31 @@ describe('Audit Service (S4 Protocol)', () => {
       await expect(log(entry)).rejects.toThrow('Audit Persistence Failure');
       expect(mockClient.release).toHaveBeenCalled();
     });
+
+    it('should handle entries with minimal optional fields', async () => {
+      const entry: AuditLogEntry = {
+        timestamp: new Date(),
+        action: 'SYSTEM_EVENT',
+        // userId omitted (line 92 branch)
+        // ipAddress omitted (line 101 branch)
+        entityType: 'system',
+        entityId: 'system-1',
+        metadata: { actorType: 'system' },
+        // severity omitted (line 103 branch)
+        // result omitted (line 104 branch)
+      };
+
+      await log(entry);
+
+      const queryCall = mockClient.query.mock.calls.find(c => typeof c[0] === 'string' && /INSERT INTO public\.audit_logs/i.test(c[0]));
+      expect(queryCall).toBeDefined();
+      // Verify defaults are applied
+      const params = queryCall![1];
+      expect(params[1]).toBeNull(); // userId should be null
+      expect(params[7]).toBeNull(); // ipAddress should be null
+      expect(params[9]).toBe('INFO'); // severity default
+      expect(params[10]).toBe('SUCCESS'); // result default
+    });
   });
 
   describe('query', () => {

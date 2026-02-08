@@ -97,7 +97,7 @@ describe('S1: Environment Verification Protocol', () => {
 
     it('should get config values', () => {
       const configService = new ConfigService();
-      expect(configService.get('JWT_SECRET')).toContain('test_secret_key');
+      expect(configService.get('JWT_SECRET')).toContain('apex_v2_mock_secret');
       expect(configService.get('DATABASE_URL')).toBe('postgresql://localhost:5432/test');
     });
 

@@ -190,9 +190,26 @@ jobs:
           echo ""
           echo "❌ The 60-second North Star goal was VIOLATED"
           echo ""
-          echo "📋 Performance Issue Detected:"
-          echo "   - Provisioning took: ${{ steps.provision-test.outputs.DURATION }}s"
-          echo "   - Threshold exceeded by: $((${{ steps.provision-test.outputs.DURATION }} - ${{ steps.provision-test.outputs.THRESHOLD }}))s"
+          
+          # Handle empty values with defaults
+          DURATION="${{ steps.provision-test.outputs.DURATION }}"
+          THRESHOLD="${{ steps.provision-test.outputs.THRESHOLD }}"
+          
+          if [ -z "$DURATION" ]; then
+            DURATION="UNKNOWN"
+            echo "📋 Performance Issue Detected:"
+            echo "   - Provisioning failed before timing completed"
+            echo "   - Check logs above for specific errors"
+          else
+            if [ -z "$THRESHOLD" ]; then
+              THRESHOLD=55
+            fi
+            EXCEEDED=$((DURATION - THRESHOLD))
+            echo "📋 Performance Issue Detected:"
+            echo "   - Provisioning took: ${DURATION}s"
+            echo "   - Threshold exceeded by: ${EXCEEDED}s"
+          fi
+          
           echo ""
           echo "🔒 Impact:"
           echo "   - Customer onboarding delayed"

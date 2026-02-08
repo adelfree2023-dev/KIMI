@@ -152,6 +152,8 @@ jobs:
           MINIO_SECRET_KEY: minio-test-secret-key-for-ci-only
           MINIO_USE_SSL: 'false'
           MINIO_REGION: us-east-1
+          # Ensure migrations are found regardless of working directory
+          MIGRATIONS_PATH: ${{ github.workspace }}/packages/db/drizzle
 
       - name: Verify Provisioned Store
         run: |

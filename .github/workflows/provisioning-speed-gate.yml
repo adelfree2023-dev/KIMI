@@ -1,0 +1,226 @@
+name: "⚡ Provisioning Speed Gate (60s North Star)"
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  checks: write
+
+jobs:
+  provisioning-speed-test:
+    name: "⏱️ 60-Second Provisioning Validation"
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: apex_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install Dependencies
+        run: bun install
+
+      - name: Setup Test Database
+        run: |
+          bun run db:push
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/apex_test
+          REDIS_URL: redis://localhost:6379
+
+      - name: "⏱️ NORTH STAR: Provision in Under 60 Seconds"
+        id: provision-test
+        run: |
+          echo "════════════════════════════════════════════════════════"
+          echo "🎯 NORTH STAR GOAL: Provision store in < 60 seconds"
+          echo "════════════════════════════════════════════════════════"
+          echo ""
+
+          # Generate unique subdomain
+          SUBDOMAIN="perf-test-$(date +%s)"
+
+          # Start timer
+          START_TIME=$(date +%s)
+
+          # Execute provisioning
+          echo "🚀 Starting provisioning for subdomain: ${SUBDOMAIN}"
+          bun run cli provision \
+            --subdomain="${SUBDOMAIN}" \
+            --plan=basic \
+            --email="test@${SUBDOMAIN}.com" \
+            --password="TestPass123!" \
+            --store-name="Speed Test Store" \
+            --quiet
+
+          # End timer
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+
+          echo ""
+          echo "════════════════════════════════════════════════════════"
+          echo "⏱️ PROVISIONING COMPLETED IN: ${DURATION} SECONDS"
+          echo "════════════════════════════════════════════════════════"
+
+          # Validate against threshold
+          THRESHOLD=55  # 55s to have buffer before 60s
+
+          if [ $DURATION -gt $THRESHOLD ]; then
+            echo ""
+            echo "❌ CRITICAL FAILURE: NORTH STAR VIOLATED"
+            echo ""
+            echo "Expected: < ${THRESHOLD}s (buffer for 60s goal)"
+            echo "Actual:   ${DURATION}s"
+            echo "Exceeded: $((DURATION - THRESHOLD))s"
+            echo ""
+            echo "🔴 This exceeds our 60-second North Star commitment"
+            echo "🔴 Customer experience degraded"
+            echo "🔴 Performance optimization REQUIRED"
+            echo ""
+            exit 1
+          fi
+
+          echo ""
+          echo "✅ NORTH STAR ACHIEVED!"
+          echo "✅ Provisioning time: ${DURATION}s (threshold: ${THRESHOLD}s)"
+          echo ""
+
+          # Save metrics
+          echo "DURATION=${DURATION}" >> $GITHUB_OUTPUT
+          echo "THRESHOLD=${THRESHOLD}" >> $GITHUB_OUTPUT
+          echo "SUBDOMAIN=${SUBDOMAIN}" >> $GITHUB_OUTPUT
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/apex_test
+          REDIS_URL: redis://localhost:6379
+          NODE_ENV: test
+
+      - name: Verify Provisioned Store
+        run: |
+          echo "🔍 Verifying provisioned store integrity..."
+
+          SUBDOMAIN="${{ steps.provision-test.outputs.SUBDOMAIN }}"
+
+          # Check tenant exists in database
+          TENANT_COUNT=$(bunx drizzle-kit query \
+            --query "SELECT COUNT(*) FROM tenants WHERE subdomain='${SUBDOMAIN}'" \
+            --database-url="${DATABASE_URL}" || echo "0")
+
+          if [ "$TENANT_COUNT" = "0" ]; then
+            echo "❌ Tenant not found in database"
+            exit 1
+          fi
+
+          echo "✅ Tenant verified in database"
+
+          # Check schema exists
+          SCHEMA_EXISTS=$(bunx drizzle-kit query \
+            --query "SELECT schema_name FROM information_schema.schemata WHERE schema_name='tenant_${SUBDOMAIN}'" \
+            --database-url="${DATABASE_URL}" || echo "")
+
+          if [ -z "$SCHEMA_EXISTS" ]; then
+            echo "❌ Tenant schema not created"
+            exit 1
+          fi
+
+          echo "✅ Tenant schema created"
+          echo "✅ Store provisioning integrity verified"
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/apex_test
+
+      - name: Performance Breakdown (Optional)
+        if: always()
+        run: |
+          echo ""
+          echo "════════════════════════════════════════════════════════"
+          echo "📊 PROVISIONING PERFORMANCE BREAKDOWN"
+          echo "════════════════════════════════════════════════════════"
+          echo ""
+          echo "Total Time:      ${{ steps.provision-test.outputs.DURATION }}s"
+          echo "Threshold:       ${{ steps.provision-test.outputs.THRESHOLD }}s"
+          echo "North Star Goal: 60s"
+          echo ""
+          echo "Typical breakdown (target):"
+          echo "  • Tenant record:     ~2s"
+          echo "  • Schema creation:   ~15s"
+          echo "  • Seed data:         ~20s"
+          echo "  • Storefront build:  ~15s"
+          echo "  • Final validation:  ~3s"
+          echo "  ─────────────────────────"
+          echo "  • Total:             ~55s"
+          echo ""
+
+      - name: Report Failure
+        if: failure()
+        run: |
+          echo "════════════════════════════════════════════════════════"
+          echo "🚨 PROVISIONING SPEED GATE FAILED"
+          echo "════════════════════════════════════════════════════════"
+          echo ""
+          echo "❌ The 60-second North Star goal was VIOLATED"
+          echo ""
+          echo "📋 Performance Issue Detected:"
+          echo "   - Provisioning took: ${{ steps.provision-test.outputs.DURATION }}s"
+          echo "   - Threshold exceeded by: $((${{ steps.provision-test.outputs.DURATION }} - ${{ steps.provision-test.outputs.THRESHOLD }}))s"
+          echo ""
+          echo "🔒 Impact:"
+          echo "   - Customer onboarding delayed"
+          echo "   - North Star commitment broken"
+          echo "   - Competitive advantage lost"
+          echo ""
+          echo "📝 Action Required:"
+          echo "   1. Profile slow queries (check logs above)"
+          echo "   2. Optimize schema creation process"
+          echo "   3. Consider parallel seed data insertion"
+          echo "   4. Review Storefront build process"
+          echo ""
+          echo "🛑 Build rejected. Optimize before merging."
+          exit 1
+
+      - name: Report Success
+        if: success()
+        run: |
+          echo "════════════════════════════════════════════════════════"
+          echo "✅ PROVISIONING SPEED GATE PASSED"
+          echo "════════════════════════════════════════════════════════"
+          echo ""
+          echo "🎯 North Star Goal: ACHIEVED"
+          echo ""
+          echo "Performance metrics:"
+          echo "  ✓ Provisioning time: ${{ steps.provision-test.outputs.DURATION }}s"
+          echo "  ✓ Threshold: ${{ steps.provision-test.outputs.THRESHOLD }}s"
+          echo "  ✓ Buffer remaining: $((${{ steps.provision-test.outputs.THRESHOLD }} - ${{ steps.provision-test.outputs.DURATION }}))s"
+          echo ""
+          echo "⚡ Store live in under 60 seconds - Customer satisfaction guaranteed"
+          echo "════════════════════════════════════════════════════════"

@@ -1,16 +1,13 @@
 # ═══════════════════════════════════════════════════════════════
 # S2 Tenant Isolation Gate - CRITICAL SECURITY CHECK
 # Tests that Tenant A cannot access Tenant B's data
+# NOTE: Only runs via aggregator workflow to avoid duplicates
 # ═══════════════════════════════════════════════════════════════
 
 name: "🔒 S2 Tenant Isolation Gate"
 
 on:
-  push:
-    branches: [main, develop]
-  pull_request:
-    branches: [main]
-  workflow_call:
+  workflow_call: # Only called by aggregator
 
 permissions:
   contents: read

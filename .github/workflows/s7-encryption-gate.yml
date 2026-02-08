@@ -3,14 +3,10 @@
 # Tests that sensitive data is encrypted in database
 # ═══════════════════════════════════════════════════════════════
 
-name: '🔐 S7 Encryption at Rest Gate'
+name: "🔐 S7 Encryption at Rest Gate"
 
 on:
-  push:
-    branches: [main, develop]
-  pull_request:
-    branches: [main]
-  workflow_call:
+  workflow_call: # Only called by aggregator to avoid duplicates
 
 permissions:
   contents: read
@@ -22,7 +18,7 @@ env:
 
 jobs:
   s7-encryption-test:
-    name: 'S7 Encryption at Rest Security Test'
+    name: "S7 Encryption at Rest Security Test"
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -53,13 +49,13 @@ jobs:
       - name: Check Encryption Implementation
         run: |
           echo "🔍 Checking for encryption implementation..."
-          
+
           # Check for AES/GCM encryption usage
           ENCRYPTION_PATTERNS=$(grep -r "aes\|AES\|gcm\|GCM\|crypto\|encrypt\|decrypt" packages/*/src apps/*/src --include="*.ts" -i 2>/dev/null | wc -l)
-          
+
           # Check for environment variable encryption keys
           ENV_ENCRYPTION=$(grep -r "ENCRYPTION_KEY\|AES_KEY\|CRYPTO_KEY" packages/*/src apps/*/src --include="*.ts" 2>/dev/null | wc -l)
-          
+
           if [ "$ENCRYPTION_PATTERNS" -eq 0 ] && [ "$ENV_ENCRYPTION" -eq 0 ]; then
             echo "⚠️ WARNING: No explicit encryption implementation found"
             echo "Checking if using database-level encryption..."
@@ -72,16 +68,16 @@ jobs:
       - name: Verify No Plaintext Storage
         run: |
           echo "🚨 Scanning for potential plaintext storage patterns..."
-          
+
           # Check schema for sensitive fields
           SENSITIVE_FIELDS=$(grep -r "api_key\|apikey\|password\|secret\|token\|credential" packages/db/src --include="*.ts" -i 2>/dev/null | wc -l)
-          
+
           if [ "$SENSITIVE_FIELDS" -gt 0 ]; then
             echo "⚠️ Found $SENSITIVE_FIELDS sensitive field references"
             echo "Listing sensitive fields:"
             grep -r "api_key\|apikey\|password\|secret\|token\|credential" packages/db/src --include="*.ts" -i 2>/dev/null || true
           fi
-          
+
           # Check if using pgcrypto extension
           echo "Checking for PostgreSQL encryption support..."
           PGCRYPTO=$(psql "$DATABASE_URL" -t -c "SELECT * FROM pg_extension WHERE extname = 'pgcrypto';" | wc -l)
@@ -94,7 +90,7 @@ jobs:
       - name: Test Database Encryption
         run: |
           echo "🔐 Testing database encryption capabilities..."
-          
+
           # Create test table with encrypted column simulation
           psql "$DATABASE_URL" -c "
             DROP TABLE IF EXISTS encryption_test;
@@ -105,7 +101,7 @@ jobs:
               created_at TIMESTAMP DEFAULT NOW()
             );
           "
-          
+
           # Test pgcrypto if available
           PGCryptoTest=$(psql "$DATABASE_URL" -t -c "
             DO \$\$
@@ -118,17 +114,17 @@ jobs:
               VALUES ('sensitive_data', 'ENC::encrypted_value');
             END \$\$;
           " 2>&1)
-          
+
           echo "Encryption test result: $PGCryptoTest"
-          
+
           # Verify data is not stored as plaintext
           STORED_DATA=$(psql "$DATABASE_URL" -t -c "SELECT encrypted_data FROM encryption_test LIMIT 1;" | xargs)
-          
+
           if [ "$STORED_DATA" = "sensitive_data" ]; then
             echo "🚨 CRITICAL: Sensitive data stored as PLAINTEXT!"
             exit 1
           fi
-          
+
           if echo "$STORED_DATA" | grep -q "ENC::\|encrypt\|base64\|\\x"; then
             echo "✅ Data appears to be encrypted or encoded"
           else
@@ -138,18 +134,18 @@ jobs:
       - name: Check Application-Level Encryption
         run: |
           echo "🔍 Checking application-level encryption patterns..."
-          
+
           # Look for encryption service or utility
           ENCRYPTION_SERVICE=$(find packages apps -name "*encrypt*" -o -name "*crypto*" 2>/dev/null | grep -v node_modules | head -10)
-          
+
           if [ -n "$ENCRYPTION_SERVICE" ]; then
             echo "✅ Encryption-related files found:"
             echo "$ENCRYPTION_SERVICE"
           fi
-          
+
           # Check for secure random generation
           SECURE_RANDOM=$(grep -r "randomBytes\|generateKey\|crypto\.random" packages/*/src apps/*/src --include="*.ts" 2>/dev/null | wc -l)
-          
+
           if [ "$SECURE_RANDOM" -gt 0 ]; then
             echo "✅ Secure random generation found ($SECURE_RANDOM references)"
           fi
@@ -157,25 +153,25 @@ jobs:
       - name: Verify Environment Variables
         run: |
           echo "🔍 Verifying encryption environment variables..."
-          
+
           REQUIRED_VARS=("ENCRYPTION_KEY" "JWT_SECRET")
           MISSING_VARS=()
-          
+
           for var in "${REQUIRED_VARS[@]}"; do
             if ! grep -q "^${var}=" .env.example 2>/dev/null; then
               MISSING_VARS+=("$var")
             fi
           done
-          
+
           if [ ${#MISSING_VARS[@]} -eq 0 ]; then
             echo "✅ All required encryption variables documented in .env.example"
           else
             echo "⚠️ Missing in .env.example: ${MISSING_VARS[*]}"
           fi
-          
+
           # Check for hardcoded keys (CRITICAL)
           HARDCODED_KEYS=$(grep -r "aes.*key\|secret.*=.*\"\|password.*=.*\"" packages/*/src apps/*/src --include="*.ts" 2>/dev/null | grep -v "test\|example\|mock" | head -5)
-          
+
           if [ -n "$HARDCODED_KEYS" ]; then
             echo "🚨 WARNING: Potential hardcoded secrets found:"
             echo "$HARDCODED_KEYS"
@@ -187,9 +183,9 @@ jobs:
       - name: Test TLS/SSL Configuration Check
         run: |
           echo "🔒 Checking TLS/SSL patterns..."
-          
+
           TLS_CONFIG=$(grep -r "ssl\|tls\|SSL\|TLS" packages/*/src apps/*/src --include="*.ts" -i 2>/dev/null | grep -v "localhost\|test" | wc -l)
-          
+
           if [ "$TLS_CONFIG" -gt 0 ]; then
             echo "✅ TLS/SSL configuration references found"
           else

@@ -6,11 +6,7 @@
 name: "⚠️ S5 Exception Handling Gate"
 
 on:
-  push:
-    branches: [main, develop]
-  pull_request:
-    branches: [main]
-  workflow_call:
+  workflow_call: # Only called by aggregator to avoid duplicates
 
 permissions:
   contents: read

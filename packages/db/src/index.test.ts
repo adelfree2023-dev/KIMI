@@ -21,4 +21,12 @@ describe('DB Module Exports', () => {
   it('should export auditLogs', () => {
     expect(db.auditLogs).toBeDefined();
   });
+
+  it('should export publicDb', () => {
+    expect(db.publicDb).toBeDefined();
+  });
+
+  it('should export publicPool', () => {
+    expect(db.publicPool).toBeDefined();
+  });
 });

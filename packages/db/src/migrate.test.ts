@@ -7,9 +7,11 @@
 
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'fs';
-import { resolve } from 'path';
+import { fileURLToPath } from 'url';
+import { dirname, resolve } from 'path';
 
-const migratePath = resolve(process.cwd(), 'packages/db/src/migrate.ts');
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const migratePath = resolve(__dirname, 'migrate.ts');
 
 describe('Migration Script Structure', () => {
   it('should have migrate.ts file', () => {

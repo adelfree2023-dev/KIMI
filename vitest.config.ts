@@ -25,7 +25,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
-    setupFiles: ['./vitest.setup.ts'],
+    setupFiles: [resolve(__dirname, 'vitest.setup.ts')],
     coverage: {
       provider: 'v8',
       all: true,
@@ -45,10 +45,10 @@ export default defineConfig({
       ],
       // Phase 1 Thresholds: 90% as required by Constitution Rule 4.1
       thresholds: {
-        branches: 90,
-        functions: 90,
-        lines: 90,
-        statements: 90,
+        branches: 95,
+        functions: 95,
+        lines: 95,
+        statements: 95,
       },
       // Report uncovered files
       reportOnFailure: true,

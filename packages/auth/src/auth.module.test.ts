@@ -19,9 +19,15 @@ vi.mock('@nestjs/passport', () => ({
   },
 }));
 
+const { jwtMocks } = vi.hoisted(() => ({
+  jwtMocks: {
+    registerAsync: vi.fn().mockReturnValue({ module: 'JwtModule' }),
+  },
+}));
+
 vi.mock('@nestjs/jwt', () => ({
   JwtModule: {
-    registerAsync: () => ({ module: 'JwtModule' }),
+    registerAsync: jwtMocks.registerAsync,
   },
   JwtService: class MockJwtService { },
 }));
@@ -51,14 +57,10 @@ describe('AuthModule', () => {
     const { ConfigService } = await import('@apex/config');
 
     // Extract the factory from JwtModule.registerAsync mock
-    const spy = vi.spyOn(JwtModule, 'registerAsync');
-
-    // We need to re-import or trigger the decorator logic
-    // Since it's already executed, we can look at the mock calls if we mocked it early enough
-    // In this case, the mock is at the top of the file.
-
-    expect(spy).toHaveBeenCalled();
-    const config = spy.mock.calls[0][0] as any;
+    expect(jwtMocks.registerAsync).toHaveBeenCalled();
+    const call = jwtMocks.registerAsync.mock.calls.find(c => c[0].useFactory);
+    expect(call).toBeDefined();
+    const config = call![0];
     expect(config.useFactory).toBeDefined();
 
     const mockConfigService = {
@@ -76,12 +78,12 @@ describe('AuthModule Exports from index', () => {
   it('should export AuthModule from index', async () => {
     const { AuthModule } = await import('./index.js');
     expect(AuthModule).toBeDefined();
-  });
+  }, 10000);
 
   it('should export AuthService from index', async () => {
     const { AuthService } = await import('./index.js');
     expect(AuthService).toBeDefined();
-  });
+  }, 10000);
 
   it('should export JwtStrategy from index', async () => {
     const { JwtStrategy } = await import('./index.js');

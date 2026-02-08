@@ -3,7 +3,7 @@
  * Super-#21: Onboarding Blueprint Editor
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import {
   createBlueprint,
   getAllBlueprints,
@@ -245,12 +245,12 @@ describe('Blueprint Service', () => {
   describe('validateBlueprint edge cases', () => {
     it('should reject blueprint without name', () => {
       const bp = { ...defaultBlueprintTemplate, name: undefined };
-      expect(validateBlueprint(bp)).toBe(false);
+      expect(() => validateBlueprint(bp as any)).toThrow('Blueprint must have a name');
     });
 
     it('should reject blueprint without version', () => {
       const bp = { ...defaultBlueprintTemplate, version: undefined };
-      expect(validateBlueprint(bp)).toBe(false);
+      expect(() => validateBlueprint(bp as any)).toThrow('Blueprint version must be "1.0"');
     });
 
     it('should reject page without title', () => {
@@ -258,7 +258,7 @@ describe('Blueprint Service', () => {
         ...defaultBlueprintTemplate,
         pages: [{ slug: 'test' }]
       };
-      expect(validateBlueprint(bp)).toBe(false);
+      expect(() => validateBlueprint(bp as any)).toThrow('Page must have slug and title');
     });
   });
 

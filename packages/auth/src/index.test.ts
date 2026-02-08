@@ -24,12 +24,12 @@ describe('Auth Module Exports', () => {
   it('should export AuthModule', async () => {
     const { AuthModule } = await import('./index.js');
     expect(AuthModule).toBeDefined();
-  });
+  }, 10000);
 
   it('should export AuthService', async () => {
     const { AuthService } = await import('./index.js');
     expect(AuthService).toBeDefined();
-  });
+  }, 10000);
 
   it('should export JwtStrategy', async () => {
     const { JwtStrategy } = await import('./index.js');

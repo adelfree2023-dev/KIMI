@@ -75,8 +75,8 @@ describe('Audit Service (S4 Protocol)', () => {
         ipAddress: '10.0.0.1',
         entityType: 'user',
         entityId: 'user-123',
+        userEmail: 'admin@example.com',
         metadata: {
-          email: 'admin@example.com',
           actorType: 'user',
         },
         severity: 'INFO',
@@ -87,7 +87,10 @@ describe('Audit Service (S4 Protocol)', () => {
 
       const queryCall = mockClient.query.mock.calls.find(c => typeof c[0] === 'string' && /INSERT INTO public\.audit_logs/i.test(c[0]));
       expect(queryCall).toBeDefined();
-      expect(queryCall![1][2]).toContain('admin@example.com');
+      // Ensure the email is in the params (index 2 corresponds to actor_email in the schema)
+      const params = queryCall![1];
+      const emailParam = params[2];
+      expect(typeof emailParam === 'string' && emailParam.includes('admin@example.com')).toBe(true);
     });
 
     it('should output structured log to console for monitoring', async () => {

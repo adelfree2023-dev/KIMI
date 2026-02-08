@@ -89,7 +89,7 @@ describe('QuotaService', () => {
     it('should reject subdomains with spaces', async () => {
       const result = await validateSubdomainAvailability('valid subdomain');
       expect(result.available).toBe(false);
-      expect(result.reason).toContain('space');
+      expect(result.reason).toContain('Only lowercase letters, numbers, and hyphens');
     });
 
     it('should reject subdomains that are too short or too long', async () => {

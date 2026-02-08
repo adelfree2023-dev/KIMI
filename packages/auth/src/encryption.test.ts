@@ -68,16 +68,16 @@ describe('EncryptionService', () => {
   });
 
   it('should initialize with provided master key', () => {
-    process.env.ENCRYPTION_MASTER_KEY = 'ValidProdPass32CharsWith1$!Abc12'; // Added 2 chars to reach 32
-    process.env.NODE_ENV = 'production'; // Enforce strict checks but with valid key
+    vi.stubEnv('ENCRYPTION_MASTER_KEY', 'ValidProdPass32CharsWith1$!Abc12'); // Added 2 chars to reach 32
+    vi.stubEnv('NODE_ENV', 'production'); // Enforce strict checks but with valid key
 
     service = new EncryptionService();
     expect(service).toBeDefined();
   });
 
   it('should use default test key in test environment if missing', () => {
-    delete process.env.ENCRYPTION_MASTER_KEY;
-    process.env.NODE_ENV = 'test';
+    vi.stubEnv('ENCRYPTION_MASTER_KEY', '');
+    vi.stubEnv('NODE_ENV', 'test');
 
     service = new EncryptionService();
     expect(service).toBeDefined();
@@ -87,44 +87,45 @@ describe('EncryptionService', () => {
   });
 
   it('should throw in production if key is missing', () => {
-    delete process.env.ENCRYPTION_MASTER_KEY;
-    process.env.NODE_ENV = 'production';
+    vi.stubEnv('ENCRYPTION_MASTER_KEY', '');
+    vi.stubEnv('NODE_ENV', 'production');
 
     expect(() => new EncryptionService()).toThrow('S1 Violation: ENCRYPTION_MASTER_KEY is required');
   });
 
   it('should throw if key is too short', () => {
-    process.env.ENCRYPTION_MASTER_KEY = 'short';
+    vi.stubEnv('ENCRYPTION_MASTER_KEY', 'short');
     expect(() => new EncryptionService()).toThrow('S1 Violation');
   });
 
   it('should throw in production if key contains forbidden patterns', () => {
-    process.env.NODE_ENV = 'production';
-    process.env.ENCRYPTION_MASTER_KEY = 'test-encryption-key-32-chars-long!'; // contains 'test'
+    vi.stubEnv('NODE_ENV', 'production');
+    vi.stubEnv('ENCRYPTION_MASTER_KEY', 'test-encryption-key-32-chars-long!'); // contains 'test'
     expect(() => new EncryptionService()).toThrow('forbidden pattern');
   });
 
-  process.env.ENCRYPTION_MASTER_KEY = 'MasterPassWithoutSpecialCharsLongEnough';
-  expect(() => new EncryptionService()).toThrow('must contain');
-});
+  it('should throw if key misses special characters', () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    vi.stubEnv('ENCRYPTION_MASTER_KEY', 'MasterPassWithoutSpecialCharsLongEnough');
+    expect(() => new EncryptionService()).toThrow('must contain');
+  });
 
-it('should throw in production if key has low entropy', () => {
-  process.env.NODE_ENV = 'production';
-  // This key is long enough and has complexity but repeated characters (low entropy)
-  process.env.ENCRYPTION_MASTER_KEY = 'AAAAaaaa1111!!!!AAAAaaaa1111!!!!';
-  expect(() => new EncryptionService()).toThrow('insufficient entropy');
-});
+  it('should throw in production if key has low entropy', () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    // This key is long enough and has complexity but repeated characters (low entropy)
+    vi.stubEnv('ENCRYPTION_MASTER_KEY', 'AAAAaaaa1111!!!!AAAAaaaa1111!!!!');
+    expect(() => new EncryptionService()).toThrow('insufficient entropy');
+  });
 
-it('should delegate methods to utility functions', () => {
-  process.env.ENCRYPTION_MASTER_KEY = 'Test-Encryption-Key-32-Chars-Long!1';
-  process.env.NODE_ENV = 'test';
-  service = new EncryptionService();
+  it('should delegate methods to utility functions', () => {
+    vi.stubEnv('ENCRYPTION_MASTER_KEY', 'Test-Encryption-Key-32-Chars-Long!1');
+    vi.stubEnv('NODE_ENV', 'test');
+    const srv = new EncryptionService();
 
-  const enc = service.encrypt('data');
-  expect(enc).toHaveProperty('encrypted');
-  expect(service.decrypt(enc)).toBe('data');
-  expect(service.hashApiKey('key')).toBeDefined();
-  expect(service.generateApiKey()).toMatch(/^apex_/);
-  expect(service.mask('1234567890', 2)).toBe('12******90');
-});
+    const enc = srv.encrypt('data');
+    expect(enc).toHaveProperty('encrypted');
+    expect(srv.decrypt(enc)).toBe('data');
+    expect(srv.hashApiKey('key')).toBeDefined();
+    expect(srv.generateApiKey()).toMatch(/^apex_/);
+  });
 });

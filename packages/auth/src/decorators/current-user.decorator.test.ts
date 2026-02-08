@@ -3,13 +3,18 @@ import 'reflect-metadata';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ExecutionContext } from '@nestjs/common';
 
-let capturedFactory: any;
+const { mocks } = vi.hoisted(() => ({
+  mocks: {
+    capturedFactory: undefined as any
+  }
+}));
+
 vi.mock('@nestjs/common', async (importOriginal) => {
   const actual = await importOriginal() as any;
   return {
     ...actual,
     createParamDecorator: (factory: any) => {
-      capturedFactory = factory;
+      mocks.capturedFactory = factory;
       return actual.createParamDecorator(factory);
     },
   };
@@ -20,7 +25,7 @@ import { CurrentUser } from './current-user.decorator.js';
 describe('CurrentUser Decorator', () => {
   it('should be defined', () => {
     expect(CurrentUser).toBeDefined();
-    expect(capturedFactory).toBeDefined();
+    expect(mocks.capturedFactory).toBeDefined();
   });
 
   it('should return the user object when no data is passed', () => {
@@ -31,7 +36,7 @@ describe('CurrentUser Decorator', () => {
       }),
     } as unknown as ExecutionContext;
 
-    expect(capturedFactory(undefined, ctx)).toEqual(user);
+    expect(mocks.capturedFactory(undefined, ctx)).toEqual(user);
   });
 
   it('should return a specific property when data is passed', () => {
@@ -42,7 +47,7 @@ describe('CurrentUser Decorator', () => {
       }),
     } as unknown as ExecutionContext;
 
-    expect(capturedFactory('email', ctx)).toBe('test@example.com');
+    expect(mocks.capturedFactory('email', ctx)).toBe('test@example.com');
   });
 
   it('should return undefined if request has no user', () => {
@@ -52,6 +57,6 @@ describe('CurrentUser Decorator', () => {
       }),
     } as unknown as ExecutionContext;
 
-    expect(capturedFactory(undefined, ctx)).toBeUndefined();
+    expect(mocks.capturedFactory(undefined, ctx)).toBeUndefined();
   });
 });

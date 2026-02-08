@@ -20,6 +20,14 @@ permissions:
 
 jobs:
   # ═══════════════════════════════════════════════════════════════
+  # S1: Environment Verification (MANDATORY)
+  # ═══════════════════════════════════════════════════════════════
+  s1-gate:
+    name: "S1 Environment Verification"
+    uses: ./.github/workflows/s1-env-verification-gate.yml
+    secrets: inherit
+
+  # ═══════════════════════════════════════════════════════════════
   # S2: Tenant Isolation (CRITICAL - Multi-tenancy)
   # ═══════════════════════════════════════════════════════════════
   s2-gate:
@@ -81,7 +89,8 @@ jobs:
   security-summary:
     name: "🔒 Security Gates Final Report"
     runs-on: ubuntu-latest
-    needs: [s2-gate, s3-gate, s4-gate, s5-gate, s6-gate, s7-gate, s8-gate]
+    needs:
+      [s1-gate, s2-gate, s3-gate, s4-gate, s5-gate, s6-gate, s7-gate, s8-gate]
     if: always()
     steps:
       - name: Report Security Status
@@ -102,6 +111,7 @@ jobs:
             fi
           }
 
+          echo "S1 - Environment Verification: $(status_icon ${{ needs.s1-gate.result }}) ${{ needs.s1-gate.result }}"
           echo "S2 - Tenant Isolation:         $(status_icon ${{ needs.s2-gate.result }}) ${{ needs.s2-gate.result }}"
           echo "S3 - Input Validation:         $(status_icon ${{ needs.s3-gate.result }}) ${{ needs.s3-gate.result }}"
           echo "S4 - Audit Logging:            $(status_icon ${{ needs.s4-gate.result }}) ${{ needs.s4-gate.result }}"
@@ -114,7 +124,7 @@ jobs:
           # Calculate compliance score
           PASSED=0
           FAILED=0
-          for result in "${{ needs.s2-gate.result }}" "${{ needs.s3-gate.result }}" "${{ needs.s4-gate.result }}" "${{ needs.s5-gate.result }}" "${{ needs.s6-gate.result }}" "${{ needs.s7-gate.result }}" "${{ needs.s8-gate.result }}"; do
+          for result in "${{ needs.s1-gate.result }}" "${{ needs.s2-gate.result }}" "${{ needs.s3-gate.result }}" "${{ needs.s4-gate.result }}" "${{ needs.s5-gate.result }}" "${{ needs.s6-gate.result }}" "${{ needs.s7-gate.result }}" "${{ needs.s8-gate.result }}"; do
             if [ "$result" == "success" ]; then
               PASSED=$((PASSED + 1))
             elif [ "$result" == "failure" ]; then
@@ -123,7 +133,7 @@ jobs:
           done
 
           echo "═══════════════════════════════════════════════════════════════"
-          echo "Compliance Score: $PASSED/7 security gates passed"
+          echo "Compliance Score: $PASSED/8 security gates passed"
           echo "═══════════════════════════════════════════════════════════════"
           echo ""
 
@@ -143,8 +153,9 @@ jobs:
 
           echo "✅✅✅ ALL SECURITY GATES PASSED ✅✅✅"
           echo ""
-          echo "The codebase meets all S2-S8 security requirements:"
+          echo "The codebase meets all S1-S8 security requirements:"
           echo ""
+          echo "  ✓ S1: Environment Verification - No secrets in code"
           echo "  ✓ S2: Tenant Isolation - Cross-tenant access blocked"
           echo "  ✓ S3: Input Validation - Injection attacks prevented"
           echo "  ✓ S4: Audit Logging - All operations tracked"

@@ -204,7 +204,7 @@ describe('Storage Manager', () => {
 
       expect(result).toBe(true);
       expect(mockClient.removeBucket).toHaveBeenCalledWith(
-        'tenant-uuid-123-assets'
+        'tenant-uuid123-assets'
       );
     });
 
@@ -282,7 +282,7 @@ describe('Storage Manager', () => {
 
       expect(url).toContain('X-Amz-Algorithm');
       expect(mockClient.presignedPutObject).toHaveBeenCalledWith(
-        'tenant-uuid-123-assets',
+        'tenant-uuid123-assets',
         'products/image.jpg',
         3600
       );

@@ -1,0 +1,951 @@
+Unit Tests (No Docker)	Set up job	﻿2026-02-08T03:31:30.7905509Z Current runner version: '2.331.0'
+Unit Tests (No Docker)	Set up job	2026-02-08T03:31:30.7934570Z ##[group]Runner Image Provisioner
+Unit Tests (No Docker)	Set up job	2026-02-08T03:31:30.7935652Z Hosted Compute Agent
+Unit Tests (No Docker)	Set up job	2026-02-08T03:31:30.7936182Z Version: 20260123.484
+Unit Tests (No Docker)	Set up job	2026-02-08T03:31:30.7936840Z Commit: 6bd6555ca37d84114959e1c76d2c01448ff61c5d
+Unit Tests (No Docker)	Set up job	2026-02-08T03:31:30.7937938Z Build Date: 2026-01-23T19:41:17Z
+Unit Tests (No Docker)	Set up job	2026-02-08T03:31:30.7938638Z Worker ID: {0f8ae35b-cc62-41d0-a7f4-4df4a960f94f}
+Unit Tests (No Docker)	Set up job	2026-02-08T03:31:30.7939277Z Azure Region: northcentralus
+Unit Tests (No Docker)	Set up job	2026-02-08T03:31:30.7939991Z ##[endgroup]
+Unit Tests (No Docker)	Set up job	2026-02-08T03:31:30.7941592Z ##[group]Operating System
+Unit Tests (No Docker)	Set up job	2026-02-08T03:31:30.7942197Z Ubuntu
+Unit Tests (No Docker)	Set up job	2026-02-08T03:31:30.7942766Z 24.04.3
+Unit Tests (No Docker)	Set up job	2026-02-08T03:31:30.7943194Z LTS
+Unit Tests (No Docker)	Set up job	2026-02-08T03:31:30.7943680Z ##[endgroup]
+Unit Tests (No Docker)	Set up job	2026-02-08T03:31:30.7944487Z ##[group]Runner Image
+Unit Tests (No Docker)	Set up job	2026-02-08T03:31:30.7945081Z Image: ubuntu-24.04
+Unit Tests (No Docker)	Set up job	2026-02-08T03:31:30.7945557Z Version: 20260201.15.1
+Unit Tests (No Docker)	Set up job	2026-02-08T03:31:30.7946630Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260201.15/images/ubuntu/Ubuntu2404-Readme.md
+Unit Tests (No Docker)	Set up job	2026-02-08T03:31:30.7948554Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260201.15
+Unit Tests (No Docker)	Set up job	2026-02-08T03:31:30.7949533Z ##[endgroup]
+Unit Tests (No Docker)	Set up job	2026-02-08T03:31:30.7950570Z ##[group]GITHUB_TOKEN Permissions
+Unit Tests (No Docker)	Set up job	2026-02-08T03:31:30.7952911Z Contents: read
+Unit Tests (No Docker)	Set up job	2026-02-08T03:31:30.7953528Z Metadata: read
+Unit Tests (No Docker)	Set up job	2026-02-08T03:31:30.7954012Z Packages: read
+Unit Tests (No Docker)	Set up job	2026-02-08T03:31:30.7954560Z ##[endgroup]
+Unit Tests (No Docker)	Set up job	2026-02-08T03:31:30.7956899Z Secret source: Actions
+Unit Tests (No Docker)	Set up job	2026-02-08T03:31:30.7958373Z Prepare workflow directory
+Unit Tests (No Docker)	Set up job	2026-02-08T03:31:30.8321401Z Prepare all required actions
+Unit Tests (No Docker)	Set up job	2026-02-08T03:31:30.8362594Z Getting action download info
+Unit Tests (No Docker)	Set up job	2026-02-08T03:31:31.1490508Z Download action repository 'actions/checkout@v4' (SHA:34e114876b0b11c390a56381ad16ebd13914f8d5)
+Unit Tests (No Docker)	Set up job	2026-02-08T03:31:31.2461111Z Download action repository 'oven-sh/setup-bun@v2' (SHA:3d267786b128fe76c2f16a390aa2448b815359f3)
+Unit Tests (No Docker)	Set up job	2026-02-08T03:31:31.5887096Z Download action repository 'actions/upload-artifact@v4' (SHA:ea165f8d65b6e75b540449e92b4886f43607fa02)
+Unit Tests (No Docker)	Set up job	2026-02-08T03:31:31.8184036Z Complete job name: Unit Tests (No Docker)
+Unit Tests (No Docker)	Run actions/checkout@v4	﻿2026-02-08T03:31:31.8965314Z ##[group]Run actions/checkout@v4
+Unit Tests (No Docker)	Run actions/checkout@v4	2026-02-08T03:31:31.8966226Z with:
+Unit Tests (No Docker)	Run actions/checkout@v4	2026-02-08T03:31:31.8966656Z   repository: adelfree2023-dev/KIMI
+Unit Tests (No Docker)	Run actions/checkout@v4	2026-02-08T03:31:31.8967589Z   token: ***
+Unit Tests (No Docker)	Run actions/checkout@v4	2026-02-08T03:31:31.8967995Z   ssh-strict: true
+Unit Tests (No Docker)	Run actions/checkout@v4	2026-02-08T03:31:31.8968384Z   ssh-user: git
+Unit Tests (No Docker)	Run actions/checkout@v4	2026-02-08T03:31:31.8968792Z   persist-credentials: true
+Unit Tests (No Docker)	Run actions/checkout@v4	2026-02-08T03:31:31.8969237Z   clean: true
+Unit Tests (No Docker)	Run actions/checkout@v4	2026-02-08T03:31:31.8969643Z   sparse-checkout-cone-mode: true
+Unit Tests (No Docker)	Run actions/checkout@v4	2026-02-08T03:31:31.8970119Z   fetch-depth: 1
+Unit Tests (No Docker)	Run actions/checkout@v4	2026-02-08T03:31:31.8970518Z   fetch-tags: false
+Unit Tests (No Docker)	Run actions/checkout@v4	2026-02-08T03:31:31.8970931Z   show-progress: true
+Unit Tests (No Docker)	Run actions/checkout@v4	2026-02-08T03:31:31.8971338Z   lfs: false
+Unit Tests (No Docker)	Run actions/checkout@v4	2026-02-08T03:31:31.8971731Z   submodules: false
+Unit Tests (No Docker)	Run actions/checkout@v4	2026-02-08T03:31:31.8972138Z   set-safe-directory: true
+Unit Tests (No Docker)	Run actions/checkout@v4	2026-02-08T03:31:31.8972841Z ##[endgroup]
+Unit Tests (No Docker)	Run actions/checkout@v4	2026-02-08T03:31:32.0195784Z Syncing repository: adelfree2023-dev/KIMI
+Unit Tests (No Docker)	Run actions/checkout@v4	2026-02-08T03:31:32.0199116Z ##[group]Getting Git version info
+Unit Tests (No Docker)	Run actions/checkout@v4	2026-02-08T03:31:32.0200261Z Working directory is '/home/runner/work/KIMI/KIMI'
+Unit Tests (No Docker)	Run actions/checkout@v4	2026-02-08T03:31:32.0202072Z [command]/usr/bin/git version
+Unit Tests (No Docker)	Run actions/checkout@v4	2026-02-08T03:31:32.0288086Z git version 2.52.0
+Unit Tests (No Docker)	Run actions/checkout@v4	2026-02-08T03:31:32.0318081Z ##[endgroup]
+Unit Tests (No Docker)	Run actions/checkout@v4	2026-02-08T03:31:32.0335475Z Temporarily overriding HOME='/home/runner/work/_temp/07582d7a-5641-405c-877e-744a80488f8f' before making global git config changes
+Unit Tests (No Docker)	Run actions/checkout@v4	2026-02-08T03:31:32.0338145Z Adding repository directory to the temporary git global config as a safe directory
+Unit Tests (No Docker)	Run actions/checkout@v4	2026-02-08T03:31:32.0351692Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/KIMI/KIMI
+Unit Tests (No Docker)	Run actions/checkout@v4	2026-02-08T03:31:32.0399410Z Deleting the contents of '/home/runner/work/KIMI/KIMI'
+Unit Tests (No Docker)	Run actions/checkout@v4	2026-02-08T03:31:32.0403948Z ##[group]Initializing the repository
+Unit Tests (No Docker)	Run actions/checkout@v4	2026-02-08T03:31:32.0409375Z [command]/usr/bin/git init /home/runner/work/KIMI/KIMI
+Unit Tests (No Docker)	Run actions/checkout@v4	2026-02-08T03:31:32.0519975Z hint: Using 'master' as the name for the initial branch. This default branch name
+Unit Tests (No Docker)	Run actions/checkout@v4	2026-02-08T03:31:32.0521518Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+Unit Tests (No Docker)	Run actions/checkout@v4	2026-02-08T03:31:32.0522866Z hint: to use in all of your new repositories, which will suppress this warning,
+Unit Tests (No Docker)	Run actions/checkout@v4	2026-02-08T03:31:32.0523598Z hint: call:
+Unit Tests (No Docker)	Run actions/checkout@v4	2026-02-08T03:31:32.0523978Z hint:
+Unit Tests (No Docker)	Run actions/checkout@v4	2026-02-08T03:31:32.0524472Z hint: 	git config --global init.defaultBranch <name>
+Unit Tests (No Docker)	Run actions/checkout@v4	2026-02-08T03:31:32.0525046Z hint:
+Unit Tests (No Docker)	Run actions/checkout@v4	2026-02-08T03:31:32.0525584Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+Unit Tests (No Docker)	Run actions/checkout@v4	2026-02-08T03:31:32.0526460Z hint: 'development'. The just-created branch can be renamed via this command:
+Unit Tests (No Docker)	Run actions/checkout@v4	2026-02-08T03:31:32.0527161Z hint:
+Unit Tests (No Docker)	Run actions/checkout@v4	2026-02-08T03:31:32.0527832Z hint: 	git branch -m <name>
+Unit Tests (No Docker)	Run actions/checkout@v4	2026-02-08T03:31:32.0528287Z hint:
+Unit Tests (No Docker)	Run actions/checkout@v4	2026-02-08T03:31:32.0550679Z hint: Disable this message with "git config set advice.defaultBranchName false"
+Unit Tests (No Docker)	Run actions/checkout@v4	2026-02-08T03:31:32.0552088Z Initialized empty Git repository in /home/runner/work/KIMI/KIMI/.git/
+Unit Tests (No Docker)	Run actions/checkout@v4	2026-02-08T03:31:32.0567055Z [command]/usr/bin/git remote add origin https://github.com/adelfree2023-dev/KIMI
+Unit Tests (No Docker)	Run actions/checkout@v4	2026-02-08T03:31:32.0615909Z ##[endgroup]
+Unit Tests (No Docker)	Run actions/checkout@v4	2026-02-08T03:31:32.0617553Z ##[group]Disabling automatic garbage collection
+Unit Tests (No Docker)	Run actions/checkout@v4	2026-02-08T03:31:32.0621951Z [command]/usr/bin/git config --local gc.auto 0
+Unit Tests (No Docker)	Run actions/checkout@v4	2026-02-08T03:31:32.0658979Z ##[endgroup]
+Unit Tests (No Docker)	Run actions/checkout@v4	2026-02-08T03:31:32.0660256Z ##[group]Setting up auth
+Unit Tests (No Docker)	Run actions/checkout@v4	2026-02-08T03:31:32.0668059Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+Unit Tests (No Docker)	Run actions/checkout@v4	2026-02-08T03:31:32.0706244Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+Unit Tests (No Docker)	Run actions/checkout@v4	2026-02-08T03:31:32.1093640Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+Unit Tests (No Docker)	Run actions/checkout@v4	2026-02-08T03:31:32.1134512Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+Unit Tests (No Docker)	Run actions/checkout@v4	2026-02-08T03:31:32.1374633Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+Unit Tests (No Docker)	Run actions/checkout@v4	2026-02-08T03:31:32.1411413Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+Unit Tests (No Docker)	Run actions/checkout@v4	2026-02-08T03:31:32.1668547Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+Unit Tests (No Docker)	Run actions/checkout@v4	2026-02-08T03:31:32.1709166Z ##[endgroup]
+Unit Tests (No Docker)	Run actions/checkout@v4	2026-02-08T03:31:32.1710514Z ##[group]Fetching the repository
+Unit Tests (No Docker)	Run actions/checkout@v4	2026-02-08T03:31:32.1719581Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +bbc7d1bb50c1db2673ad1c1f472a876be69e69f1:refs/remotes/origin/develop
+Unit Tests (No Docker)	Run actions/checkout@v4	2026-02-08T03:31:32.4517096Z From https://github.com/adelfree2023-dev/KIMI
+Unit Tests (No Docker)	Run actions/checkout@v4	2026-02-08T03:31:32.4519451Z  * [new ref]         bbc7d1bb50c1db2673ad1c1f472a876be69e69f1 -> origin/develop
+Unit Tests (No Docker)	Run actions/checkout@v4	2026-02-08T03:31:32.4554723Z ##[endgroup]
+Unit Tests (No Docker)	Run actions/checkout@v4	2026-02-08T03:31:32.4556134Z ##[group]Determining the checkout info
+Unit Tests (No Docker)	Run actions/checkout@v4	2026-02-08T03:31:32.4557814Z ##[endgroup]
+Unit Tests (No Docker)	Run actions/checkout@v4	2026-02-08T03:31:32.4562992Z [command]/usr/bin/git sparse-checkout disable
+Unit Tests (No Docker)	Run actions/checkout@v4	2026-02-08T03:31:32.4608125Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+Unit Tests (No Docker)	Run actions/checkout@v4	2026-02-08T03:31:32.4636007Z ##[group]Checking out the ref
+Unit Tests (No Docker)	Run actions/checkout@v4	2026-02-08T03:31:32.4640433Z [command]/usr/bin/git checkout --progress --force -B develop refs/remotes/origin/develop
+Unit Tests (No Docker)	Run actions/checkout@v4	2026-02-08T03:31:32.4778360Z Switched to a new branch 'develop'
+Unit Tests (No Docker)	Run actions/checkout@v4	2026-02-08T03:31:32.4779952Z branch 'develop' set up to track 'origin/develop'.
+Unit Tests (No Docker)	Run actions/checkout@v4	2026-02-08T03:31:32.4787090Z ##[endgroup]
+Unit Tests (No Docker)	Run actions/checkout@v4	2026-02-08T03:31:32.4827825Z [command]/usr/bin/git log -1 --format=%H
+Unit Tests (No Docker)	Run actions/checkout@v4	2026-02-08T03:31:32.4854550Z bbc7d1bb50c1db2673ad1c1f472a876be69e69f1
+Unit Tests (No Docker)	Run oven-sh/setup-bun@v2	﻿2026-02-08T03:31:32.5138699Z ##[group]Run oven-sh/setup-bun@v2
+Unit Tests (No Docker)	Run oven-sh/setup-bun@v2	2026-02-08T03:31:32.5139739Z with:
+Unit Tests (No Docker)	Run oven-sh/setup-bun@v2	2026-02-08T03:31:32.5140214Z   bun-version: 1.0.0
+Unit Tests (No Docker)	Run oven-sh/setup-bun@v2	2026-02-08T03:31:32.5140732Z   no-cache: false
+Unit Tests (No Docker)	Run oven-sh/setup-bun@v2	2026-02-08T03:31:32.5141450Z   token: ***
+Unit Tests (No Docker)	Run oven-sh/setup-bun@v2	2026-02-08T03:31:32.5141934Z ##[endgroup]
+Unit Tests (No Docker)	Run oven-sh/setup-bun@v2	2026-02-08T03:31:33.0655382Z Cache hit for: gDQ/gNqRR03UCbjCF/2SEppbPvM=
+Unit Tests (No Docker)	Run oven-sh/setup-bun@v2	2026-02-08T03:31:33.6768831Z Received 32829149 of 32829149 (100.0%), 64.8 MBs/sec
+Unit Tests (No Docker)	Run oven-sh/setup-bun@v2	2026-02-08T03:31:33.6770328Z Cache Size: ~31 MB (32829149 B)
+Unit Tests (No Docker)	Run oven-sh/setup-bun@v2	2026-02-08T03:31:33.6800895Z [command]/usr/bin/tar -xf /home/runner/work/_temp/91524c39-5361-4149-8328-f66f1941ca2b/cache.tzst -P -C /home/runner/work/KIMI/KIMI --use-compress-program unzstd
+Unit Tests (No Docker)	Run oven-sh/setup-bun@v2	2026-02-08T03:31:33.8491918Z Cache restored successfully
+Unit Tests (No Docker)	Run oven-sh/setup-bun@v2	2026-02-08T03:31:33.8587565Z [command]/home/runner/.bun/bin/bun --revision
+Unit Tests (No Docker)	Run oven-sh/setup-bun@v2	2026-02-08T03:31:33.8640023Z 1.0.0+822a00c4d508b54f650933a73ca5f4a3af9a7983
+Unit Tests (No Docker)	Run oven-sh/setup-bun@v2	2026-02-08T03:31:33.8648059Z Using a cached version of Bun: 1.0.0+822a00c4d508b54f650933a73ca5f4a3af9a7983
+Unit Tests (No Docker)	Install Dependencies	﻿2026-02-08T03:31:33.8786675Z ##[group]Run bun install
+Unit Tests (No Docker)	Install Dependencies	2026-02-08T03:31:33.8787073Z [36;1mbun install[0m
+Unit Tests (No Docker)	Install Dependencies	2026-02-08T03:31:33.8825217Z shell: /usr/bin/bash -e {0}
+Unit Tests (No Docker)	Install Dependencies	2026-02-08T03:31:33.8825520Z ##[endgroup]
+Unit Tests (No Docker)	Install Dependencies	2026-02-08T03:31:33.8938771Z bun install v1.0.0 (822a00c4)
+Unit Tests (No Docker)	Install Dependencies	2026-02-08T03:31:33.8958580Z  Resolving dependencies
+Unit Tests (No Docker)	Install Dependencies	2026-02-08T03:31:36.4620744Z  Resolved, downloaded and extracted [2814]
+Unit Tests (No Docker)	Install Dependencies	2026-02-08T03:31:36.4642721Z  Saved lockfile
+Unit Tests (No Docker)	Install Dependencies	2026-02-08T03:31:37.1377594Z  + @apex/audit@workspace:packages/audit
+Unit Tests (No Docker)	Install Dependencies	2026-02-08T03:31:37.1378558Z  + @apex/auth@workspace:packages/auth
+Unit Tests (No Docker)	Install Dependencies	2026-02-08T03:31:37.1380544Z  + @apex/config@workspace:packages/config
+Unit Tests (No Docker)	Install Dependencies	2026-02-08T03:31:37.1380993Z  + @apex/db@workspace:packages/db
+Unit Tests (No Docker)	Install Dependencies	2026-02-08T03:31:37.1381450Z  + @apex/events@workspace:packages/events
+Unit Tests (No Docker)	Install Dependencies	2026-02-08T03:31:37.1381953Z  + @apex/middleware@workspace:packages/middleware
+Unit Tests (No Docker)	Install Dependencies	2026-02-08T03:31:37.1382490Z  + @apex/provisioning@workspace:packages/provisioning
+Unit Tests (No Docker)	Install Dependencies	2026-02-08T03:31:37.1383066Z  + @apex/ui@workspace:packages/ui
+Unit Tests (No Docker)	Install Dependencies	2026-02-08T03:31:37.1383539Z  + @apex/web@workspace:apps/web
+Unit Tests (No Docker)	Install Dependencies	2026-02-08T03:31:37.1384081Z  + api@workspace:apps/api
+Unit Tests (No Docker)	Install Dependencies	2026-02-08T03:31:37.1384555Z  + @biomejs/biome@1.5.3
+Unit Tests (No Docker)	Install Dependencies	2026-02-08T03:31:37.1384942Z  + turbo@2.8.3
+Unit Tests (No Docker)	Install Dependencies	2026-02-08T03:31:37.1461682Z Run: bun install
+Unit Tests (No Docker)	Install Dependencies	2026-02-08T03:31:37.1463974Z 
+Unit Tests (No Docker)	Install Dependencies	2026-02-08T03:31:37.1464216Z  709 packages installed [3.25s]
+Unit Tests (No Docker)	Run Unit Tests	﻿2026-02-08T03:31:37.1684243Z ##[group]Run echo "🧪 Running unit tests..."
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:37.1684660Z [36;1mecho "🧪 Running unit tests..."[0m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:37.1685062Z [36;1m# turbo doesn't support --coverage flag, run vitest directly[0m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:37.1751223Z [36;1mbunx vitest run --coverage --reporter=verbose[0m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:37.1785336Z shell: /usr/bin/bash -e {0}
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:37.1785623Z env:
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:37.1785804Z   NODE_ENV: test
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:37.1785997Z   SKIP_DOCKER_TESTS: true
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:37.1786212Z ##[endgroup]
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:37.1843726Z 🧪 Running unit tests...
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:37.6762402Z [33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:37.8897209Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:37.8898766Z [7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90m/home/runner/work/KIMI/KIMI[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:37.8908397Z [2m      Coverage enabled with [22m[33mv8[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:37.8908934Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4429846Z [90mstderr[2m | packages/provisioning/src/storage-manager.test.ts[2m > [22m[2mStorage Manager[2m > [22m[2mcreateStorageBucket[2m > [22m[2mshould throw if bucket already exists[22m[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4432708Z [90mstdout[2m | packages/provisioning/src/storage-manager.test.ts[2m > [22m[2mStorage Manager[2m > [22m[2mcreateStorageBucket[2m > [22m[2mshould create bucket with correct naming convention[22m[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4435491Z [INFO] Bucket created for tenant: 550e8400-e29b-41d4-a716-446655440000 {"bucketName":"tenant-550e8400e29b41d4a716446655440000-assets","plan":"basic","duration":1}
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4462246Z [ERROR] Failed to create storage bucket {"subdomain":"uuid-123","error":{}}
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4462812Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4464167Z [90mstderr[2m | packages/provisioning/src/storage-manager.test.ts[2m > [22m[2mStorage Manager[2m > [22m[2mError Handling[2m > [22m[2mshould wrap MinIO errors with context[22m[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4465686Z [ERROR] Failed to create storage bucket {"subdomain":"uuid-123","error":{}}
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4466603Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4468095Z [90mstderr[2m | packages/provisioning/src/storage-manager.test.ts[2m > [22m[2mStorage Manager[2m > [22m[2mError Handling[2m > [22m[2mshould handle permission denied errors[22m[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4469724Z [ERROR] Failed to get storage stats {"bucketName":"tenant-uuid123-assets","error":{}}
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4470342Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4470358Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4471749Z [90mstdout[2m | packages/provisioning/src/storage-manager.test.ts[2m > [22m[2mStorage Manager[2m > [22m[2mcreateStorageBucket[2m > [22m[2mshould enable versioning for audit trail[22m[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4473574Z [INFO] Bucket created for tenant: uuid-123 {"bucketName":"tenant-uuid123-assets","plan":"basic","duration":0}
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4474301Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4475704Z [90mstdout[2m | packages/provisioning/src/storage-manager.test.ts[2m > [22m[2mStorage Manager[2m > [22m[2mcreateStorageBucket[2m > [22m[2mshould set public read policy for /public/* paths only[22m[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4477760Z [INFO] Bucket created for tenant: uuid-123 {"bucketName":"tenant-uuid123-assets","plan":"basic","duration":0}
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4478517Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4479839Z [90mstdout[2m | packages/provisioning/src/storage-manager.test.ts[2m > [22m[2mStorage Manager[2m > [22m[2mcreateStorageBucket[2m > [22m[2mshould set correct quota based on plan[22m[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4481696Z [INFO] Bucket created for tenant: uuid-1 {"bucketName":"tenant-uuid1-assets","plan":"free","duration":0}
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4482921Z [INFO] Bucket created for tenant: uuid-2 {"bucketName":"tenant-uuid2-assets","plan":"pro","duration":0}
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4483650Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4484954Z [90mstdout[2m | packages/provisioning/src/storage-manager.test.ts[2m > [22m[2mStorage Manager[2m > [22m[2mcreateStorageBucket[2m > [22m[2mshould create folder structure[22m[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4487197Z [INFO] Bucket created for tenant: uuid-123 {"bucketName":"tenant-uuid123-assets","plan":"basic","duration":0}
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4488123Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4489400Z [90mstdout[2m | packages/provisioning/src/storage-manager.test.ts[2m > [22m[2mStorage Manager[2m > [22m[2mcreateStorageBucket[2m > [22m[2mshould measure and return duration[22m[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4491297Z [INFO] Bucket created for tenant: uuid-123 {"bucketName":"tenant-uuid123-assets","plan":"basic","duration":0}
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4491958Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4499038Z [90mstdout[2m | packages/provisioning/src/storage-manager.test.ts[2m > [22m[2mStorage Manager[2m > [22m[2mdeleteStorageBucket[2m > [22m[2mshould delete empty bucket[22m[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4500429Z [INFO] Bucket deleted: tenant-uuid123-assets 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4500814Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4502253Z [90mstdout[2m | packages/provisioning/src/storage-manager.test.ts[2m > [22m[2mStorage Manager[2m > [22m[2mdeleteStorageBucket[2m > [22m[2mshould delete non-empty bucket with force=true[22m[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4564969Z [INFO] Bucket deleted: tenant-uuid123-assets 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4565711Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4567608Z  [31m×[39m packages/provisioning/src/storage-manager.test.ts[2m > [22mStorage Manager[2m > [22mcreateStorageBucket[2m > [22mshould create bucket with correct naming convention
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4569199Z [31m   → expected "spy" to be called with arguments: [ …(2) ]
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4569629Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4569754Z Received: 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4569929Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4569938Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4569944Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4570069Z Number of calls: 0
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4570424Z [39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4571902Z  [32m✓[39m packages/provisioning/src/storage-manager.test.ts[2m > [22mStorage Manager[2m > [22mcreateStorageBucket[2m > [22mshould enable versioning for audit trail
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4574141Z  [32m✓[39m packages/provisioning/src/storage-manager.test.ts[2m > [22mStorage Manager[2m > [22mcreateStorageBucket[2m > [22mshould set public read policy for /public/* paths only
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4576776Z  [32m✓[39m packages/provisioning/src/storage-manager.test.ts[2m > [22mStorage Manager[2m > [22mcreateStorageBucket[2m > [22mshould set correct quota based on plan
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4578995Z  [32m✓[39m packages/provisioning/src/storage-manager.test.ts[2m > [22mStorage Manager[2m > [22mcreateStorageBucket[2m > [22mshould create folder structure
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4580955Z  [32m✓[39m packages/provisioning/src/storage-manager.test.ts[2m > [22mStorage Manager[2m > [22mcreateStorageBucket[2m > [22mshould throw if bucket already exists
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4582975Z  [32m✓[39m packages/provisioning/src/storage-manager.test.ts[2m > [22mStorage Manager[2m > [22mcreateStorageBucket[2m > [22mshould measure and return duration
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4585306Z  [32m✓[39m packages/provisioning/src/storage-manager.test.ts[2m > [22mStorage Manager[2m > [22mdeleteStorageBucket[2m > [22mshould return false for non-existent bucket
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4587823Z  [31m×[39m packages/provisioning/src/storage-manager.test.ts[2m > [22mStorage Manager[2m > [22mdeleteStorageBucket[2m > [22mshould delete empty bucket
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4589397Z [31m   → expected "spy" to be called with arguments: [ 'tenant-uuid-123-assets' ]
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4589966Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4590102Z Received: 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4590422Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4590555Z   1st spy call:
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4590764Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4590879Z   Array [
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4591188Z -   "tenant-uuid-123-assets",
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4591625Z +   "tenant-uuid123-assets",
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4591980Z   ]
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4592126Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4592132Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4592266Z Number of calls: 1
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4592664Z [39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4594061Z  [32m✓[39m packages/provisioning/src/storage-manager.test.ts[2m > [22mStorage Manager[2m > [22mdeleteStorageBucket[2m > [22mshould throw if bucket not empty and force=false
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4596796Z  [32m✓[39m packages/provisioning/src/storage-manager.test.ts[2m > [22mStorage Manager[2m > [22mdeleteStorageBucket[2m > [22mshould delete non-empty bucket with force=true
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4599310Z  [32m✓[39m packages/provisioning/src/storage-manager.test.ts[2m > [22mStorage Manager[2m > [22mgetStorageStats[2m > [22mshould calculate total usage from all objects
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4601535Z  [32m✓[39m packages/provisioning/src/storage-manager.test.ts[2m > [22mStorage Manager[2m > [22mgetStorageStats[2m > [22mshould handle empty bucket
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4603778Z  [31m×[39m packages/provisioning/src/storage-manager.test.ts[2m > [22mStorage Manager[2m > [22mgetSignedUploadUrl[2m > [22mshould generate presigned URL for direct upload
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4605505Z [31m   → expected "spy" to be called with arguments: [ 'tenant-uuid-123-assets', …(2) ]
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4606126Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4606305Z Received: 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4606495Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4606632Z   1st spy call:
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4606825Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4606932Z   Array [
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4607444Z -   "tenant-uuid-123-assets",
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4607871Z +   "tenant-uuid123-assets",
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4608246Z     "products/image.jpg",
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4608573Z     3600,
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4608853Z   ]
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4609009Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4609016Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4609136Z Number of calls: 1
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4609519Z [39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4610888Z  [32m✓[39m packages/provisioning/src/storage-manager.test.ts[2m > [22mStorage Manager[2m > [22mgetSignedUploadUrl[2m > [22mshould use default expiry of 1 hour
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4613179Z  [32m✓[39m packages/provisioning/src/storage-manager.test.ts[2m > [22mStorage Manager[2m > [22mError Handling[2m > [22mshould wrap MinIO errors with context
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.4615447Z  [32m✓[39m packages/provisioning/src/storage-manager.test.ts[2m > [22mStorage Manager[2m > [22mError Handling[2m > [22mshould handle permission denied errors
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.9017902Z  [32m✓[39m packages/auth/src/auth.schema.test.ts[2m > [22mAuth Schema Validation[2m > [22mLoginSchema[2m > [22mshould validate valid login credentials
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.9020114Z  [32m✓[39m packages/auth/src/auth.schema.test.ts[2m > [22mAuth Schema Validation[2m > [22mLoginSchema[2m > [22mshould reject invalid email
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.9022300Z  [32m✓[39m packages/auth/src/auth.schema.test.ts[2m > [22mAuth Schema Validation[2m > [22mLoginSchema[2m > [22mshould reject short password
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.9024250Z  [32m✓[39m packages/auth/src/auth.schema.test.ts[2m > [22mAuth Schema Validation[2m > [22mLoginSchema[2m > [22mshould reject missing email
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.9026250Z  [32m✓[39m packages/auth/src/auth.schema.test.ts[2m > [22mAuth Schema Validation[2m > [22mLoginSchema[2m > [22mshould reject missing password
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.9028549Z  [32m✓[39m packages/auth/src/auth.schema.test.ts[2m > [22mAuth Schema Validation[2m > [22mLoginSchema[2m > [22mshould infer correct type
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.9030568Z  [32m✓[39m packages/auth/src/auth.schema.test.ts[2m > [22mAuth Schema Validation[2m > [22mRegisterSchema[2m > [22mshould validate valid registration data
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.9032718Z  [32m✓[39m packages/auth/src/auth.schema.test.ts[2m > [22mAuth Schema Validation[2m > [22mRegisterSchema[2m > [22mshould reject password without uppercase
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.9034727Z  [32m✓[39m packages/auth/src/auth.schema.test.ts[2m > [22mAuth Schema Validation[2m > [22mRegisterSchema[2m > [22mshould reject password without lowercase
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.9036615Z  [32m✓[39m packages/auth/src/auth.schema.test.ts[2m > [22mAuth Schema Validation[2m > [22mRegisterSchema[2m > [22mshould reject password without number
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.9046430Z  [32m✓[39m packages/auth/src/auth.schema.test.ts[2m > [22mAuth Schema Validation[2m > [22mRegisterSchema[2m > [22mshould reject short password
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.9048846Z  [32m✓[39m packages/auth/src/auth.schema.test.ts[2m > [22mAuth Schema Validation[2m > [22mRegisterSchema[2m > [22mshould reject invalid tenantId
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.9050827Z  [32m✓[39m packages/auth/src/auth.schema.test.ts[2m > [22mAuth Schema Validation[2m > [22mRegisterSchema[2m > [22mshould infer correct type
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.9052838Z  [32m✓[39m packages/auth/src/auth.schema.test.ts[2m > [22mAuth Schema Validation[2m > [22mJwtPayloadSchema[2m > [22mshould validate valid JWT payload
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.9054998Z  [32m✓[39m packages/auth/src/auth.schema.test.ts[2m > [22mAuth Schema Validation[2m > [22mJwtPayloadSchema[2m > [22mshould reject invalid sub (user id)
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.9057117Z  [32m✓[39m packages/auth/src/auth.schema.test.ts[2m > [22mAuth Schema Validation[2m > [22mJwtPayloadSchema[2m > [22mshould reject invalid role
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.9059436Z  [32m✓[39m packages/auth/src/auth.schema.test.ts[2m > [22mAuth Schema Validation[2m > [22mJwtPayloadSchema[2m > [22mshould accept all valid roles
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:38.9061483Z  [32m✓[39m packages/auth/src/auth.schema.test.ts[2m > [22mAuth Schema Validation[2m > [22mJwtPayloadSchema[2m > [22mshould infer correct type
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.1169861Z [32m[Nest] 2204  - [39m02/08/2026, 3:31:39 AM [32m    LOG[39m [38;5;3m[AuditService] [39m[32m[AUDIT] test-tenant | TENANT_PROVISIONED | tenant:test-tenant[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.1917628Z [31m[Nest] 2204  - [39m02/08/2026, 3:31:39 AM [31m  ERROR[39m [38;5;3m[ProvisioningService] [39m[31mPROVISIONING FAILED for test-store[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.1950657Z [31m[Nest] 2204  - [39m02/08/2026, 3:31:39 AM [31m  ERROR[39m [38;5;3m[AuditService] [39m[31mS4 VIOLATION: Failed to persist audit log![39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2082170Z [90mstderr[2m | packages/audit/src/audit.service.test.ts[2m > [22m[2mAudit Service (S4 Protocol)[2m > [22m[2mlog[2m > [22m[2mshould always release connection even on error[22m[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2084236Z S2 CRITICAL: Failed to reset search_path, destroying connection
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2084735Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2085571Z [31m[Nest] 2204  - [39m02/08/2026, 3:31:39 AM [31m  ERROR[39m [38;5;3m[AuditService] [39m[31mError: DB Connection Lost[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2087181Z [32m[Nest] 2204  - [39m02/08/2026, 3:31:39 AM [32m    LOG[39m [38;5;3m[AuditService] [39m[32m[AUDIT] system | USER_LOGIN | user:user-123[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2088590Z [32m[Nest] 2204  - [39m02/08/2026, 3:31:39 AM [32m    LOG[39m [38;5;3m[AuditService] [39m[32m[AUDIT] system | USER_LOGIN_FAILED | user:user-123[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2090381Z [32m[Nest] 2204  - [39m02/08/2026, 3:31:39 AM [32m    LOG[39m [38;5;3m[AuditService] [39m[32m[AUDIT] system | TENANT_PROVISIONED | tenant:test[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2091445Z [32m[Nest] 2204  - [39m02/08/2026, 3:31:39 AM [32m    LOG[39m [38;5;3m[AuditService] [39m[32m[AUDIT] tenant-1 | SETTINGS_CHANGED | tenant:tenant-1[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2093196Z [32m[Nest] 2204  - [39m02/08/2026, 3:31:39 AM [32m    LOG[39m [38;5;3m[AuditService] [39m[32m[AUDIT] system | TENANT_PROVISIONED | tenant:test[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2094950Z [32m[Nest] 2204  - [39m02/08/2026, 3:31:39 AM [32m    LOG[39m [38;5;3m[AuditService] [39m[32m[AUDIT] system | TENANT_PROVISIONED | tenant:test-store[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2096679Z [32m[Nest] 2204  - [39m02/08/2026, 3:31:39 AM [32m    LOG[39m [38;5;3m[AuditService] [39m[32m[AUDIT] system | TENANT_PROVISIONED | tenant:test-store[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2098693Z [32m[Nest] 2204  - [39m02/08/2026, 3:31:39 AM [32m    LOG[39m [38;5;3m[AuditService] [39m[32m[AUDIT] system | CROSS_TENANT_ACCESS_ATTEMPT | security:victim-tenant[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2100313Z [32m[Nest] 2204  - [39m02/08/2026, 3:31:39 AM [32m    LOG[39m [38;5;3m[AuditService] [39m[32m[AUDIT] system | CROSS_TENANT_ACCESS_ATTEMPT | security:victim[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2102169Z [32m[Nest] 2204  - [39m02/08/2026, 3:31:39 AM [32m    LOG[39m [38;5;3m[AuditService] [39m[32mS4 Immutable Auditing active.[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2103497Z [32m[Nest] 2204  - [39m02/08/2026, 3:31:39 AM [32m    LOG[39m [38;5;3m[AuditService] [39m[32mS4 Immutable Auditing active.[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2105017Z [31m[Nest] 2204  - [39m02/08/2026, 3:31:39 AM [31m  ERROR[39m [38;5;3m[ProvisioningService] [39m[31mError: schema "tenant_test-store" already exists[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2106639Z [31m[Nest] 2204  - [39m02/08/2026, 3:31:39 AM [31m  ERROR[39m [38;5;3m[ProvisioningService] [39m[31mPROVISIONING FAILED for test-store[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2108242Z [31m[Nest] 2204  - [39m02/08/2026, 3:31:39 AM [31m  ERROR[39m [38;5;3m[ProvisioningService] [39m[31mError: Migration failed[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2109685Z [31m[Nest] 2204  - [39m02/08/2026, 3:31:39 AM [31m  ERROR[39m [38;5;3m[ProvisioningService] [39m[31mPROVISIONING FAILED for test-store[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2111052Z [31m[Nest] 2204  - [39m02/08/2026, 3:31:39 AM [31m  ERROR[39m [38;5;3m[ProvisioningService] [39m[31mError: Fail[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2112527Z [31m[Nest] 2204  - [39m02/08/2026, 3:31:39 AM [31m  ERROR[39m [38;5;3m[ProvisioningService] [39m[31mRollback FAILED to drop schema for test-store[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2114032Z [31m[Nest] 2204  - [39m02/08/2026, 3:31:39 AM [31m  ERROR[39m [38;5;3m[ProvisioningService] [39m[31mError: Rollback Fail[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2115498Z [31m[Nest] 2204  - [39m02/08/2026, 3:31:39 AM [31m  ERROR[39m [38;5;3m[ProvisioningService] [39m[31mPROVISIONING FAILED for test-store[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2116937Z [31m[Nest] 2204  - [39m02/08/2026, 3:31:39 AM [31m  ERROR[39m [38;5;3m[ProvisioningService] [39m[31mError: Bucket Fail[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2118618Z [31m[Nest] 2204  - [39m02/08/2026, 3:31:39 AM [31m  ERROR[39m [38;5;3m[ProvisioningService] [39m[31mRollback FAILED to drop schema for test-store[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2120367Z [31m[Nest] 2204  - [39m02/08/2026, 3:31:39 AM [31m  ERROR[39m [38;5;3m[ProvisioningService] [39m[31mError: Rollback Fail[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2121846Z [31m[Nest] 2204  - [39m02/08/2026, 3:31:39 AM [31m  ERROR[39m [38;5;3m[ProvisioningService] [39m[31mPROVISIONING FAILED for test-store[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2123250Z [31m[Nest] 2204  - [39m02/08/2026, 3:31:39 AM [31m  ERROR[39m [38;5;3m[ProvisioningService] [39m[31mError: Seed Fail[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2124781Z [31m[Nest] 2204  - [39m02/08/2026, 3:31:39 AM [31m  ERROR[39m [38;5;3m[ProvisioningService] [39m[31mRollback FAILED to drop schema for test-store[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2126304Z [31m[Nest] 2204  - [39m02/08/2026, 3:31:39 AM [31m  ERROR[39m [38;5;3m[ProvisioningService] [39m[31mError: Rollback Fail[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2128047Z [31m[Nest] 2204  - [39m02/08/2026, 3:31:39 AM [31m  ERROR[39m [38;5;3m[ProvisioningService] [39m[31mPROVISIONING FAILED for test-store[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2129558Z [31m[Nest] 2204  - [39m02/08/2026, 3:31:39 AM [31m  ERROR[39m [38;5;3m[ProvisioningService] [39m[31mError: DB Query Fail[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2131095Z [31m[Nest] 2204  - [39m02/08/2026, 3:31:39 AM [31m  ERROR[39m [38;5;3m[ProvisioningService] [39m[31mRollback FAILED to drop schema for test-store[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2132629Z [31m[Nest] 2204  - [39m02/08/2026, 3:31:39 AM [31m  ERROR[39m [38;5;3m[ProvisioningService] [39m[31mError: Rollback Fail[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2394880Z  [32m✓[39m apps/api/src/provisioning/provisioning.service.spec.ts[2m > [22mProvisioningService[2m > [22mprovision[2m > [22mshould successfully provision a store
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2397691Z  [32m✓[39m apps/api/src/provisioning/provisioning.service.spec.ts[2m > [22mProvisioningService[2m > [22mprovision[2m > [22mshould throw ConflictException if resource already exists
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2400707Z  [32m✓[39m apps/api/src/provisioning/provisioning.service.spec.ts[2m > [22mProvisioningService[2m > [22mprovision[2m > [22mshould rollback and throw InternalServerErrorException on step failure
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2403124Z  [32m✓[39m apps/api/src/provisioning/provisioning.service.spec.ts[2m > [22mProvisioningService[2m > [22mprovision[2m > [22mshould handle rollback failure gracefully
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2405568Z  [32m✓[39m apps/api/src/provisioning/provisioning.service.spec.ts[2m > [22mProvisioningService[2m > [22mprovision[2m > [22mshould proceed with rollback if multiple steps succeeded before failure
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2408278Z  [32m✓[39m apps/api/src/provisioning/provisioning.service.spec.ts[2m > [22mProvisioningService[2m > [22mprovision[2m > [22mshould throw InternalServerErrorException if seeding fails
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2410676Z  [32m✓[39m apps/api/src/provisioning/provisioning.service.spec.ts[2m > [22mProvisioningService[2m > [22mregisterTenant[2m > [22mshould release client even if query fails
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2477592Z  [31m×[39m packages/audit/src/audit.service.test.ts[2m > [22mAudit Service (S4 Protocol)[2m > [22mlog[2m > [22mshould insert audit record to database
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2481124Z [31m   → expected "spy" to be called with arguments: [ StringContaining{…}, …(1) ]
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2481678Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2481810Z Received: 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2481980Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2482109Z   1st spy call:
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2482294Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2482407Z   Array [
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2482784Z -   StringContaining "INSERT INTO public.audit_logs",
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2483305Z -   ArrayContaining [
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2483654Z -     "test-uuid-1234",
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2484002Z -     "2026-01-01T00:00:00.000Z",
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2484397Z -     "TENANT_PROVISIONED",
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2484764Z -     "api_key",
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2485067Z -     "key-123",
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2485360Z -   ],
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2485702Z +   "SET search_path TO public",
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2486404Z   ]
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2486575Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2486702Z   2nd spy call:
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2486897Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2487027Z   Array [
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2487605Z -   StringContaining "INSERT INTO public.audit_logs",
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2488092Z -   ArrayContaining [
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2488390Z -     "test-uuid-1234",
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2488707Z -     "2026-01-01T00:00:00.000Z",
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2489090Z -     "TENANT_PROVISIONED",
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2489453Z -     "api_key",
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2489864Z +   "
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2490152Z +         INSERT INTO public.audit_logs (
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2490570Z +           tenant_id, 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2490870Z +           user_id, 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2491151Z +           action, 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2491440Z +           entity_type, 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2491755Z +           entity_id, 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2492056Z +           metadata, 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2492380Z +           ip_address, 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2492698Z +           user_agent,
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2493002Z +           severity,
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2493291Z +           result,
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2493576Z +           created_at
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2493812Z +         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2494095Z +       ",
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2494257Z +   Array [
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2494434Z +     "test-tenant",
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2494868Z       "key-123",
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2495185Z +     "TENANT_PROVISIONED",
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2495548Z +     "tenant",
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2495831Z +     "test-tenant",
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2496309Z +     "{\"plan\":\"basic\",\"subdomain\":\"test\",\"actorType\":\"api_key\"}",
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2496872Z +     "192.168.1.1",
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2497188Z +     null,
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2497660Z +     "INFO",
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2497968Z +     "SUCCESS",
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2498277Z +     2026-02-08T03:31:39.112Z,
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2498952Z     ],
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2499212Z   ]
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2499374Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2499494Z   3rd spy call:
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2499705Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2499826Z   Array [
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2500225Z -   StringContaining "INSERT INTO public.audit_logs",
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2500771Z -   ArrayContaining [
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2501107Z -     "test-uuid-1234",
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2501447Z -     "2026-01-01T00:00:00.000Z",
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2501840Z -     "TENANT_PROVISIONED",
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2502214Z -     "api_key",
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2502511Z -     "key-123",
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2502800Z -   ],
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2503085Z +   "SET search_path TO public",
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2503444Z   ]
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2503591Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2503598Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2503726Z Number of calls: 3
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2504180Z [39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2505259Z  [31m×[39m packages/audit/src/audit.service.test.ts[2m > [22mAudit Service (S4 Protocol)[2m > [22mlog[2m > [22mshould include optional email when provided
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2506607Z [31m   → expected [ 'system', 'user-123', …(9) ] to include 'admin@example.com'[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2508272Z  [31m×[39m packages/audit/src/audit.service.test.ts[2m > [22mAudit Service (S4 Protocol)[2m > [22mlog[2m > [22mshould output structured log to console for monitoring
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2509788Z [31m   → expected "log" to be called with arguments: [ StringContaining ""level":"audit"" ]
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2510363Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2510478Z Received: 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2510644Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2510650Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2510658Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2510779Z Number of calls: 0
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2511110Z [39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2512236Z  [31m×[39m packages/audit/src/audit.service.test.ts[2m > [22mAudit Service (S4 Protocol)[2m > [22mlog[2m > [22mshould handle error messages in failed operations
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2513657Z [31m   → expected [ 'system', 'system', …(9) ] to include 'Database connection failed'[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2515104Z  [32m✓[39m packages/audit/src/audit.service.test.ts[2m > [22mAudit Service (S4 Protocol)[2m > [22mlog[2m > [22mshould serialize metadata as JSON
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2517186Z  [31m×[39m packages/audit/src/audit.service.test.ts[2m > [22mAudit Service (S4 Protocol)[2m > [22mlog[2m > [22mshould always release connection even on error
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2518639Z [31m   → promise resolved "undefined" instead of rejecting[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2519922Z  [31m×[39m packages/audit/src/audit.service.test.ts[2m > [22mAudit Service (S4 Protocol)[2m > [22mquery[2m > [22mshould query with tenant filter
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2521120Z [31m   → expected [] to have a length of 1 but got +0[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2522326Z  [32m✓[39m packages/audit/src/audit.service.test.ts[2m > [22mAudit Service (S4 Protocol)[2m > [22mquery[2m > [22mshould filter by action type
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2524013Z  [32m✓[39m packages/audit/src/audit.service.test.ts[2m > [22mAudit Service (S4 Protocol)[2m > [22mquery[2m > [22mshould filter by severity
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2525850Z  [32m✓[39m packages/audit/src/audit.service.test.ts[2m > [22mAudit Service (S4 Protocol)[2m > [22mquery[2m > [22mshould apply pagination (limit and offset)
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2527862Z  [32m✓[39m packages/audit/src/audit.service.test.ts[2m > [22mAudit Service (S4 Protocol)[2m > [22mquery[2m > [22mshould order by timestamp descending
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2529851Z  [32m✓[39m packages/audit/src/audit.service.test.ts[2m > [22mAudit Service (S4 Protocol)[2m > [22mlogProvisioning[2m > [22mshould log successful provisioning
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2531891Z  [31m×[39m packages/audit/src/audit.service.test.ts[2m > [22mAudit Service (S4 Protocol)[2m > [22mlogProvisioning[2m > [22mshould log failed provisioning with error
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2533550Z [31m   → expected '{"plan":"pro","storeName":"test-store…' to contain 'Schema creation failed'[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2535553Z  [32m✓[39m packages/audit/src/audit.service.test.ts[2m > [22mAudit Service (S4 Protocol)[2m > [22mlogSecurityEvent[2m > [22mshould log cross-tenant access as CRITICAL
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2537888Z  [32m✓[39m packages/audit/src/audit.service.test.ts[2m > [22mAudit Service (S4 Protocol)[2m > [22mlogSecurityEvent[2m > [22mshould always result in FAILURE for security events
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2540038Z  [32m✓[39m packages/audit/src/audit.service.test.ts[2m > [22mAudit Service (S4 Protocol)[2m > [22minitializeAuditTable[2m > [22mshould create audit_logs table
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2542141Z  [32m✓[39m packages/audit/src/audit.service.test.ts[2m > [22mAudit Service (S4 Protocol)[2m > [22minitializeAuditTable[2m > [22mshould create indexes for performance
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2583458Z  [32m✓[39m packages/provisioning/src/blueprint.test.ts[2m > [22mBlueprint Service[2m > [22mvalidateBlueprint[2m > [22mshould validate a correct blueprint
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2588536Z  [32m✓[39m packages/provisioning/src/blueprint.test.ts[2m > [22mBlueprint Service[2m > [22mvalidateBlueprint[2m > [22mshould reject invalid version
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2590332Z  [32m✓[39m packages/provisioning/src/blueprint.test.ts[2m > [22mBlueprint Service[2m > [22mvalidateBlueprint[2m > [22mshould reject missing name
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2592260Z  [32m✓[39m packages/provisioning/src/blueprint.test.ts[2m > [22mBlueprint Service[2m > [22mvalidateBlueprint[2m > [22mshould reject invalid products array
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2594264Z  [32m✓[39m packages/provisioning/src/blueprint.test.ts[2m > [22mBlueprint Service[2m > [22mvalidateBlueprint[2m > [22mshould reject product without name
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2596186Z  [32m✓[39m packages/provisioning/src/blueprint.test.ts[2m > [22mBlueprint Service[2m > [22mvalidateBlueprint[2m > [22mshould reject invalid price
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2598399Z  [32m✓[39m packages/provisioning/src/blueprint.test.ts[2m > [22mBlueprint Service[2m > [22mdefaultBlueprintTemplate[2m > [22mshould have valid structure
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2600772Z  [32m✓[39m packages/provisioning/src/blueprint.test.ts[2m > [22mBlueprint Service[2m > [22mdefaultBlueprintTemplate[2m > [22mshould pass validation
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2602774Z  [32m✓[39m packages/provisioning/src/blueprint.test.ts[2m > [22mBlueprint Service[2m > [22mcreateBlueprint[2m > [22mshould create a blueprint with valid data
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2604761Z  [32m✓[39m packages/provisioning/src/blueprint.test.ts[2m > [22mBlueprint Service[2m > [22mcreateBlueprint[2m > [22mshould throw on invalid blueprint
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2606637Z  [32m✓[39m packages/provisioning/src/blueprint.test.ts[2m > [22mBlueprint Service[2m > [22mgetAllBlueprints[2m > [22mshould return all blueprints
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2608743Z  [32m✓[39m packages/provisioning/src/blueprint.test.ts[2m > [22mBlueprint Service[2m > [22mgetBlueprintById[2m > [22mshould return null for non-existent id
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2610807Z  [32m✓[39m packages/provisioning/src/blueprint.test.ts[2m > [22mBlueprint Service[2m > [22mgetDefaultBlueprint[2m > [22mshould return null when no blueprints exist
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2612788Z  [32m✓[39m packages/provisioning/src/blueprint.test.ts[2m > [22mBlueprint Service[2m > [22mupdateBlueprint[2m > [22mshould update blueprint fields
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.2614635Z  [32m✓[39m packages/provisioning/src/blueprint.test.ts[2m > [22mBlueprint Service[2m > [22mdeleteBlueprint[2m > [22mshould return true when deleted
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.6644969Z  [32m✓[39m packages/provisioning/src/schema-manager.test.ts[2m > [22mSchema Manager[2m > [22msanitizeSchemaName[2m > [22mshould prefix with tenant_
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.6648831Z  [32m✓[39m packages/provisioning/src/schema-manager.test.ts[2m > [22mSchema Manager[2m > [22msanitizeSchemaName[2m > [22mshould lowercase subdomain
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.6658006Z  [32m✓[39m packages/provisioning/src/schema-manager.test.ts[2m > [22mSchema Manager[2m > [22msanitizeSchemaName[2m > [22mshould allow hyphens and underscores
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.6660849Z  [32m✓[39m packages/provisioning/src/schema-manager.test.ts[2m > [22mSchema Manager[2m > [22msanitizeSchemaName[2m > [22mshould reject special characters
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.6663067Z  [32m✓[39m packages/provisioning/src/schema-manager.test.ts[2m > [22mSchema Manager[2m > [22msanitizeSchemaName[2m > [22mshould reject too short subdomains
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.6665317Z  [32m✓[39m packages/provisioning/src/schema-manager.test.ts[2m > [22mSchema Manager[2m > [22msanitizeSchemaName[2m > [22mshould handle names starting with numbers
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.6667670Z  [32m✓[39m packages/provisioning/src/schema-manager.test.ts[2m > [22mSchema Manager[2m > [22msanitizeSchemaName[2m > [22mshould reject too long subdomains
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.6669640Z  [32m✓[39m packages/provisioning/src/schema-manager.test.ts[2m > [22mSchema Manager[2m > [22mcreateTenantSchema[2m > [22mshould create schema successfully
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.6671796Z  [32m✓[39m packages/provisioning/src/schema-manager.test.ts[2m > [22mSchema Manager[2m > [22mcreateTenantSchema[2m > [22mshould throw if schema already exists
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.6673933Z  [32m✓[39m packages/provisioning/src/schema-manager.test.ts[2m > [22mSchema Manager[2m > [22mcreateTenantSchema[2m > [22mshould always release connection
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.6675897Z  [32m✓[39m packages/provisioning/src/schema-manager.test.ts[2m > [22mSchema Manager[2m > [22mverifySchemaExists[2m > [22mshould return exists=true with table count
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.6678275Z  [32m✓[39m packages/provisioning/src/schema-manager.test.ts[2m > [22mSchema Manager[2m > [22mverifySchemaExists[2m > [22mshould return exists=false for missing schema
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.6680357Z  [32m✓[39m packages/provisioning/src/schema-manager.test.ts[2m > [22mSchema Manager[2m > [22mdropTenantSchema[2m > [22mshould drop existing schema
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.6682456Z  [32m✓[39m packages/provisioning/src/schema-manager.test.ts[2m > [22mSchema Manager[2m > [22mdropTenantSchema[2m > [22mshould return false for non-existent schema
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.6684784Z  [32m✓[39m packages/provisioning/src/schema-manager.test.ts[2m > [22mSchema Manager[2m > [22mdropTenantSchema[2m > [22mshould verify empty when flag set
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.6686823Z  [32m✓[39m packages/provisioning/src/schema-manager.test.ts[2m > [22mSchema Manager[2m > [22mlistTenantSchemas[2m > [22mshould return sorted list of tenant schemas
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.6841453Z  [32m✓[39m packages/middleware/src/audit.schema.test.ts[2m > [22mAudit Schema Validation[2m > [22mAuditLogSchema[2m > [22mshould validate valid audit log entry
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.6843635Z  [32m✓[39m packages/middleware/src/audit.schema.test.ts[2m > [22mAudit Schema Validation[2m > [22mAuditLogSchema[2m > [22mshould reject invalid action
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.6845673Z  [32m✓[39m packages/middleware/src/audit.schema.test.ts[2m > [22mAudit Schema Validation[2m > [22mAuditLogSchema[2m > [22mshould accept all valid actions
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.6847947Z  [32m✓[39m packages/middleware/src/audit.schema.test.ts[2m > [22mAudit Schema Validation[2m > [22mAuditLogSchema[2m > [22mshould reject invalid email
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.6850014Z  [32m✓[39m packages/middleware/src/audit.schema.test.ts[2m > [22mAudit Schema Validation[2m > [22mAuditLogSchema[2m > [22mshould reject invalid IP address
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.6852015Z  [32m✓[39m packages/middleware/src/audit.schema.test.ts[2m > [22mAudit Schema Validation[2m > [22mAuditLogSchema[2m > [22mshould reject invalid timestamp
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.6854064Z  [32m✓[39m packages/middleware/src/audit.schema.test.ts[2m > [22mAudit Schema Validation[2m > [22mCreateAuditLogSchema[2m > [22mshould validate valid create audit log entry
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.6856211Z  [32m✓[39m packages/middleware/src/audit.schema.test.ts[2m > [22mAudit Schema Validation[2m > [22mCreateAuditLogSchema[2m > [22mshould reject missing required fields
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.6858899Z  [32m✓[39m packages/middleware/src/audit.schema.test.ts[2m > [22mAudit Schema Validation[2m > [22mCreateAuditLogSchema[2m > [22mshould accept without optional metadata
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:39.6860915Z  [32m✓[39m packages/middleware/src/audit.schema.test.ts[2m > [22mAudit Schema Validation[2m > [22mCreateAuditLogSchema[2m > [22mshould infer correct type
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.0411814Z  [32m✓[39m packages/provisioning/src/quota-service.test.ts[2m > [22mQuotaService[2m > [22mPLAN_LIMITS[2m > [22mshould have defined limits for all plans
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.0422033Z  [32m✓[39m packages/provisioning/src/quota-service.test.ts[2m > [22mQuotaService[2m > [22mPLAN_LIMITS[2m > [22mshould have correct free plan limits
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.0445377Z  [32m✓[39m packages/provisioning/src/quota-service.test.ts[2m > [22mQuotaService[2m > [22mcheckProvisioningQuota[2m > [22mshould allow provisioning within limits
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.0447841Z  [32m✓[39m packages/provisioning/src/quota-service.test.ts[2m > [22mQuotaService[2m > [22mcheckProvisioningQuota[2m > [22mshould deny provisioning when limit reached
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.0449942Z  [32m✓[39m packages/provisioning/src/quota-service.test.ts[2m > [22mQuotaService[2m > [22mgetPlanLimits[2m > [22mshould return limits for valid plan
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.0451894Z  [32m✓[39m packages/provisioning/src/quota-service.test.ts[2m > [22mQuotaService[2m > [22mgetPlanLimits[2m > [22mshould throw for invalid plan
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.0453906Z  [32m✓[39m packages/provisioning/src/quota-service.test.ts[2m > [22mQuotaService[2m > [22misFeatureAllowed[2m > [22mshould allow custom domains for pro plans
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.0456058Z  [32m✓[39m packages/provisioning/src/quota-service.test.ts[2m > [22mQuotaService[2m > [22misFeatureAllowed[2m > [22mshould allow SSO for enterprise only
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.0458778Z  [32m✓[39m packages/provisioning/src/quota-service.test.ts[2m > [22mQuotaService[2m > [22mvalidateSubdomainAvailability[2m > [22mshould validate available subdomain
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.0461460Z  [32m✓[39m packages/provisioning/src/quota-service.test.ts[2m > [22mQuotaService[2m > [22mvalidateSubdomainAvailability[2m > [22mshould reject reserved subdomains
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.0463746Z  [32m✓[39m packages/provisioning/src/quota-service.test.ts[2m > [22mQuotaService[2m > [22mvalidateSubdomainAvailability[2m > [22mshould reject invalid formats
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.0465827Z  [32m✓[39m packages/provisioning/src/quota-service.test.ts[2m > [22mQuotaService[2m > [22mcheckQuota[2m > [22mshould allow when under limit
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.0467945Z  [32m✓[39m packages/provisioning/src/quota-service.test.ts[2m > [22mQuotaService[2m > [22mcheckQuota[2m > [22mshould deny when at limit
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.0469832Z  [32m✓[39m packages/provisioning/src/quota-service.test.ts[2m > [22mQuotaService[2m > [22mcheckQuota[2m > [22mshould deny when over limit
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.0471815Z  [32m✓[39m packages/provisioning/src/quota-service.test.ts[2m > [22mQuotaService[2m > [22mcheckQuota[2m > [22mshould check storage quota correctly
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.0473787Z  [32m✓[39m packages/provisioning/src/quota-service.test.ts[2m > [22mQuotaService[2m > [22mcheckQuota[2m > [22mshould check users quota correctly
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.0475757Z  [32m✓[39m packages/provisioning/src/quota-service.test.ts[2m > [22mQuotaService[2m > [22mcheckQuota[2m > [22mshould respect pro plan limits
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.0478056Z  [32m✓[39m packages/provisioning/src/quota-service.test.ts[2m > [22mQuotaService[2m > [22mcheckQuota[2m > [22mshould deny when exceeding pro plan limits
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.0589892Z  [32m✓[39m packages/middleware/src/tenant-resolution.test.ts[2m > [22mextractSubdomain[2m > [22mshould extract subdomain from apex.com domain
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.0592147Z  [32m✓[39m packages/middleware/src/tenant-resolution.test.ts[2m > [22mextractSubdomain[2m > [22mshould extract subdomain from localhost
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.0595482Z  [32m✓[39m packages/middleware/src/tenant-resolution.test.ts[2m > [22mextractSubdomain[2m > [22mshould return null for apex domain
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.0597165Z  [32m✓[39m packages/middleware/src/tenant-resolution.test.ts[2m > [22mextractSubdomain[2m > [22mshould return null for www subdomain
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.0599065Z  [32m✓[39m packages/middleware/src/tenant-resolution.test.ts[2m > [22mextractSubdomain[2m > [22mshould return null for reserved subdomains
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.0600793Z  [32m✓[39m packages/middleware/src/tenant-resolution.test.ts[2m > [22mextractSubdomain[2m > [22mshould handle localhost without subdomain
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.0602524Z  [32m✓[39m packages/middleware/src/tenant-resolution.test.ts[2m > [22mextractSubdomain[2m > [22mshould handle multi-level subdomains
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.0604308Z  [32m✓[39m packages/middleware/src/tenant-resolution.test.ts[2m > [22mresolveTenant[2m > [22mshould call next() when no subdomain
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.0606133Z  [32m✓[39m packages/middleware/src/tenant-resolution.test.ts[2m > [22mresolveTenant[2m > [22mshould call next() when www subdomain
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.0608284Z  [32m✓[39m packages/middleware/src/tenant-resolution.test.ts[2m > [22mresolveTenant[2m > [22mshould set tenant context for valid subdomain
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.0610215Z  [32m✓[39m packages/middleware/src/tenant-resolution.test.ts[2m > [22mresolveTenant[2m > [22mshould handle localhost subdomain
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.2662229Z  [32m✓[39m packages/auth/src/auth.service.test.ts[2m > [22mAuthService[2m > [22mgenerateToken[2m > [22mshould generate token for valid user
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.2664031Z  [32m✓[39m packages/auth/src/auth.service.test.ts[2m > [22mAuthService[2m > [22mgenerateToken[2m > [22mshould generate token without tenantId
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.2665808Z  [32m✓[39m packages/auth/src/auth.service.test.ts[2m > [22mAuthService[2m > [22mvalidateUser[2m > [22mshould validate user with valid payload
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.2668354Z  [32m✓[39m packages/auth/src/auth.service.test.ts[2m > [22mAuthService[2m > [22mvalidateUser[2m > [22mshould throw for payload without sub
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.2670225Z  [32m✓[39m packages/auth/src/auth.service.test.ts[2m > [22mAuthService[2m > [22mvalidateUser[2m > [22mshould handle payload without tenantId
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.2671992Z  [32m✓[39m packages/auth/src/auth.service.test.ts[2m > [22mAuthService[2m > [22mverifyToken[2m > [22mshould verify valid token
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.2673739Z  [32m✓[39m packages/auth/src/auth.service.test.ts[2m > [22mAuthService[2m > [22mverifyToken[2m > [22mshould throw for invalid token
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.2675488Z  [32m✓[39m packages/auth/src/auth.service.test.ts[2m > [22mAuthService[2m > [22mverifyToken[2m > [22mshould throw for expired token
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.6188266Z  [32m✓[39m packages/middleware/src/security.test.ts[2m > [22msecurityHeaders[2m > [22mshould have X-Content-Type-Options
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.6190197Z  [32m✓[39m packages/middleware/src/security.test.ts[2m > [22msecurityHeaders[2m > [22mshould have X-Frame-Options
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.6191911Z  [32m✓[39m packages/middleware/src/security.test.ts[2m > [22msecurityHeaders[2m > [22mshould have X-XSS-Protection
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.6193480Z  [32m✓[39m packages/middleware/src/security.test.ts[2m > [22msecurityHeaders[2m > [22mshould have Referrer-Policy
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.6194965Z  [32m✓[39m packages/middleware/src/security.test.ts[2m > [22msecurityHeaders[2m > [22mshould have Permissions-Policy
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.6198887Z  [32m✓[39m packages/middleware/src/security.test.ts[2m > [22msecurityHeaders[2m > [22mshould have Strict-Transport-Security
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.6200553Z  [32m✓[39m packages/middleware/src/security.test.ts[2m > [22mSecurityHeadersMiddleware[2m > [22mshould be defined
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.6203230Z  [32m✓[39m packages/middleware/src/security.test.ts[2m > [22mdefaultCorsConfig[2m > [22mshould have credentials enabled
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.6204885Z  [32m✓[39m packages/middleware/src/security.test.ts[2m > [22mdefaultCorsConfig[2m > [22mshould have correct methods
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.6206452Z  [32m✓[39m packages/middleware/src/security.test.ts[2m > [22mdefaultCorsConfig[2m > [22mshould have allowed headers
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.6208562Z  [32m✓[39m packages/middleware/src/security.test.ts[2m > [22mgetTenantCorsConfig[2m > [22mshould return config with tenant origin
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.6216133Z  [32m✓[39m packages/middleware/src/security.test.ts[2m > [22mgetTenantCorsConfig[2m > [22mshould preserve other settings
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.6217919Z  [32m✓[39m packages/middleware/src/security.test.ts[2m > [22mCsrfProtection[2m > [22mshould be defined
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.6219247Z  [32m✓[39m packages/middleware/src/security.test.ts[2m > [22mCsrfGuard[2m > [22mshould be defined
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.6220714Z  [32m✓[39m packages/middleware/src/security.test.ts[2m > [22mhelmetConfig[2m > [22mshould have contentSecurityPolicy
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.6222378Z  [32m✓[39m packages/middleware/src/security.test.ts[2m > [22mhelmetConfig[2m > [22mshould have crossOriginEmbedderPolicy
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.6569967Z [31m[Nest] 2204  - [39m02/08/2026, 3:31:40 AM [31m  ERROR[39m [38;5;3m[GlobalExceptionFilter] [39m[31mObject:[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.6570916Z {
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.6571252Z   "requestId": "req_1770521500647_7m0sqqmk1",
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.6571717Z   "message": "Test error",
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.6577871Z   "stack": "Error: Test error\n    at /home/runner/work/KIMI/KIMI/packages/middleware/src/exception-filter.test.ts:41:19\n    at file:///home/runner/work/KIMI/KIMI/node_modules/@vitest/runner/dist/index.js:135:14\n    at file:///home/runner/work/KIMI/KIMI/node_modules/@vitest/runner/dist/index.js:60:26\n    at runTest (file:///home/runner/work/KIMI/KIMI/node_modules/@vitest/runner/dist/index.js:781:17)\n    at runSuite (file:///home/runner/work/KIMI/KIMI/node_modules/@vitest/runner/dist/index.js:909:15)\n    at runSuite (file:///home/runner/work/KIMI/KIMI/node_modules/@vitest/runner/dist/index.js:909:15)\n    at runFiles (file:///home/runner/work/KIMI/KIMI/node_modules/@vitest/runner/dist/index.js:958:5)\n    at startTests (file:///home/runner/work/KIMI/KIMI/node_modules/@vitest/runner/dist/index.js:967:3)\n    at file:///home/runner/work/KIMI/KIMI/node_modules/vitest/dist/chunks/runtime-runBaseTests.oAvMKtQC.js:116:7\n    at withEnv (file:///home/runner/work/KIMI/KIMI/node_modules/vitest/dist/chunks/runtime-runBaseTests.oAvMKtQC.js:83:5)",
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.6584496Z   "path": "/test"
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.6584784Z }
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.6584909Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.6620886Z Exception caught
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.6947554Z  [32m✓[39m packages/middleware/src/exception-filter.test.ts[2m > [22mGlobalExceptionFilter[2m > [22mshould be defined
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.6949468Z  [32m✓[39m packages/middleware/src/exception-filter.test.ts[2m > [22mGlobalExceptionFilter[2m > [22mshould handle generic errors
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.6951382Z  [32m✓[39m packages/middleware/src/exception-filter.test.ts[2m > [22mOperationalError[2m > [22mshould create with message and status
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.6953176Z  [32m✓[39m packages/middleware/src/exception-filter.test.ts[2m > [22mOperationalError[2m > [22mshould be instance of HttpException
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.6954754Z  [32m✓[39m packages/middleware/src/exception-filter.test.ts[2m > [22mValidationError[2m > [22mshould have 400 status
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.6956189Z  [32m✓[39m packages/middleware/src/exception-filter.test.ts[2m > [22mAuthenticationError[2m > [22mshould have 401 status
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.6957891Z  [32m✓[39m packages/middleware/src/exception-filter.test.ts[2m > [22mAuthorizationError[2m > [22mshould have 403 status
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.6959408Z  [32m✓[39m packages/middleware/src/exception-filter.test.ts[2m > [22mTenantIsolationError[2m > [22mshould have 403 status
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.9582154Z  [32m✓[39m packages/auth/src/strategies/jwt.strategy.test.ts[2m > [22mJwtStrategy[2m > [22mconstructor[2m > [22mshould create strategy with config service
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.9589443Z  [32m✓[39m packages/auth/src/strategies/jwt.strategy.test.ts[2m > [22mJwtStrategy[2m > [22mconstructor[2m > [22mshould get JWT_SECRET from config
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.9595428Z  [32m✓[39m packages/auth/src/strategies/jwt.strategy.test.ts[2m > [22mJwtStrategy[2m > [22mvalidate[2m > [22mshould validate and return user from payload
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.9601779Z  [32m✓[39m packages/auth/src/strategies/jwt.strategy.test.ts[2m > [22mJwtStrategy[2m > [22mvalidate[2m > [22mshould throw UnauthorizedException for payload without sub
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.9606492Z  [32m✓[39m packages/auth/src/strategies/jwt.strategy.test.ts[2m > [22mJwtStrategy[2m > [22mvalidate[2m > [22mshould throw UnauthorizedException for null payload
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.9611051Z  [32m✓[39m packages/auth/src/strategies/jwt.strategy.test.ts[2m > [22mJwtStrategy[2m > [22mvalidate[2m > [22mshould throw UnauthorizedException for undefined sub
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:40.9615444Z  [32m✓[39m packages/auth/src/strategies/jwt.strategy.test.ts[2m > [22mJwtStrategy[2m > [22mvalidate[2m > [22mshould handle payload without tenantId
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:41.3273156Z  [32m✓[39m packages/middleware/src/connection-context.test.ts[2m > [22mConnectionContext[2m > [22mshould set and get tenant context
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:41.3275748Z  [32m✓[39m packages/middleware/src/connection-context.test.ts[2m > [22mConnectionContext[2m > [22mshould return null when no context exists
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:41.3280302Z  [32m✓[39m packages/middleware/src/connection-context.test.ts[2m > [22mConnectionContext[2m > [22mshould throw when requiring context without one
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:41.3282161Z  [32m✓[39m packages/middleware/src/connection-context.test.ts[2m > [22mConnectionContext[2m > [22mshould handle nested contexts correctly
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:41.3383294Z  [32m✓[39m packages/middleware/src/tenant-context.test.ts[2m > [22mTenant Context (Legacy)[2m > [22mshould export tenantStorage
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:41.3386230Z  [32m✓[39m packages/middleware/src/tenant-context.test.ts[2m > [22mTenant Context (Legacy)[2m > [22mshould throw when getting context outside of scope
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:41.3389217Z  [32m✓[39m packages/middleware/src/tenant-context.test.ts[2m > [22mTenant Context (Legacy)[2m > [22mshould return false when checking context outside of scope
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:41.3391276Z  [32m✓[39m packages/middleware/src/tenant-context.test.ts[2m > [22mTenant Context (Legacy)[2m > [22mshould work within a context
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:41.3393054Z  [32m✓[39m packages/middleware/src/tenant-context.test.ts[2m > [22mTenant Context (Legacy)[2m > [22mshould handle multiple contexts
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:41.4954726Z  [32m✓[39m packages/auth/src/encryption.test.ts[2m > [22mEncryption Service[2m > [22mencrypt/decrypt[2m > [22mshould encrypt and decrypt data correctly
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:41.4962269Z  [32m✓[39m packages/auth/src/encryption.test.ts[2m > [22mEncryption Service[2m > [22mencrypt/decrypt[2m > [22mshould produce different encrypted output for same plaintext
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:41.4969160Z  [32m✓[39m packages/auth/src/encryption.test.ts[2m > [22mEncryption Service[2m > [22mAPI Key management[2m > [22mshould generate unique API keys
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:41.4999173Z  [32m✓[39m packages/auth/src/encryption.test.ts[2m > [22mEncryption Service[2m > [22mAPI Key management[2m > [22mshould hash API keys consistently
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:41.5001411Z  [32m✓[39m packages/auth/src/encryption.test.ts[2m > [22mEncryption Service[2m > [22mmaskSensitive[2m > [22mshould mask sensitive data correctly
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:41.5003744Z  [32m✓[39m packages/auth/src/encryption.test.ts[2m > [22mEncryption Service[2m > [22mmaskSensitive[2m > [22mshould mask all for short strings
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:41.7547081Z  [32m✓[39m packages/db/src/schema.test.ts[2m > [22mSchema[2m > [22mTenants table[2m > [22mshould have correct columns
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:41.7554667Z  [32m✓[39m packages/db/src/schema.test.ts[2m > [22mSchema[2m > [22mUsers table[2m > [22mshould have correct columns
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:41.7560400Z  [32m✓[39m packages/db/src/schema.test.ts[2m > [22mSchema[2m > [22mStores table[2m > [22mshould have correct columns
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:41.7565784Z  [32m✓[39m packages/db/src/schema.test.ts[2m > [22mSchema[2m > [22mSettings table[2m > [22mshould have correct columns
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:41.7571432Z  [32m✓[39m packages/db/src/schema.test.ts[2m > [22mSchema[2m > [22mAuditLogs table[2m > [22mshould have correct columns
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:41.7576860Z  [32m✓[39m packages/db/src/schema.test.ts[2m > [22mSchema[2m > [22mS2 Compliance Helpers[2m > [22mshould generate correct tenant table name
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:41.7584845Z  [32m✓[39m packages/db/src/schema.test.ts[2m > [22mSchema[2m > [22mS2 Compliance Helpers[2m > [22mshould generate correct search path SQL
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:41.7592211Z  [32m✓[39m packages/db/src/schema.test.ts[2m > [22mSchema[2m > [22mS2 Compliance Helpers[2m > [22mshould handle different table names
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:41.7594320Z  [32m✓[39m packages/db/src/schema.test.ts[2m > [22mSchema[2m > [22mS2 Compliance Helpers[2m > [22mshould generate search path for different tenant IDs
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:42.1022251Z  [32m✓[39m packages/ui/src/index.test.ts[2m > [22mUI Package[2m > [22mcn helper[2m > [22mshould combine class names
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:42.1027938Z  [32m✓[39m packages/ui/src/index.test.ts[2m > [22mUI Package[2m > [22mcn helper[2m > [22mshould filter falsy values
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:42.1030516Z  [32m✓[39m packages/ui/src/index.test.ts[2m > [22mUI Package[2m > [22mbuttonStyles[2m > [22mshould have base styles
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:42.1032316Z  [32m✓[39m packages/ui/src/index.test.ts[2m > [22mUI Package[2m > [22mbuttonStyles[2m > [22mshould have variant styles
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:42.1035384Z  [32m✓[39m packages/ui/src/index.test.ts[2m > [22mUI Package[2m > [22mbuttonStyles[2m > [22mshould have size styles
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:42.1036990Z  [32m✓[39m packages/ui/src/index.test.ts[2m > [22mUI Package[2m > [22minputStyles[2m > [22mshould have base styles
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:42.1038939Z  [32m✓[39m packages/ui/src/index.test.ts[2m > [22mUI Package[2m > [22minputStyles[2m > [22mshould have error styles
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:42.1040514Z  [32m✓[39m packages/ui/src/index.test.ts[2m > [22mUI Package[2m > [22mtheme[2m > [22mshould have primary colors
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:42.1049082Z  [32m✓[39m packages/ui/src/index.test.ts[2m > [22mUI Package[2m > [22mtheme[2m > [22mshould have gray colors
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:42.1451525Z  [32m✓[39m packages/middleware/src/rate-limit.test.ts[2m > [22mRATE_LIMIT_KEY[2m > [22mshould have correct value
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:42.1454409Z  [32m✓[39m packages/middleware/src/rate-limit.test.ts[2m > [22mRateLimit decorator[2m > [22mshould be defined
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:42.1455834Z  [32m✓[39m packages/middleware/src/rate-limit.test.ts[2m > [22mRateLimit decorator[2m > [22mshould create decorator
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:42.1457618Z  [32m✓[39m packages/middleware/src/rate-limit.test.ts[2m > [22mThrottleConfig[2m > [22mshould have default config
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:42.1459079Z  [32m✓[39m packages/middleware/src/rate-limit.test.ts[2m > [22mThrottleConfig[2m > [22mshould have strict config
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:42.1460481Z  [32m✓[39m packages/middleware/src/rate-limit.test.ts[2m > [22mThrottleConfig[2m > [22mshould have lenient config
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:42.1461864Z  [32m✓[39m packages/middleware/src/rate-limit.test.ts[2m > [22mRateLimitGuard[2m > [22mshould be defined
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:42.1463314Z  [32m✓[39m packages/middleware/src/rate-limit.test.ts[2m > [22mRateLimitConfig type[2m > [22mshould accept valid config
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:42.4563465Z  [32m✓[39m packages/middleware/src/s2.test.ts[2m > [22mS2 Middleware: Tenant Resolution[2m > [22mshould extract subdomain from host header
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:42.4569771Z  [32m✓[39m packages/middleware/src/s2.test.ts[2m > [22mS2 Middleware: Tenant Resolution[2m > [22mshould resolve tenant and attach to context
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:42.5100281Z [90mstderr[2m | packages/provisioning/src/runner.test.ts[2m > [22m[2mMigration Runner[2m > [22m[2mshould throw and log if migration fails[22m[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:42.5101866Z Migration FAILED for tenant_fail-store Error: Migration syntax error
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:42.5103994Z     at /home/runner/work/KIMI/KIMI/packages/provisioning/src/runner.test.ts:37:42
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:42.5104982Z     at file:///home/runner/work/KIMI/KIMI/node_modules/@vitest/runner/dist/index.js:135:14
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:42.5106095Z     at file:///home/runner/work/KIMI/KIMI/node_modules/@vitest/runner/dist/index.js:60:26
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:42.5107131Z     at runTest (file:///home/runner/work/KIMI/KIMI/node_modules/@vitest/runner/dist/index.js:781:17)
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:42.5109635Z     at runSuite (file:///home/runner/work/KIMI/KIMI/node_modules/@vitest/runner/dist/index.js:909:15)
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:42.5110797Z     at runSuite (file:///home/runner/work/KIMI/KIMI/node_modules/@vitest/runner/dist/index.js:909:15)
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:42.5111967Z     at runFiles (file:///home/runner/work/KIMI/KIMI/node_modules/@vitest/runner/dist/index.js:958:5)
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:42.5113127Z     at startTests (file:///home/runner/work/KIMI/KIMI/node_modules/@vitest/runner/dist/index.js:967:3)
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:42.5114336Z     at file:///home/runner/work/KIMI/KIMI/node_modules/vitest/dist/chunks/runtime-runBaseTests.oAvMKtQC.js:116:7
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:42.5115710Z     at withEnv (file:///home/runner/work/KIMI/KIMI/node_modules/vitest/dist/chunks/runtime-runBaseTests.oAvMKtQC.js:83:5)
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:42.5116495Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:42.5189330Z  [32m✓[39m packages/provisioning/src/runner.test.ts[2m > [22mMigration Runner[2m > [22mshould call drizzle migrate with correct paths
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:42.5191655Z  [32m✓[39m packages/provisioning/src/runner.test.ts[2m > [22mMigration Runner[2m > [22mshould throw and log if migration fails
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:42.5499958Z  [32m✓[39m packages/provisioning/src/seeder.test.ts[2m > [22mTenant Seeder[2m > [22mshould seed data in correct order
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:42.5501780Z  [32m✓[39m packages/provisioning/src/seeder.test.ts[2m > [22mTenant Seeder[2m > [22mshould check if seeded correctly
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:43.0694549Z  [32m✓[39m packages/events/src/index.test.ts[2m > [22mEvents Module Exports[2m > [22mshould export InMemoryEventBus
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:43.0696482Z  [32m✓[39m packages/events/src/index.test.ts[2m > [22mEvents Module Exports[2m > [22mshould export createEventId
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:43.0698433Z  [32m✓[39m packages/events/src/index.test.ts[2m > [22mEvents Module Exports[2m > [22mshould export createCorrelationId
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:43.0700220Z  [32m✓[39m packages/events/src/index.test.ts[2m > [22mEvents Module Exports[2m > [22mshould export createTimestamp
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:43.0702000Z  [32m✓[39m packages/events/src/index.test.ts[2m > [22mEvents Module Exports[2m > [22mshould export validateEvent
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:43.0703774Z  [32m✓[39m packages/events/src/index.test.ts[2m > [22mEvents Module Exports[2m > [22mshould export TenantProvisioningStartedSchema
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:43.7005788Z  [32m✓[39m packages/auth/src/decorators/current-user.decorator.test.ts[2m > [22mCurrentUser Decorator[2m > [22mshould create decorator function
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:43.7008044Z  [32m✓[39m packages/auth/src/decorators/current-user.decorator.test.ts[2m > [22mCurrentUser Decorator[2m > [22mshould have proper metadata key
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.0073119Z  [32m✓[39m packages/auth/src/decorators/public.decorator.test.ts[2m > [22mPublic Decorator[2m > [22mshould have correct metadata key
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.0075477Z  [32m✓[39m packages/auth/src/decorators/public.decorator.test.ts[2m > [22mPublic Decorator[2m > [22mshould create decorator function
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.0832225Z  [32m✓[39m packages/auth/src/decorators/public.decorator.test.ts[2m > [22mPublic Decorator[2m > [22mshould be defined
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.5858670Z  [32m✓[39m apps/api/src/main.spec.ts[2m > [22mMain[2m > [22mshould be defined
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9752856Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9767892Z [31m⎯⎯⎯⎯⎯⎯[1m[7m Failed Suites 11 [27m[22m⎯⎯⎯⎯⎯⎯[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9768414Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9776214Z [31m[1m[7m FAIL [27m[22m[39m apps/api/src/app.module.spec.ts [2m[ apps/api/src/app.module.spec.ts ][22m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9777915Z [31m[1m[7m FAIL [27m[22m[39m packages/audit/src/index.test.ts [2m[ packages/audit/src/index.test.ts ][22m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9779313Z [31m[1m[7m FAIL [27m[22m[39m packages/db/src/index.test.ts [2m[ packages/db/src/index.test.ts ][22m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9780785Z [31m[1m[7m FAIL [27m[22m[39m packages/middleware/src/index.test.ts [2m[ packages/middleware/src/index.test.ts ][22m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9782591Z [31m[1m[7m FAIL [27m[22m[39m packages/middleware/src/tenant-isolation.middleware.test.ts [2m[ packages/middleware/src/tenant-isolation.middleware.test.ts ][22m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9783709Z [31m[1m[7m FAIL [27m[22m[39m packages/provisioning/src/index.test.ts [2m[ packages/provisioning/src/index.test.ts ][22m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9784551Z [31m[1m[7m FAIL [27m[22m[39m apps/api/src/provisioning/index.spec.ts [2m[ apps/api/src/provisioning/index.spec.ts ][22m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9785554Z [31m[1m[7m FAIL [27m[22m[39m apps/api/src/provisioning/provisioning.controller.spec.ts [2m[ apps/api/src/provisioning/provisioning.controller.spec.ts ][22m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9786660Z [31m[1m[7m FAIL [27m[22m[39m apps/api/src/provisioning/provisioning.module.spec.ts [2m[ apps/api/src/provisioning/provisioning.module.spec.ts ][22m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9791943Z [31m[1mError[22m: S1 Violation: Environment validation failed - JWT_SECRET: Required; DATABASE_URL: Required; MINIO_ENDPOINT: Required; MINIO_ACCESS_KEY: Required; MINIO_SECRET_KEY: Required[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9794353Z [36m [2m❯[22m validateEnv packages/config/src/index.ts:[2m97:13[22m[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9876642Z     [90m 95| [39m        [33m.[39m[34mmap[39m((i) [33m=>[39m [32m`[39m[36m${[39mi[33m.[39mpath[33m.[39m[34mjoin[39m([32m'.'[39m)[36m}[39m[32m: [39m[36m${[39mi[33m.[39mmessage[36m}[39m[32m`[39m)
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9878439Z     [90m 96| [39m        [33m.[39m[34mjoin[39m([32m'; '[39m)[33m;[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9879182Z     [90m 97| [39m      [35mthrow[39m [35mnew[39m [33mError[39m(
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9879780Z     [90m   | [39m            [31m^[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9880739Z     [90m 98| [39m        [32m`S1 Violation: Environment validation failed - [39m[36m${[39missues[36m}[39m[32m`[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9881636Z     [90m 99| [39m      )[33m;[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9882286Z [90m [2m❯[22m packages/config/src/index.ts:[2m138:31[22m[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9883049Z [90m [2m❯[22m packages/db/src/index.ts:[2m1:1[22m[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9883422Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9883701Z [31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/21]⎯[22m[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9884032Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9884694Z [31m[1m[7m FAIL [27m[22m[39m packages/config/src/index.test.ts [2m[ packages/config/src/index.test.ts ][22m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9886187Z [31m[1mError[22m: S1 Violation: Environment validation failed - JWT_SECRET: Required; DATABASE_URL: Required; MINIO_ENDPOINT: Required; MINIO_ACCESS_KEY: Required; MINIO_SECRET_KEY: Required[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9887121Z [36m [2m❯[22m validateEnv packages/config/src/index.ts:[2m97:13[22m[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9890165Z     [90m 95| [39m        [33m.[39m[34mmap[39m((i) [33m=>[39m [32m`[39m[36m${[39mi[33m.[39mpath[33m.[39m[34mjoin[39m([32m'.'[39m)[36m}[39m[32m: [39m[36m${[39mi[33m.[39mmessage[36m}[39m[32m`[39m)
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9891926Z     [90m 96| [39m        [33m.[39m[34mjoin[39m([32m'; '[39m)[33m;[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9892678Z     [90m 97| [39m      [35mthrow[39m [35mnew[39m [33mError[39m(
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9893269Z     [90m   | [39m            [31m^[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9894213Z     [90m 98| [39m        [32m`S1 Violation: Environment validation failed - [39m[36m${[39missues[36m}[39m[32m`[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9895089Z     [90m 99| [39m      )[33m;[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9895714Z [90m [2m❯[22m packages/config/src/index.ts:[2m138:31[22m[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9896486Z [90m [2m❯[22m packages/config/src/index.test.ts:[2m2:31[22m[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9896911Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9897181Z [31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/21]⎯[22m[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9897711Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9898266Z [31m[1m[7m FAIL [27m[22m[39m packages/provisioning/src/tenant-overview.test.ts [2m[ packages/provisioning/src/tenant-overview.test.ts ][22m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9899735Z [31m[1mError[22m: [vitest] There was an error when mocking a module. If you are using "vi.mock" factory, make sure there are no top level variables inside, since this call is hoisted to top of the file. Read more: https://vitest.dev/api/vi.html#vi-mock[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9900887Z [36m [2m❯[22m packages/provisioning/src/tenant-overview.ts:[2m1:1[22m[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9926112Z     [90m  1| [39m[90m/**
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9926581Z     [90m   | [39m[31m^[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9927140Z     [90m  2| [39m * Super-#01: Tenant Overview Table
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9928085Z     [90m  3| [39m * Constitution Reference: plan.md (Super-#01)
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9928504Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9930349Z [31m[1mCaused by: ReferenceError[22m: Cannot access 'mockTenants' before initialization[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9932544Z [36m [2m❯[22m packages/provisioning/src/tenant-overview.test.ts:[2m11:43[22m[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9933883Z [90m [2m❯[22m packages/provisioning/src/tenant-overview.ts:[2m1:1[22m[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9935010Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9935535Z [31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/21]⎯[22m[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9936054Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9936646Z [31m⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 10 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9937053Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9938364Z [31m[1m[7m FAIL [27m[22m[39m packages/audit/src/audit.service.test.ts[2m > [22mAudit Service (S4 Protocol)[2m > [22mlog[2m > [22mshould insert audit record to database
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9940577Z [31m[1mAssertionError[22m: expected "spy" to be called with arguments: [ StringContaining{…}, …(1) ]
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9941281Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9941421Z Received: 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9941606Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9941742Z   1st spy call:
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9941940Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9942056Z   Array [
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9942452Z -   StringContaining "INSERT INTO public.audit_logs",
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9942993Z -   ArrayContaining [
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9943366Z -     "test-uuid-1234",
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9943723Z -     "2026-01-01T00:00:00.000Z",
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9944145Z -     "TENANT_PROVISIONED",
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9944508Z -     "api_key",
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9944822Z -     "key-123",
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9945117Z -   ],
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9945443Z +   "SET search_path TO public",
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9945824Z   ]
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9945976Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9946131Z   2nd spy call:
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9946327Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9946441Z   Array [
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9946830Z -   StringContaining "INSERT INTO public.audit_logs",
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9947555Z -   ArrayContaining [
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9947935Z -     "test-uuid-1234",
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9948291Z -     "2026-01-01T00:00:00.000Z",
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9948687Z -     "TENANT_PROVISIONED",
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9949048Z -     "api_key",
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9949341Z +   "
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9949653Z +         INSERT INTO public.audit_logs (
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9950083Z +           tenant_id, 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9950721Z +           user_id, 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9951054Z +           action, 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9951375Z +           entity_type, 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9951729Z +           entity_id, 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9952058Z +           metadata, 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9952384Z +           ip_address, 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9952728Z +           user_agent,
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9953128Z +           severity,
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9953432Z +           result,
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9953742Z +           created_at
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9954149Z +         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9954622Z +       ",
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9954894Z +   Array [
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9955187Z +     "test-tenant",
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9955507Z       "key-123",
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9955831Z +     "TENANT_PROVISIONED",
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9956190Z +     "tenant",
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9956485Z +     "test-tenant",
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9956979Z +     "{\"plan\":\"basic\",\"subdomain\":\"test\",\"actorType\":\"api_key\"}",
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9957732Z +     "192.168.1.1",
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9958056Z +     null,
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9958326Z +     "INFO",
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9958620Z +     "SUCCESS",
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9958935Z +     2026-02-08T03:31:39.112Z,
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9959284Z     ],
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9959549Z   ]
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9959700Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9959825Z   3rd spy call:
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9960010Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9960121Z   Array [
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9960504Z -   StringContaining "INSERT INTO public.audit_logs",
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9961025Z -   ArrayContaining [
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9961361Z -     "test-uuid-1234",
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9961709Z -     "2026-01-01T00:00:00.000Z",
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9962106Z -     "TENANT_PROVISIONED",
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9962462Z -     "api_key",
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9962768Z -     "key-123",
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9963063Z -   ],
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9963359Z +   "SET search_path TO public",
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9963739Z   ]
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9963905Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9963912Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9964272Z Number of calls: 3
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9964679Z [39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9965291Z [36m [2m❯[22m packages/audit/src/audit.service.test.ts:[2m64:32[22m[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9986498Z     [90m 62| [39m      [35mawait[39m [34mlog[39m(entry)[33m;[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9987445Z     [90m 63| [39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9988572Z     [90m 64| [39m      [34mexpect[39m(mockClient[33m.[39mquery)[33m.[39m[34mtoHaveBeenCalledWith[39m(
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9989552Z     [90m   | [39m                               [31m^[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9990582Z     [90m 65| [39m        expect[33m.[39m[34mstringContaining[39m([32m'INSERT INTO public.audit_logs'[39m)[33m,[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9991682Z     [90m 66| [39m        expect[33m.[39m[34marrayContaining[39m([
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9992122Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9992426Z [31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/21]⎯[22m[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9992788Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9993931Z [31m[1m[7m FAIL [27m[22m[39m packages/audit/src/audit.service.test.ts[2m > [22mAudit Service (S4 Protocol)[2m > [22mlog[2m > [22mshould include optional email when provided
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9995693Z [31m[1mAssertionError[22m: expected [ 'system', 'user-123', …(9) ] to include 'admin@example.com'[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9996828Z [36m [2m❯[22m packages/audit/src/audit.service.test.ts:[2m96:28[22m[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9998760Z     [90m 94| [39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:44.9999819Z     [90m 95| [39m      [35mconst[39m queryCall [33m=[39m mockClient[33m.[39mquery[33m.[39mmock[33m.[39mcalls[[34m1[39m][33m;[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0001411Z     [90m 96| [39m      [34mexpect[39m(queryCall[[34m1[39m])[33m.[39m[34mtoContain[39m([32m'admin@example.com'[39m)[33m;[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0002483Z     [90m   | [39m                           [31m^[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0003063Z     [90m 97| [39m    })[33m;[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0003803Z     [90m 98| [39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0004019Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0004326Z [31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/21]⎯[22m[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0004724Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0005936Z [31m[1m[7m FAIL [27m[22m[39m packages/audit/src/audit.service.test.ts[2m > [22mAudit Service (S4 Protocol)[2m > [22mlog[2m > [22mshould output structured log to console for monitoring
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0007981Z [31m[1mAssertionError[22m: expected "log" to be called with arguments: [ StringContaining ""level":"audit"" ]
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0008730Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0008854Z Received: 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0009027Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0009034Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0009048Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0009173Z Number of calls: 0
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0009541Z [39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0010172Z [36m [2m❯[22m packages/audit/src/audit.service.test.ts:[2m117:27[22m[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0012533Z     [90m115| [39m      [35mawait[39m [34mlog[39m(entry)[33m;[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0013394Z     [90m116| [39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0014576Z     [90m117| [39m      [34mexpect[39m(console[33m.[39mlog)[33m.[39m[34mtoHaveBeenCalledWith[39m(
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0015883Z     [90m   | [39m                          [31m^[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0018140Z     [90m118| [39m        expect[33m.[39m[34mstringContaining[39m([32m'"level":"audit"'[39m)
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0018948Z     [90m119| [39m      )[33m;[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0019243Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0019554Z [31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/21]⎯[22m[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0019903Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0021070Z [31m[1m[7m FAIL [27m[22m[39m packages/audit/src/audit.service.test.ts[2m > [22mAudit Service (S4 Protocol)[2m > [22mlog[2m > [22mshould handle error messages in failed operations
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0022838Z [31m[1mAssertionError[22m: expected [ 'system', 'system', …(9) ] to include 'Database connection failed'[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0026091Z [36m [2m❯[22m packages/audit/src/audit.service.test.ts:[2m145:28[22m[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0026900Z     [90m143| [39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0028694Z     [90m144| [39m      [35mconst[39m queryCall [33m=[39m mockClient[33m.[39mquery[33m.[39mmock[33m.[39mcalls[[34m1[39m][33m;[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0030382Z     [90m145| [39m      [34mexpect[39m(queryCall[[34m1[39m])[33m.[39m[34mtoContain[39m([32m'Database connection failed'[39m)[33m;[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0031476Z     [90m   | [39m                           [31m^[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0032531Z     [90m146| [39m      [34mexpect[39m(queryCall[[34m1[39m])[33m.[39m[34mtoContain[39m([32m'FAILURE'[39m)[33m;[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0033443Z     [90m147| [39m    })[33m;[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0033723Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0034015Z [31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/21]⎯[22m[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0034365Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0035518Z [31m[1m[7m FAIL [27m[22m[39m packages/audit/src/audit.service.test.ts[2m > [22mAudit Service (S4 Protocol)[2m > [22mlog[2m > [22mshould always release connection even on error
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0037185Z [31m[1mAssertionError[22m: promise resolved "undefined" instead of rejecting[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0038190Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0038379Z - Expected: 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0038717Z [Error: rejected promise]
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0038968Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0039081Z + Received: 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0039360Z undefined
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0039520Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0040025Z [36m [2m❯[22m packages/audit/src/audit.service.test.ts:[2m192:30[22m[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0040735Z     [90m190| [39m      }[33m;[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0041183Z     [90m191| [39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0042308Z     [90m192| [39m      [35mawait[39m [34mexpect[39m([34mlog[39m(entry))[33m.[39mrejects[33m.[39m[34mtoThrow[39m([32m'DB Connection Lost'[39m)[33m;[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0043465Z     [90m   | [39m                             [31m^[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0044489Z     [90m193| [39m      [34mexpect[39m(mockClient[33m.[39mrelease)[33m.[39m[34mtoHaveBeenCalled[39m()[33m;[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0045673Z     [90m194| [39m    })[33m;[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0045963Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0046254Z [31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/21]⎯[22m[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0046584Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0047805Z [31m[1m[7m FAIL [27m[22m[39m packages/audit/src/audit.service.test.ts[2m > [22mAudit Service (S4 Protocol)[2m > [22mquery[2m > [22mshould query with tenant filter
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0049286Z [31m[1mAssertionError[22m: expected [] to have a length of 1 but got +0[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0049809Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0049926Z - Expected
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0050206Z + Received
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0050361Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0050465Z - 1
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0050716Z + 0
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0050857Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0051307Z [36m [2m❯[22m packages/audit/src/audit.service.test.ts:[2m224:23[22m[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0053274Z     [90m222| [39m        [[32m'tenant-1'[39m]
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0054919Z     [90m223| [39m      )[33m;[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0055803Z     [90m224| [39m      [34mexpect[39m(results)[33m.[39m[34mtoHaveLength[39m([34m1[39m)[33m;[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0056658Z     [90m   | [39m                      [31m^[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0057911Z     [90m225| [39m      [34mexpect[39m(results[[34m0[39m][33m.[39maction)[33m.[39m[34mtoBe[39m([32m'USER_LOGIN'[39m)[33m;[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0058889Z     [90m226| [39m    })[33m;[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0059170Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0059457Z [31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/21]⎯[22m[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0059787Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0060984Z [31m[1m[7m FAIL [27m[22m[39m packages/audit/src/audit.service.test.ts[2m > [22mAudit Service (S4 Protocol)[2m > [22mlogProvisioning[2m > [22mshould log failed provisioning with error
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0064023Z [31m[1mAssertionError[22m: expected '{"plan":"pro","storeName":"test-store…' to contain 'Schema creation failed'[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0064844Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0064967Z - Expected
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0065504Z + Received
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0065669Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0065814Z - Schema creation failed
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0066208Z + {"plan":"pro","storeName":"test-store"}
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0066526Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0066958Z [36m [2m❯[22m packages/audit/src/audit.service.test.ts:[2m295:31[22m[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0092523Z     [90m293| [39m      [35mconst[39m queryCall [33m=[39m mockClient[33m.[39mquery[33m.[39mmock[33m.[39mcalls[[34m1[39m][33m;[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0109742Z     [90m294| [39m      [34mexpect[39m(queryCall[[34m1[39m])[33m.[39m[34mtoContain[39m([32m'FAILURE'[39m)[33m;[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0111316Z     [90m295| [39m      [34mexpect[39m(queryCall[[34m1[39m][[34m5[39m])[33m.[39m[34mtoContain[39m([32m'Schema creation failed'[39m)[33m;[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0112448Z     [90m   | [39m                              [31m^[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0113697Z     [90m296| [39m      [34mexpect[39m(queryCall[[34m1[39m])[33m.[39m[34mtoContain[39m([32m'HIGH'[39m)[33m;[39m [90m// Failures are HIGH sev[39m…
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0114757Z     [90m297| [39m    })[33m;[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0115036Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0115324Z [31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/21]⎯[22m[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0115670Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0116953Z [31m[1m[7m FAIL [27m[22m[39m packages/provisioning/src/storage-manager.test.ts[2m > [22mStorage Manager[2m > [22mcreateStorageBucket[2m > [22mshould create bucket with correct naming convention
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0118852Z [31m[1mAssertionError[22m: expected "spy" to be called with arguments: [ …(2) ]
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0119411Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0119537Z Received: 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0119710Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0119717Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0119722Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0119843Z Number of calls: 0
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0120191Z [39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0120864Z [36m [2m❯[22m packages/provisioning/src/storage-manager.test.ts:[2m85:37[22m[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0143872Z     [90m 83| [39m        [32m'tenant-550e8400e29b41d4a716446655440000-assets'[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0145882Z     [90m 84| [39m      )[33m;[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0147099Z     [90m 85| [39m      [34mexpect[39m(mockClient[33m.[39mmakeBucket)[33m.[39m[34mtoHaveBeenCalledWith[39m(
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0148244Z     [90m   | [39m                                    [31m^[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0149106Z     [90m 86| [39m        [32m'tenant-550e8400e29b41d4a716446655440000-assets'[39m[33m,[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0149907Z     [90m 87| [39m        [32m'us-east-1'[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0150255Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0150546Z [31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/21]⎯[22m[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0150889Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0152065Z [31m[1m[7m FAIL [27m[22m[39m packages/provisioning/src/storage-manager.test.ts[2m > [22mStorage Manager[2m > [22mdeleteStorageBucket[2m > [22mshould delete empty bucket
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0153843Z [31m[1mAssertionError[22m: expected "spy" to be called with arguments: [ 'tenant-uuid-123-assets' ]
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0155078Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0155204Z Received: 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0155388Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0155509Z   1st spy call:
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0155699Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0155819Z   Array [
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0156116Z -   "tenant-uuid-123-assets",
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0156523Z +   "tenant-uuid123-assets",
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0156879Z   ]
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0157032Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0157039Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0157167Z Number of calls: 1
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0157769Z [39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0158193Z [36m [2m❯[22m packages/provisioning/src/storage-manager.test.ts:[2m206:39[22m[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0158656Z     [90m204| [39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0159419Z     [90m205| [39m      [34mexpect[39m(result)[33m.[39m[34mtoBe[39m([35mtrue[39m)[33m;[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0160679Z     [90m206| [39m      [34mexpect[39m(mockClient[33m.[39mremoveBucket)[33m.[39m[34mtoHaveBeenCalledWith[39m(
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0161742Z     [90m   | [39m                                      [31m^[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0162423Z     [90m207| [39m        [32m'tenant-uuid-123-assets'[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0162991Z     [90m208| [39m      )[33m;[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0163268Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0163545Z [31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/21]⎯[22m[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0163878Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0165145Z [31m[1m[7m FAIL [27m[22m[39m packages/provisioning/src/storage-manager.test.ts[2m > [22mStorage Manager[2m > [22mgetSignedUploadUrl[2m > [22mshould generate presigned URL for direct upload
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0167024Z [31m[1mAssertionError[22m: expected "spy" to be called with arguments: [ 'tenant-uuid-123-assets', …(2) ]
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0167890Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0168010Z Received: 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0168186Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0168304Z   1st spy call:
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0168496Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0168910Z   Array [
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0169196Z -   "tenant-uuid-123-assets",
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0169607Z +   "tenant-uuid123-assets",
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0169992Z     "products/image.jpg",
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0170336Z     3600,
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0170590Z   ]
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0170741Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0170748Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0170866Z Number of calls: 1
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0171215Z [39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0171879Z [36m [2m❯[22m packages/provisioning/src/storage-manager.test.ts:[2m284:45[22m[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0173874Z     [90m282| [39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0175021Z     [90m283| [39m      [34mexpect[39m(url)[33m.[39m[34mtoContain[39m([32m'X-Amz-Algorithm'[39m)[33m;[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0176460Z     [90m284| [39m      [34mexpect[39m(mockClient[33m.[39mpresignedPutObject)[33m.[39m[34mtoHaveBeenCalledWith[39m(
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0177830Z     [90m   | [39m                                            [31m^[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0178606Z     [90m285| [39m        [32m'tenant-uuid-123-assets'[39m[33m,[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0211654Z     [90m286| [39m        [32m'products/image.jpg'[39m[33m,[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0212085Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0212383Z [31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/21]⎯[22m[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0212734Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0213441Z [2m Test Files [22m [1m[31m13 failed[39m[22m[2m | [22m[1m[32m24 passed[39m[22m[90m (37)[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0218874Z [2m      Tests [22m [1m[31m10 failed[39m[22m[2m | [22m[1m[32m217 passed[39m[22m[90m (227)[39m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0219886Z [2m   Start at [22m 03:31:37
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0221633Z [2m   Duration [22m 7.09s[2m (transform 840ms, setup 2ms, collect 4.29s, tests 700ms, environment 15ms, prepare 5.35s)[22m
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0222376Z 
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0486906Z error: "vitest" exited with code 1 (SIGHUP)
+Unit Tests (No Docker)	Run Unit Tests	2026-02-08T03:31:45.0508345Z ##[error]Process completed with exit code 1.
+Unit Tests (No Docker)	Upload Coverage Reports	﻿2026-02-08T03:31:45.0585349Z ##[group]Run actions/upload-artifact@v4
+Unit Tests (No Docker)	Upload Coverage Reports	2026-02-08T03:31:45.0585649Z with:
+Unit Tests (No Docker)	Upload Coverage Reports	2026-02-08T03:31:45.0585837Z   name: coverage-report-unit
+Unit Tests (No Docker)	Upload Coverage Reports	2026-02-08T03:31:45.0586260Z   path: coverage/**
+Unit Tests (No Docker)	Upload Coverage Reports	packages/*/coverage/**
+Unit Tests (No Docker)	Upload Coverage Reports	
+Unit Tests (No Docker)	Upload Coverage Reports	2026-02-08T03:31:45.0586535Z   retention-days: 7
+Unit Tests (No Docker)	Upload Coverage Reports	2026-02-08T03:31:45.0586734Z   if-no-files-found: warn
+Unit Tests (No Docker)	Upload Coverage Reports	2026-02-08T03:31:45.0586949Z   compression-level: 6
+Unit Tests (No Docker)	Upload Coverage Reports	2026-02-08T03:31:45.0587141Z   overwrite: false
+Unit Tests (No Docker)	Upload Coverage Reports	2026-02-08T03:31:45.0587599Z   include-hidden-files: false
+Unit Tests (No Docker)	Upload Coverage Reports	2026-02-08T03:31:45.0587838Z ##[endgroup]
+Unit Tests (No Docker)	Upload Coverage Reports	2026-02-08T03:31:45.2814474Z Multiple search paths detected. Calculating the least common ancestor of all paths
+Unit Tests (No Docker)	Upload Coverage Reports	2026-02-08T03:31:45.2817776Z The least common ancestor is /home/runner/work/KIMI/KIMI. This will be the root directory of the artifact
+Unit Tests (No Docker)	Upload Coverage Reports	2026-02-08T03:31:45.2836734Z ##[warning]No files were found with the provided path: coverage/**
+Unit Tests (No Docker)	Upload Coverage Reports	packages/*/coverage/**. No artifacts will be uploaded.
+Unit Tests (No Docker)	Post Run actions/checkout@v4	﻿2026-02-08T03:31:45.2965010Z Post job cleanup.
+Unit Tests (No Docker)	Post Run actions/checkout@v4	2026-02-08T03:31:45.3955158Z [command]/usr/bin/git version
+Unit Tests (No Docker)	Post Run actions/checkout@v4	2026-02-08T03:31:45.3994752Z git version 2.52.0
+Unit Tests (No Docker)	Post Run actions/checkout@v4	2026-02-08T03:31:45.4042241Z Temporarily overriding HOME='/home/runner/work/_temp/1ccb9f85-a961-42e9-8d8f-b0cd7982c2f9' before making global git config changes
+Unit Tests (No Docker)	Post Run actions/checkout@v4	2026-02-08T03:31:45.4043692Z Adding repository directory to the temporary git global config as a safe directory
+Unit Tests (No Docker)	Post Run actions/checkout@v4	2026-02-08T03:31:45.4049337Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/KIMI/KIMI
+Unit Tests (No Docker)	Post Run actions/checkout@v4	2026-02-08T03:31:45.4088543Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+Unit Tests (No Docker)	Post Run actions/checkout@v4	2026-02-08T03:31:45.4124180Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+Unit Tests (No Docker)	Post Run actions/checkout@v4	2026-02-08T03:31:45.4364833Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+Unit Tests (No Docker)	Post Run actions/checkout@v4	2026-02-08T03:31:45.4387917Z http.https://github.com/.extraheader
+Unit Tests (No Docker)	Post Run actions/checkout@v4	2026-02-08T03:31:45.4402879Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+Unit Tests (No Docker)	Post Run actions/checkout@v4	2026-02-08T03:31:45.4436837Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+Unit Tests (No Docker)	Post Run actions/checkout@v4	2026-02-08T03:31:45.4669796Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+Unit Tests (No Docker)	Post Run actions/checkout@v4	2026-02-08T03:31:45.4702831Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+Unit Tests (No Docker)	Complete job	﻿2026-02-08T03:31:45.5046631Z Cleaning up orphan processes

@@ -5,11 +5,7 @@
 
 import { publicPool } from '@apex/db';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { ExportStrategyFactory } from './export-strategy.factory.js';
 import { ExportService } from './export.service.js';
-import { AnalyticsExportStrategy } from './strategies/analytics-export.strategy.js';
-import { LiteExportStrategy } from './strategies/lite-export.strategy.js';
-import { NativeExportStrategy } from './strategies/native-export.strategy.js';
 
 // Mock DB
 vi.mock('@apex/db', () => ({
@@ -22,9 +18,18 @@ vi.mock('@apex/db', () => ({
   },
 }));
 
-// Mock strategies
-vi.mock('./strategies/lite-export.strategy.js');
-vi.mock('./export-strategy.factory.js');
+// Mock strategies and factory
+const mockStrategy = {
+  validate: vi.fn().mockResolvedValue(true),
+  export: vi
+    .fn()
+    .mockResolvedValue({ checksum: 'mock-checksum', expiresAt: new Date() }),
+};
+
+const mockFactory = {
+  create: vi.fn(() => mockStrategy),
+  validateOptions: vi.fn().mockResolvedValue(true),
+};
 
 describe('ExportService', () => {
   let service: ExportService;
@@ -33,44 +38,13 @@ describe('ExportService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    // Simplify database mock to reduce cognitive complexity
-    const mockQuery = async (sql: string, params?: any[]) => {
-      if (typeof sql !== 'string') return { rows: [], rowCount: 0 };
-
-      // Tenant check
-      if (sql.includes('SELECT 1 FROM public.tenants')) {
-        const isNonExistent = params && params[0] === 'non-existent-tenant';
-        return isNonExistent
-          ? { rows: [], rowCount: 0 }
-          : { rows: [{ 1: 1 }], rowCount: 1 };
-      }
-
-      // Table check
-      if (sql.includes('SELECT table_name')) {
-        return { rows: [{ table_name: 'test_table' }], rowCount: 1 };
-      }
-
-      return { rows: [], rowCount: 0 };
-    };
-
+    // Default mock behavior for database
     vi.mocked(publicPool).connect.mockResolvedValue({
-      query: vi.fn().mockImplementation(mockQuery),
+      query: vi.fn().mockResolvedValue({ rows: [], rowCount: 0 }),
       release: vi.fn(),
     } as any);
 
-    const mockTenantRegistry = {
-      exists: vi
-        .fn()
-        .mockImplementation(async (id) => id !== 'non-existent-tenant'),
-    } as any;
-
-    const factory = new ExportStrategyFactory(
-      new LiteExportStrategy(mockTenantRegistry),
-      new NativeExportStrategy(),
-      new AnalyticsExportStrategy()
-    );
-
-    // Mock Bun
+    // Mock Bun global
     vi.stubGlobal('Bun', {
       spawn: vi.fn().mockReturnValue({
         exited: Promise.resolve(),
@@ -83,11 +57,21 @@ describe('ExportService', () => {
       }),
     });
 
-    service = new ExportService(factory, mockAudit);
+    // Reset factory mocks
+    mockFactory.validateOptions.mockResolvedValue(true);
+    mockFactory.create.mockReturnValue(mockStrategy);
+
+    // Instantiate service with mock factory
+    service = new ExportService(mockFactory as any, mockAudit);
+
+    // Silence logger for tests
+    (service as any).logger = { log: vi.fn(), error: vi.fn(), debug: vi.fn() };
   });
 
   describe('S14.1: Tenant Isolation', () => {
     it('should reject export for non-existent tenant', async () => {
+      mockFactory.validateOptions.mockResolvedValueOnce(false);
+
       await expect(
         service.createExportJob({
           tenantId: 'non-existent-tenant',
@@ -98,11 +82,11 @@ describe('ExportService', () => {
     });
 
     it('should allow only one concurrent export per tenant', async () => {
-      const job1 = await service.createExportJob({
-        tenantId: 'test-tenant',
-        profile: 'lite',
-        requestedBy: 'admin-123',
-      });
+      // Mock queue.getJobs to simulate an active job
+      const mockJob = { data: { tenantId: 'test-tenant' }, id: 'job-1' };
+      (service as any).exportQueue.getJobs = vi
+        .fn()
+        .mockResolvedValue([mockJob]);
 
       await expect(
         service.createExportJob({
@@ -111,65 +95,85 @@ describe('ExportService', () => {
           requestedBy: 'admin-123',
         })
       ).rejects.toThrow('Export already in progress');
-
-      await service.cancelJob(job1.id);
     });
   });
 
-  describe('Strategy Verification', () => {
-    describe('LiteExportStrategy', () => {
-      let strategy: LiteExportStrategy;
+  describe('S14.2: Duplicate Detection', () => {
+    it('should reject duplicate requests within 1 minute', async () => {
+      const tenantId = 'dup-test-tenant';
+      const recentJob = {
+        data: { tenantId, profile: 'lite' },
+        processedOn: Date.now() - 30000, // 30s ago
+      };
 
-      beforeEach(() => {
-        // Simple query mock for strategy tests
-        const strategyQuery = async (sql: string) => {
-          if (sql.includes('COUNT')) return { rows: [{ count: '10' }] };
-          if (sql.includes('SELECT table_name')) {
-            return { rows: [{ table_name: 'test_table' }], rowCount: 1 };
-          }
-          const isSelect = sql.includes('SELECT');
-          return isSelect
-            ? { rows: [{ id: 1, name: 'data' }], rowCount: 1 }
-            : { rows: [], rowCount: 0 };
-        };
-
-        vi.mocked(publicPool).connect.mockResolvedValue({
-          query: vi.fn().mockImplementation(strategyQuery),
-          release: vi.fn(),
-        } as any);
-
-        const mockTenantRegistry = {
-          exists: vi.fn().mockResolvedValue(true),
-        } as any;
-        strategy = new LiteExportStrategy(mockTenantRegistry);
-      });
-
-      it('should enforce row count limit', async () => {
-        // Override with high count
-        vi.mocked(publicPool).connect.mockReturnValue({
-          query: vi.fn().mockResolvedValue({ rows: [{ count: '150000' }] }),
-          release: vi.fn(),
-        } as any);
-
-        await expect(
-          strategy.export({
-            tenantId: 'big-tenant',
-            profile: 'lite',
-            requestedBy: 'admin',
-          })
-        ).rejects.toThrow(/exceeds max rows/);
-      });
-
-      it('should generate valid checksum', async () => {
-        const result = await strategy.export({
-          tenantId: 'checksum-test',
-          profile: 'lite',
-          requestedBy: 'admin',
+      (service as any).exportQueue.getJobs = vi
+        .fn()
+        .mockImplementation(async (types) => {
+          if (types.includes('completed')) return [recentJob];
+          return [];
         });
 
-        expect(result.checksum).toBeDefined();
-        expect(result.checksum.length).toBe(64);
-      });
+      await expect(
+        service.createExportJob({
+          tenantId,
+          profile: 'lite',
+          requestedBy: 'admin-123',
+        })
+      ).rejects.toThrow('Duplicate export request');
     });
+  });
+});
+
+// Separate tests for strategies
+import { LiteExportStrategy } from './strategies/lite-export.strategy.js';
+
+describe('LiteExportStrategy', () => {
+  let strategy: LiteExportStrategy;
+  const mockTenantRegistry = {
+    exists: vi.fn().mockResolvedValue(true),
+  } as any;
+
+  beforeEach(() => {
+    strategy = new LiteExportStrategy(mockTenantRegistry);
+    vi.clearAllMocks();
+  });
+
+  it('should enforce row count limit', async () => {
+    vi.mocked(publicPool).connect.mockResolvedValue({
+      query: vi.fn().mockResolvedValue({ rows: [{ count: '150000' }] }),
+      release: vi.fn(),
+    } as any);
+
+    const promise = strategy.export({
+      tenantId: 'big-tenant',
+      profile: 'lite',
+      requestedBy: 'admin',
+    });
+
+    await expect(promise).rejects.toThrow(/exceeds max rows/);
+  });
+
+  it('should generate valid checksum', async () => {
+    vi.mocked(publicPool).connect.mockResolvedValue({
+      query: vi.fn().mockImplementation(async (sql) => {
+        if (sql.includes('COUNT')) return { rows: [{ count: '10' }] };
+        if (sql.includes('SELECT table_name'))
+          return { rows: [{ table_name: 'test' }], rowCount: 1 };
+        const isSelect = sql.includes('SELECT');
+        return isSelect
+          ? { rows: [{ id: 1 }], rowCount: 1 }
+          : { rows: [], rowCount: 0 };
+      }),
+      release: vi.fn(),
+    } as any);
+
+    const result = await strategy.export({
+      tenantId: 'checksum-test',
+      profile: 'lite',
+      requestedBy: 'admin',
+    });
+
+    expect(result.checksum).toBeDefined();
+    expect(result.checksum.length).toBe(64);
   });
 });

@@ -55,9 +55,12 @@ export async function main(args: string[] = process.argv.slice(2)) {
       '❌ Provisioning failed:',
       error instanceof Error ? error.message : error
     );
-    // Stack traces only in development mode for security
-    if (process.env.NODE_ENV === 'development' && error instanceof Error) {
-      console.error('Stack:', (error as Error).stack);
+    // S1: Shield internal details from non-dev environments
+    if (process.env.NODE_ENV === 'development') {
+      console.error(
+        'Diagnostic Info:',
+        error instanceof Error ? error.stack : error
+      );
     }
     throw error;
   }

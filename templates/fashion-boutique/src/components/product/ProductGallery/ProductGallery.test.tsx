@@ -1,5 +1,6 @@
 /**
  * ProductGallery Component Tests
+ * @vitest-environment jsdom
  */
 
 import { describe, it, expect, vi } from 'vitest';

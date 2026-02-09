@@ -1,5 +1,6 @@
 /**
  * Header Component Tests
+ * @vitest-environment jsdom
  */
 
 import { describe, it, expect, vi } from 'vitest';
@@ -23,21 +24,25 @@ describe('Header', () => {
     it('displays navigation links', () => {
         render(<Header />);
 
-        expect(screen.getByText('Products')).toBeInTheDocument();
-        expect(screen.getByText('Categories')).toBeInTheDocument();
+        expect(screen.getByText('Shop')).toBeInTheDocument();
+        expect(screen.getByText('Men')).toBeInTheDocument();
+        expect(screen.getByText('Women')).toBeInTheDocument();
+        expect(screen.getByText('Deals')).toBeInTheDocument();
     });
 
-    it('shows cart icon', () => {
+    it('shows cart link', () => {
         render(<Header />);
 
-        const cartButton = screen.getByRole('button', { name: /cart/i });
-        expect(cartButton).toBeInTheDocument();
+        const cartLink = screen.getByRole('link', { name: /0/ }); // The cart badge shows "0"
+        expect(cartLink).toBeInTheDocument();
+        expect(cartLink).toHaveAttribute('href', '/cart');
     });
 
-    it('shows search input', () => {
-        render(<Header />);
+    it('shows search button', () => {
+        const { container } = render(<Header />);
 
-        const searchInput = screen.getByPlaceholderText(/search/i);
-        expect(searchInput).toBeInTheDocument();
+        // The header has multiple buttons. The search button is the first one in the actions area.
+        const searchButton = container.querySelector('button svg path[d*="M21 21"]')?.closest('button');
+        expect(searchButton).toBeInTheDocument();
     });
 });

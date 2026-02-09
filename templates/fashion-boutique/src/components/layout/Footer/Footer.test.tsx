@@ -1,5 +1,6 @@
 /**
  * Footer Component Tests
+ * @vitest-environment jsdom
  */
 
 import { describe, it, expect } from 'vitest';
@@ -10,7 +11,7 @@ describe('Footer', () => {
     it('renders footer content', () => {
         render(<Footer />);
 
-        expect(screen.getByText(/fashion boutique/i)).toBeInTheDocument();
+        expect(screen.getByRole('heading', { name: /fashion boutique/i, level: 3 })).toBeInTheDocument();
     });
 
     it('displays links to legal pages', () => {

@@ -3,10 +3,33 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { api, endpoints } from './api';
-import axios from 'axios';
+// Mock axios before importing api
+vi.mock('axios', () => {
+    const mockInstance = {
+        defaults: {
+            baseURL: 'http://localhost:3001/api/storefront',
+            timeout: 10000,
+            withCredentials: true,
+            headers: {},
+        },
+        interceptors: {
+            request: { use: vi.fn(), eject: vi.fn() },
+            response: { use: vi.fn(), eject: vi.fn() },
+        },
+        get: vi.fn(),
+        post: vi.fn(),
+        patch: vi.fn(),
+        delete: vi.fn(),
+    };
 
-vi.mock('axios');
+    return {
+        default: {
+            create: vi.fn(() => mockInstance),
+        },
+    };
+});
+
+import { api, endpoints } from './api';
 
 describe('API Client', () => {
     beforeEach(() => {

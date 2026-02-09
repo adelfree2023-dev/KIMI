@@ -1,5 +1,6 @@
 /**
  * Login Page Tests
+ * @vitest-environment jsdom
  */
 
 import { describe, it, expect, vi } from 'vitest';
@@ -35,7 +36,8 @@ describe('LoginPage', () => {
     it('shows login button', () => {
         render(<LoginPage />);
 
-        const loginButton = screen.getByRole('button', { name: /log in/i });
+        // Exact match for the button text "Login"
+        const loginButton = screen.getByRole('button', { name: /^login$/i });
         expect(loginButton).toBeInTheDocument();
     });
 

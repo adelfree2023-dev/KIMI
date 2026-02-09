@@ -1,5 +1,6 @@
 /**
  * Button Component Tests
+ * @vitest-environment jsdom
  */
 
 import { describe, it, expect, vi } from 'vitest';
@@ -8,9 +9,11 @@ import { Button } from './Button';
 
 describe('Button', () => {
     it('renders button with children', () => {
-        render(<Button>Click me</Button>);
+        const { container } = render(<Button>Click me</Button>);
+        const button = container.querySelector('button');
 
-        expect(screen.getByText('Click me')).toBeInTheDocument();
+        expect(button).toBeInTheDocument();
+        expect(button).toHaveTextContent('Click me');
     });
 
     it('applies primary variant by default', () => {

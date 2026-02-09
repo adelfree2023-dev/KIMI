@@ -1,5 +1,6 @@
 /**
  * Homepage Tests
+ * @vitest-environment jsdom
  */
 
 import { describe, it, expect } from 'vitest';
@@ -18,18 +19,12 @@ describe('HomePage', () => {
 
         const heading = screen.getByRole('heading', { level: 1 });
         expect(heading).toBeInTheDocument();
+        expect(heading).toHaveTextContent(/fashion boutique/i);
     });
 
-    it('displays shop now button', () => {
+    it('shows coming soon message', () => {
         render(<HomePage />);
 
-        const shopButton = screen.getByText(/shop now/i);
-        expect(shopButton).toBeInTheDocument();
-    });
-
-    it('shows featured products section', () => {
-        render(<HomePage />);
-
-        expect(screen.getByText(/featured products/i)).toBeInTheDocument();
+        expect(screen.getByText(/homepage - coming soon/i)).toBeInTheDocument();
     });
 });

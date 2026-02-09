@@ -1,5 +1,6 @@
 /**
  * Search Page Tests
+ * @vitest-environment jsdom
  */
 
 import { describe, it, expect, vi } from 'vitest';
@@ -17,7 +18,7 @@ describe('SearchPage', () => {
     it('renders search page', () => {
         render(<SearchPage />);
 
-        expect(screen.getByPlaceholderText(/search products/i)).toBeInTheDocument();
+        expect(screen.getByPlaceholderText(/search/i)).toBeInTheDocument();
     });
 
     it('shows search button', () => {

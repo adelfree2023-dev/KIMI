@@ -1,5 +1,6 @@
 /**
- * Register Page Tests  
+ * Register Page Tests
+ * @vitest-environment jsdom
  */
 
 import { describe, it, expect, vi } from 'vitest';

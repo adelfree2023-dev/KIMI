@@ -1,5 +1,6 @@
 /**
  * ProductCard Component Tests
+ * @vitest-environment jsdom
  */
 
 import { describe, it, expect, vi } from 'vitest';
@@ -46,7 +47,7 @@ describe('ProductCard', () => {
     it('shows out of stock state', () => {
         const outOfStockProduct = { ...mockProduct, inStock: false };
 
-        render(<ProductCard product={outOfStockProduct} />);
+        render(<ProductCard product={outOfStockProduct} onAddToCart={vi.fn()} />);
 
         expect(screen.getByText('Out of Stock')).toBeInTheDocument();
     });

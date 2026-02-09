@@ -330,6 +330,10 @@ jobs:
           
           # Verify CSP and Security Headers Structural Goal
           echo "[*] Verifying CSP and Security Headers configuration..."
+          
+          # [STRUCTURAL] Ensure core security file exists
+          if [ ! -f "packages/middleware/src/security.ts" ]; then echo "❌ Missing packages/middleware/src/security.ts"; exit 1; fi
+          
           CSP_FILES="./packages/middleware/src/security.ts ./apps/web/next.config.js ./apps/web/middleware.ts"
           CSP_FOUND=false
           for f in $CSP_FILES; do
@@ -356,6 +360,11 @@ jobs:
           echo "═══════════════════════════════════════════════════════════════════"
           echo "  S13: BACKEND SURGICAL VULNERABILITY & RCE SCAN"
           echo "═══════════════════════════════════════════════════════════════════"
+          
+          # [STRUCTURAL] Ensure backend entry points exist
+          if [ ! -f "apps/api/src/main.ts" ] && [ ! -d "packages/core" ]; then
+             echo "⚠️ WARNING: Core backend structure changed. Please verify scanning paths."
+          fi
           
           # 1. RCE Detection (Remote Code Execution)
           echo "[*] Scanning for RCE patterns (exec/spawn/child_process)..."

@@ -24,6 +24,10 @@ jobs:
         run: |
           echo "🪖 Verifying Active Security Middleware Registration..."
           
+          # [STRUCTURAL] Verify core security paths exist
+          CORE_SEC="packages/middleware/src/security.ts"
+          if [ ! -f "$CORE_SEC" ]; then echo "❌ Missing $CORE_SEC"; exit 1; fi
+          
           # Check for helmet registration (excluding comments)
           HELMET_REG=$(grep -rE "app\.use\(helmet\(" packages apps --include="*.ts" 2>/dev/null | grep -vE "^\s*//" || true)
           

@@ -3,10 +3,10 @@
  * Purpose: Secure inter-service communication with mutual authentication
  */
 
-import { createServer, Server, ServerOptions } from 'https';
-import { createSecureContext, SecureContext } from 'tls';
 import { readFileSync } from 'fs';
+import { Server, ServerOptions, createServer } from 'https';
 import { join } from 'path';
+import { SecureContext, createSecureContext } from 'tls';
 
 export interface MTLSConfig {
   /** Path to CA certificate */
@@ -39,7 +39,9 @@ export interface MTLSClientConfig {
 /**
  * Load certificates from filesystem
  */
-export function loadCertificates(config: Pick<MTLSConfig, 'caCertPath' | 'certPath' | 'keyPath'>) {
+export function loadCertificates(
+  config: Pick<MTLSConfig, 'caCertPath' | 'certPath' | 'keyPath'>
+) {
   try {
     return {
       ca: readFileSync(config.caCertPath),
@@ -47,7 +49,11 @@ export function loadCertificates(config: Pick<MTLSConfig, 'caCertPath' | 'certPa
       key: readFileSync(config.keyPath),
     };
   } catch (error) {
-    throw new Error(`Failed to load mTLS certificates: ${error instanceof Error ? error.message : error}`);
+    throw new Error(
+      `Failed to load mTLS certificates: ${
+        error instanceof Error ? error.message : error
+      }`
+    );
   }
 }
 
@@ -56,7 +62,7 @@ export function loadCertificates(config: Pick<MTLSConfig, 'caCertPath' | 'certPa
  */
 export function createMTLSServerOptions(config: MTLSConfig): ServerOptions {
   const certs = loadCertificates(config);
-  
+
   return {
     ca: certs.ca,
     cert: certs.cert,
@@ -66,16 +72,17 @@ export function createMTLSServerOptions(config: MTLSConfig): ServerOptions {
     // Enable only secure TLS versions
     minVersion: 'TLSv1.3',
     // Cipher suites
-    ciphers: 'TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256:TLS_AES_128_GCM_SHA256',
+    ciphers:
+      'TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256:TLS_AES_128_GCM_SHA256',
     // Check client certificate CN if allowedClients specified
     checkClientCertificate: (cert: any) => {
       if (!config.allowedClients || config.allowedClients.length === 0) {
         return true;
       }
-      
+
       const subject = cert?.subject;
       const cn = subject?.CN || subject?.commonName;
-      
+
       return config.allowedClients.includes(cn);
     },
   };
@@ -101,14 +108,16 @@ export class MTLSServer {
    */
   createServer(requestListener?: Parameters<typeof createServer>[1]): Server {
     const options = createMTLSServerOptions(this.config);
-    
+
     this.server = createServer(options, (req, res) => {
       // Log client certificate info for audit
       const socket = req.socket as any;
       const cert = socket.getPeerCertificate?.();
-      
+
       if (cert) {
-        console.log(`[mTLS] Client connected: CN=${cert.subject?.CN}, serial=${cert.serialNumber}`);
+        console.log(
+          `[mTLS] Client connected: CN=${cert.subject?.CN}, serial=${cert.serialNumber}`
+        );
       }
 
       if (requestListener) {
@@ -129,19 +138,25 @@ export class MTLSServer {
     try {
       const certs = loadCertificates(this.config);
       const cert = certs.cert.toString();
-      
+
       // Extract expiry date from certificate
       const match = cert.match(/notAfter=(.+?)(?:\r?\n|$)/);
       if (match) {
         const expiryDate = new Date(match[1]);
-        const daysUntilExpiry = Math.ceil((expiryDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
-        
+        const daysUntilExpiry = Math.ceil(
+          (expiryDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)
+        );
+
         if (daysUntilExpiry <= 30) {
-          console.warn(`[mTLS] WARNING: Certificate expires in ${daysUntilExpiry} days!`);
+          console.warn(
+            `[mTLS] WARNING: Certificate expires in ${daysUntilExpiry} days!`
+          );
         }
-        
+
         if (daysUntilExpiry <= 7) {
-          console.error(`[mTLS] CRITICAL: Certificate expires in ${daysUntilExpiry} days - RENEW NOW!`);
+          console.error(
+            `[mTLS] CRITICAL: Certificate expires in ${daysUntilExpiry} days - RENEW NOW!`
+          );
         }
       }
     } catch (error) {
@@ -176,7 +191,7 @@ export class MTLSServer {
  */
 export function createMTLSClientConfig(config: MTLSClientConfig) {
   const certs = loadCertificates(config);
-  
+
   return {
     httpsAgent: {
       ca: certs.ca,
@@ -192,9 +207,11 @@ export function createMTLSClientConfig(config: MTLSClientConfig) {
 /**
  * Generate certificate paths based on environment
  */
-export function getCertificatePaths(serviceName: string): Required<Pick<MTLSConfig, 'caCertPath' | 'certPath' | 'keyPath'>> {
+export function getCertificatePaths(
+  serviceName: string
+): Required<Pick<MTLSConfig, 'caCertPath' | 'certPath' | 'keyPath'>> {
   const basePath = process.env.MTLS_CERT_PATH || '/etc/mtls/certs';
-  
+
   return {
     caCertPath: join(basePath, 'ca.crt'),
     certPath: join(basePath, `${serviceName}.crt`),
@@ -208,7 +225,7 @@ export function getCertificatePaths(serviceName: string): Required<Pick<MTLSConf
 export function mtlsMiddleware(config: MTLSConfig) {
   return (req: any, res: any, next: any) => {
     const socket = req.socket as any;
-    
+
     if (!socket.authorized) {
       return res.status(401).json({
         error: 'mTLS authentication required',
@@ -217,7 +234,7 @@ export function mtlsMiddleware(config: MTLSConfig) {
     }
 
     const cert = socket.getPeerCertificate();
-    
+
     // Validate client CN if whitelist specified
     if (config.allowedClients && config.allowedClients.length > 0) {
       const cn = cert.subject?.CN || cert.subject?.commonName;

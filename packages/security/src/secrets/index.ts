@@ -35,7 +35,7 @@ export type RotationListener = (event: SecretRotationEvent) => void;
 /**
  * Generate cryptographically secure secret
  */
-export function generateSecret(length: number = 64): string {
+export function generateSecret(length = 64): string {
   return randomBytes(length).toString('base64url');
 }
 
@@ -84,17 +84,25 @@ export class SecretsManager {
     const config: SecretConfig = {
       name,
       currentValue,
-      rotationInterval: options.rotationInterval || this.DEFAULT_ROTATION_INTERVAL,
+      rotationInterval:
+        options.rotationInterval || this.DEFAULT_ROTATION_INTERVAL,
       gracePeriod: options.gracePeriod || this.DEFAULT_GRACE_PERIOD,
       lastRotatedAt: options.lastRotatedAt || now,
-      nextRotationAt: options.nextRotationAt || new Date(now.getTime() + (options.rotationInterval || this.DEFAULT_ROTATION_INTERVAL)),
+      nextRotationAt:
+        options.nextRotationAt ||
+        new Date(
+          now.getTime() +
+            (options.rotationInterval || this.DEFAULT_ROTATION_INTERVAL)
+        ),
       previousValue: options.previousValue,
     };
 
     this.secrets.set(name, config);
     this.scheduleRotation(name);
-    
-    console.log(`[SecretsManager] Registered secret: ${name}, next rotation: ${config.nextRotationAt.toISOString()}`);
+
+    console.log(
+      `[SecretsManager] Registered secret: ${name}, next rotation: ${config.nextRotationAt.toISOString()}`
+    );
   }
 
   /**
@@ -108,9 +116,12 @@ export class SecretsManager {
   /**
    * Validate a secret (checks current and grace period)
    */
-  validateSecret(name: string, value: string): { valid: boolean; status: 'current' | 'grace' | 'invalid' } {
+  validateSecret(
+    name: string,
+    value: string
+  ): { valid: boolean; status: 'current' | 'grace' | 'invalid' } {
     const config = this.secrets.get(name);
-    
+
     if (!config) {
       return { valid: false, status: 'invalid' };
     }
@@ -122,10 +133,14 @@ export class SecretsManager {
 
     // Check previous secret (within grace period)
     if (config.previousValue && value === config.previousValue) {
-      const gracePeriodEnd = new Date(config.lastRotatedAt.getTime() + config.gracePeriod);
-      
+      const gracePeriodEnd = new Date(
+        config.lastRotatedAt.getTime() + config.gracePeriod
+      );
+
       if (new Date() <= gracePeriodEnd) {
-        console.warn(`[SecretsManager] Secret ${name} used old value (grace period)`);
+        console.warn(
+          `[SecretsManager] Secret ${name} used old value (grace period)`
+        );
         return { valid: true, status: 'grace' };
       }
     }
@@ -136,9 +151,12 @@ export class SecretsManager {
   /**
    * Manually rotate a secret
    */
-  rotateSecret(name: string, reason: 'scheduled' | 'manual' | 'compromise' = 'manual'): string {
+  rotateSecret(
+    name: string,
+    reason: 'scheduled' | 'manual' | 'compromise' = 'manual'
+  ): string {
     const config = this.secrets.get(name);
-    
+
     if (!config) {
       throw new Error(`Secret ${name} not found`);
     }
@@ -162,11 +180,11 @@ export class SecretsManager {
       reason,
     };
 
-    this.listeners.forEach(listener => {
+    this.listeners.forEach((listener) => {
       try {
         listener(event);
       } catch (error) {
-        console.error(`[SecretsManager] Listener error:`, error);
+        console.error('[SecretsManager] Listener error:', error);
       }
     });
 
@@ -174,7 +192,7 @@ export class SecretsManager {
     this.scheduleRotation(name);
 
     console.log(`[SecretsManager] Rotated secret: ${name}, reason: ${reason}`);
-    
+
     return newValue;
   }
 
@@ -199,10 +217,13 @@ export class SecretsManager {
       this.rotateSecret(name, 'scheduled');
     } else {
       // Schedule future rotation
-      const timer = setTimeout(() => {
-        this.rotateSecret(name, 'scheduled');
-      }, Math.min(delay, 2147483647)); // Max setTimeout delay
-      
+      const timer = setTimeout(
+        () => {
+          this.rotateSecret(name, 'scheduled');
+        },
+        Math.min(delay, 2147483647)
+      ); // Max setTimeout delay
+
       this.rotationTimers.set(name, timer);
     }
   }
@@ -212,7 +233,7 @@ export class SecretsManager {
    */
   onRotate(listener: RotationListener): () => void {
     this.listeners.push(listener);
-    
+
     // Return unsubscribe function
     return () => {
       const index = this.listeners.indexOf(listener);
@@ -232,12 +253,15 @@ export class SecretsManager {
     daysUntilRotation: number;
   }> {
     const now = new Date();
-    
-    return Array.from(this.secrets.values()).map(config => ({
+
+    return Array.from(this.secrets.values()).map((config) => ({
       name: config.name,
       lastRotatedAt: config.lastRotatedAt,
       nextRotationAt: config.nextRotationAt,
-      daysUntilRotation: Math.ceil((config.nextRotationAt.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)),
+      daysUntilRotation: Math.ceil(
+        (config.nextRotationAt.getTime() - now.getTime()) /
+          (1000 * 60 * 60 * 24)
+      ),
     }));
   }
 
@@ -246,14 +270,14 @@ export class SecretsManager {
    */
   emergencyRotation(): string[] {
     console.warn('[SecretsManager] EMERGENCY ROTATION INITIATED');
-    
+
     const rotated: string[] = [];
-    
+
     for (const [name] of this.secrets) {
       this.rotateSecret(name, 'compromise');
       rotated.push(name);
     }
-    
+
     return rotated;
   }
 
@@ -316,7 +340,9 @@ export class VaultIntegration {
     });
 
     if (!response.ok) {
-      throw new Error(`Vault update error: ${response.status} ${response.statusText}`);
+      throw new Error(
+        `Vault update error: ${response.status} ${response.statusText}`
+      );
     }
   }
 }

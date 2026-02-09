@@ -1,13 +1,18 @@
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
-import { MTLSServer, loadCertificates } from './index.js';
-import { generateSecret, SecretsManager, hashSecret, verifySecret } from '../secrets/index.js';
+import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'fs';
 import { createServer } from 'https';
-import { readFileSync, writeFileSync, mkdirSync, rmSync } from 'fs';
-import { join } from 'path';
 import { tmpdir } from 'os';
+import { join } from 'path';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import {
+  SecretsManager,
+  generateSecret,
+  hashSecret,
+  verifySecret,
+} from '../secrets/index.js';
+import { MTLSServer, loadCertificates } from './index.js';
 
 describe('mTLS Implementation', () => {
-  const testDir = join(tmpdir(), 'mtls-test-' + Date.now());
+  const testDir = join(tmpdir(), `mtls-test-${Date.now()}`);
 
   beforeAll(() => {
     // Create test certificates
@@ -32,16 +37,18 @@ describe('mTLS Implementation', () => {
   afterAll(() => {
     try {
       rmSync(testDir, { recursive: true });
-    } catch { }
+    } catch {}
   });
 
   describe('Certificate Loading', () => {
     it('should throw on missing certificates', () => {
-      expect(() => loadCertificates({
-        caCertPath: '/nonexistent/ca.crt',
-        certPath: '/nonexistent/server.crt',
-        keyPath: '/nonexistent/server.key',
-      })).toThrow('Failed to load mTLS certificates');
+      expect(() =>
+        loadCertificates({
+          caCertPath: '/nonexistent/ca.crt',
+          certPath: '/nonexistent/server.crt',
+          keyPath: '/nonexistent/server.key',
+        })
+      ).toThrow('Failed to load mTLS certificates');
     });
   });
 
@@ -167,7 +174,9 @@ describe('Secrets Manager', () => {
       expect(result.status).toBe('grace');
 
       // New value should work
-      expect(manager.validateSecret('api-key', newValue).status).toBe('current');
+      expect(manager.validateSecret('api-key', newValue).status).toBe(
+        'current'
+      );
     });
 
     it('should emit rotation events', () => {
@@ -183,7 +192,9 @@ describe('Secrets Manager', () => {
     });
 
     it('should throw for unknown secret rotation', () => {
-      expect(() => manager.rotateSecret('unknown')).toThrow('Secret unknown not found');
+      expect(() => manager.rotateSecret('unknown')).toThrow(
+        'Secret unknown not found'
+      );
     });
   });
 

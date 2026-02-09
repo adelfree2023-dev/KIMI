@@ -34,7 +34,11 @@ vi.mock('bullmq', () => ({
           data,
           timestamp: Date.now(),
           getState: vi.fn().mockResolvedValue('waiting'),
-          remove: vi.fn().mockResolvedValue(undefined),
+          remove: vi.fn().mockImplementation(() => {
+            const index = jobs.indexOf(job);
+            if (index > -1) jobs.splice(index, 1);
+            return Promise.resolve();
+          }),
         };
         jobs.push(job);
         return Promise.resolve(job);
@@ -44,7 +48,7 @@ vi.mock('bullmq', () => ({
         .mockImplementation((id) =>
           Promise.resolve(jobs.find((j) => j.id === id) || null)
         ),
-      getJobs: vi.fn().mockImplementation(() => Promise.resolve(jobs)),
+      getJobs: vi.fn().mockImplementation(() => Promise.resolve([...jobs])),
     };
   }),
   Worker: vi.fn().mockImplementation(() => ({
@@ -130,6 +134,7 @@ describe('ExportService Tests', () => {
       vi.stubGlobal('Bun', {
         spawn: vi.fn().mockReturnValue({
           exited: Promise.resolve(),
+          exitCode: 0,
         }),
         write: vi.fn().mockResolvedValue(undefined),
         file: vi.fn().mockReturnValue({
@@ -311,6 +316,23 @@ describe('ExportService Tests', () => {
               stat: vi.fn().mockResolvedValue({ size: 100 }),
             }),
           });
+
+          // Mock database for LiteExportStrategy specifically
+          vi.mocked(publicPool).connect.mockResolvedValue({
+            query: vi.fn().mockImplementation(async (sql) => {
+              if (sql.includes('COUNT')) {
+                return { rows: [{ count: '10' }] };
+              }
+              if (sql.includes('SELECT table_name')) {
+                return { rows: [{ table_name: 'test_table' }], rowCount: 1 };
+              }
+              if (sql.includes('SELECT')) {
+                return { rows: [{ id: 1, name: 'data' }], rowCount: 1 };
+              }
+              return { rows: [], rowCount: 0 };
+            }),
+            release: vi.fn(),
+          } as any);
           const mockTenantRegistry = {
             exists: vi.fn().mockResolvedValue(true),
           } as any;

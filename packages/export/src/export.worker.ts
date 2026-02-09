@@ -26,7 +26,8 @@ import type { ExportOptions, ExportResult } from './types.js';
 @Injectable()
 export class ExportWorker implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(ExportWorker.name);
-  private worker: Worker;
+  private worker!: Worker;
+  private exportQueue: Queue;
   private s3Client: S3Client;
 
   constructor(
@@ -42,6 +43,14 @@ export class ExportWorker implements OnModuleInit, OnModuleDestroy {
         secretAccessKey: process.env.MINIO_SECRET_KEY || '',
       },
       forcePathStyle: true,
+    });
+
+    // Initialize exportQueue for status checks
+    this.exportQueue = new Queue('tenant-export', {
+      connection: {
+        host: process.env.REDIS_HOST || 'localhost',
+        port: parseInt(process.env.REDIS_PORT || '6379'),
+      },
     });
   }
 
@@ -121,7 +130,7 @@ export class ExportWorker implements OnModuleInit, OnModuleDestroy {
       if (result.sizeBytes > this.MAX_EXPORT_SIZE_BYTES) {
         throw new Error(
           `Export size (${(result.sizeBytes / 1024 / 1024).toFixed(2)}MB) ` +
-            `exceeds limit (${this.MAX_EXPORT_SIZE_BYTES / 1024 / 1024}MB)`
+          `exceeds limit (${this.MAX_EXPORT_SIZE_BYTES / 1024 / 1024}MB)`
         );
       }
 
@@ -186,7 +195,7 @@ export class ExportWorker implements OnModuleInit, OnModuleDestroy {
       });
 
       // Cleanup local file immediately (S14.8: Native Node.js cleanup)
-      await rm(result.downloadUrl, { force: true }).catch(() => {});
+      await rm(result.downloadUrl, { force: true }).catch(() => { });
       this.logger.log(`Cleaned up local file: ${result.downloadUrl}`);
 
       await job.updateProgress(100);
@@ -224,7 +233,7 @@ export class ExportWorker implements OnModuleInit, OnModuleDestroy {
 
       // Cleanup on failure (S14.8: Native Node.js cleanup)
       if (localFilePath) {
-        await rm(localFilePath, { force: true }).catch(() => {});
+        await rm(localFilePath, { force: true }).catch(() => { });
         this.logger.log(`Cleaned up failed export file: ${localFilePath}`);
       }
 

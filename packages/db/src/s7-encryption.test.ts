@@ -25,7 +25,7 @@ describe('S7: Encryption at Rest Protocol', () => {
 
     // 🛠️ Setup: Ensure audit_logs table exists for testing storage
     await publicPool.query(`
-      CREATE TABLE IF NOT EXISTS public.s7_test_storage (
+      CREATE TABLE IF NOT EXISTS s7_test_storage (
         id SERIAL PRIMARY KEY,
         encrypted_data JSONB NOT NULL,
         plaintext_hint TEXT -- To verify we are NOT storing the secret here accidentally
@@ -35,7 +35,7 @@ describe('S7: Encryption at Rest Protocol', () => {
 
   afterAll(async () => {
     // 🧹 Cleanup
-    await publicPool.query('DROP TABLE IF EXISTS public.s7_test_storage');
+    await publicPool.query('DROP TABLE IF EXISTS s7_test_storage');
   });
 
   it('should store data in encrypted format and NOT in plaintext', async () => {
@@ -44,13 +44,13 @@ describe('S7: Encryption at Rest Protocol', () => {
 
     // 2. Persist to DB
     await publicPool.query(
-      'INSERT INTO public.s7_test_storage (encrypted_data, plaintext_hint) VALUES ($1, $2)',
+      'INSERT INTO s7_test_storage (encrypted_data, plaintext_hint) VALUES ($1, $2)',
       [JSON.stringify(encrypted), 'PII_TYPE_SECRET']
     );
 
     // 3. Query RAW data from DB
     const result = await publicPool.query(
-      'SELECT encrypted_data FROM public.s7_test_storage LIMIT 1'
+      'SELECT encrypted_data FROM s7_test_storage LIMIT 1'
     );
     const rawData = JSON.stringify(result.rows[0].encrypted_data);
 
@@ -63,7 +63,7 @@ describe('S7: Encryption at Rest Protocol', () => {
 
   it('should correctly decrypt data retrieved from database', async () => {
     const result = await publicPool.query(
-      'SELECT encrypted_data FROM public.s7_test_storage LIMIT 1'
+      'SELECT encrypted_data FROM s7_test_storage LIMIT 1'
     );
     const storedEncrypted = result.rows[0].encrypted_data;
 
@@ -77,7 +77,7 @@ describe('S7: Encryption at Rest Protocol', () => {
 
   it('should fail decryption with wrong master key (Integrity Check)', async () => {
     const result = await publicPool.query(
-      'SELECT encrypted_data FROM public.s7_test_storage LIMIT 1'
+      'SELECT encrypted_data FROM s7_test_storage LIMIT 1'
     );
     const storedEncrypted = result.rows[0].encrypted_data;
 

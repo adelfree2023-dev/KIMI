@@ -18,7 +18,7 @@ export class ExportStrategyFactory {
     private readonly nativeStrategy: NativeExportStrategy,
     private readonly analyticsStrategy: AnalyticsExportStrategy
   ) {
-    this.strategies = new Map([
+    this.strategies = new Map<ExportProfile, ExportStrategy>([
       ['lite', liteStrategy],
       ['native', nativeStrategy],
       ['analytics', analyticsStrategy],

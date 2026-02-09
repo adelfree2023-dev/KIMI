@@ -33,13 +33,19 @@ jobs:
 
       - name: TypeScript Type Check
         run: |
-          echo "🔍 Running TypeScript type check..."
+          echo "🔍 Verifying Export Module Integrity..."
+          # Fail Fast if TSConfig is missing
+          if [ ! -f "packages/export/tsconfig.json" ]; then
+            echo "🚨 CRITICAL: packages/export/tsconfig.json is missing! Security Gate Breached."
+            exit 1
+          fi
+          
           bunx tsc --noEmit --project packages/export/tsconfig.json
-          echo "✅ Type check completed"
+          echo "✅ Export types verified successfully"
 
       - name: Biome Lint Check
         run: |
-          echo "🔍 Running Biome lint..."
+          echo "🔍 Running Biome lint (Strict)..."
           bun run lint
 
       - name: Check Export Module Compilation
@@ -71,7 +77,7 @@ jobs:
           # Check for common secret patterns
           PATTERNS="(password|passwd|pwd|secret|token|api_key|apikey)\s*=\s*[\"'][^\"']{8,}[\"']"
           
-          MATCHES=$(grep -rnE "$PATTERNS" packages/export/src --include="*.ts" 2>/dev/null | grep -v ".test.ts" | grep -v "process.env")
+          MATCHES=$(grep -rnE "$PATTERNS" packages/export/src --include="*.ts" 2>/dev/null | grep -v ".test.ts" | grep -v "process.env" || true)
           
           if [ -n "$MATCHES" ]; then
             echo "⚠️ Potential hardcoded secrets found:"
@@ -178,7 +184,7 @@ jobs:
           echo "═══════════════════════════════════════════════════════════════"
           
           cd packages/export
-          bun test --reporter=verbose
+          bun test
           
           echo "✅ Export module tests completed"
         env:

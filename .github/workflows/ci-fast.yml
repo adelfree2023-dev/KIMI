@@ -127,6 +127,7 @@ jobs:
       - name: Biome Lint Check
         run: bun run lint
 
+      - name: Type Check (TSC)
         run: |
           echo "📝 Running TypeScript type checking..."
           bunx tsc --noEmit

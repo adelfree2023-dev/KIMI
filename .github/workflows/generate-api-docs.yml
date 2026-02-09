@@ -61,11 +61,20 @@ jobs:
           generate();
           SCRIPT
           
-          bun run generate-openapi.ts || echo "Generation failed - will retry with build"
+          bun run generate-openapi.ts
           
-          if [ -f "openapi-spec.json" ]; then
-            echo "Endpoints documented: $(grep -c 'path' openapi-spec.json)"
+          if [ ! -f "openapi-spec.json" ]; then
+            echo "🚨 CRITICAL: OpenAPI specification generation failed!"
+            exit 1
           fi
+          
+          echo "✅ Endpoints documented: $(grep -c 'path' openapi-spec.json)"
+        env:
+          JWT_SECRET: test_secret_key_for_ci_environment_only_32
+          TENANT_ISOLATION_MODE: strict
+          DATABASE_URL: postgresql://test:test@localhost:5432/test
+          REDIS_URL: redis://localhost:6379
+          NODE_ENV: test
 
       - name: Upload Spec
         uses: actions/upload-artifact@v4

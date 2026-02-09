@@ -59,7 +59,7 @@ jobs:
           # Excludes the exception filter itself and tests
           STACK_LEAKS=$(grep -rnE "\.stack|\.printStackTrace\(\)" packages/*/src apps/*/src --include="*.ts" 2>/dev/null | \
             grep -vE "^\s*//" | \
-            grep -vE "(exception-filter\.ts|logger\.service|\.test\.|\.spec\.)" || true)
+            grep -vE "(exception-filter\.ts|logger\.service|\.test\.|\.spec\.)")
 
           if [ -n "$STACK_LEAKS" ]; then
             echo "🚨 CRITICAL: Potential direct stack trace leak detected!"

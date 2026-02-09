@@ -45,7 +45,7 @@ jobs:
           # Excludes safe schema management and audit services
           CONCAT=$(grep -rnE "\.(query|execute).*\+" apps/api/src packages/*/src --include="*.ts" 2>/dev/null | \
             grep -vE "^\s*//" | \
-            grep -vE "(node_modules|schema-manager|audit\.service|\.test\.|\.spec\.)" || true)
+            grep -vE "(node_modules|schema-manager|audit\.service|\.test\.|\.spec\.)")
 
           if [ -n "$CONCAT" ]; then
             echo "🚨 CRITICAL: String concatenation in SQL queries detected!"

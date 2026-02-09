@@ -43,7 +43,7 @@ jobs:
           
           # Verify that triggers are being set up in the audit service
           TRIGGERS=$(grep -rnE "(RAISE EXCEPTION.*S4 Violation|BEFORE UPDATE|BEFORE DELETE)" packages/audit/src --include="*.ts" 2>/dev/null | \
-            grep -vE "^\s*//" || true)
+            grep -vE "^\s*//" )
 
           if [ -z "$TRIGGERS" ]; then
             echo "🚨 CRITICAL: Missing immutable audit log triggers!"

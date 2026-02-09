@@ -34,13 +34,13 @@ jobs:
       - name: TypeScript Type Check
         run: |
           echo "🔍 Running TypeScript type check..."
-          bunx tsc --noEmit --project packages/export/tsconfig.json || true
+          bunx tsc --noEmit --project packages/export/tsconfig.json
           echo "✅ Type check completed"
 
       - name: Biome Lint Check
         run: |
           echo "🔍 Running Biome lint..."
-          bun run lint 2>/dev/null || echo "⚠️ Lint issues found (non-blocking)"
+          bun run lint
 
       - name: Check Export Module Compilation
         if: contains(github.event.pull_request.changed_files || '', 'packages/export/') || github.event_name == 'push'
@@ -48,7 +48,7 @@ jobs:
           echo "🔍 Checking export module compilation..."
           cd packages/export
           # Try to compile
-          bun build ./src/index.ts --outdir ./dist --target node 2>&1 | head -50 || true
+          bun build ./src/index.ts --outdir ./dist --target node 2>&1 | head -50
           echo "✅ Export module compilation check completed"
 
   # ═══════════════════════════════════════════════════════════════
@@ -123,7 +123,8 @@ jobs:
           fi
           
           # Check for file cleanup (supports both 'rm -rf' and Bun.spawn(['rm', ...])
-          CLEANUP_COUNT=$(grep -c "rm.*-rf\|rm.*-f\|cleanup" packages/export/src/strategies/*.ts || echo "0")
+          # Radical Fix: Ensure CLEANUP_COUNT is always an integer and check specifically for strategy files
+          CLEANUP_COUNT=$(grep -cE "rm.*-rf|rm.*-f|cleanup" packages/export/src/strategies/*.ts | awk -F: '{sum+=$NF} END {print sum+0}')
           if [ "$CLEANUP_COUNT" -lt 3 ]; then
             echo "❌ CRITICAL: Export strategies missing cleanup code (found $CLEANUP_COUNT, expected 3+)"
             exit 1
@@ -177,7 +178,7 @@ jobs:
           echo "═══════════════════════════════════════════════════════════════"
           
           cd packages/export
-          bun test --reporter=verbose 2>&1 || true
+          bun test --reporter=verbose
           
           echo "✅ Export module tests completed"
         env:

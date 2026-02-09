@@ -54,6 +54,15 @@ jobs:
           echo "🚀 Generating and Pushing Schema to Test DB..."
           bunx drizzle-kit generate:pg
           bunx drizzle-kit push:pg
+          
+          echo "🔍 Verifying Physical Schema Existence..."
+          # Radical Fix: Physical verification of tables in 'public' schema
+          TABLE_COUNT=$(psql $DATABASE_URL -t -c "SELECT count(*) FROM information_schema.tables WHERE table_schema = 'public';")
+          echo "Found $TABLE_COUNT tables in public schema"
+          if [ "$TABLE_COUNT" -lt 5 ]; then 
+            echo "🚨 CRITICAL FAILURE: Database schema not physically provisioned!"
+            exit 1
+          fi
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/test
 

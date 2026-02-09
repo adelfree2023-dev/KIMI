@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.3.14/schema.json",
+  "$schema": "https://biomejs.dev/schemas/1.5.3/schema.json",
   "files": {
     "ignore": [
       "**/node_modules/**",
@@ -8,7 +8,8 @@
       "**/.turbo/**",
       "**/coverage/**",
       "**/out/**",
-      "**/build/**"
+      "**/build/**",
+      "**/drizzle/**"
     ]
   },
   "formatter": {
@@ -44,8 +45,7 @@
         "noDangerouslySetInnerHtml": "error"
       },
       "suspicious": {
-        "noExplicitAny": "off",
-        "noConsoleLog": "off"
+        "noExplicitAny": "off"
       }
     }
   },

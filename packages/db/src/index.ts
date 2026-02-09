@@ -13,11 +13,19 @@ export * from './schema.js';
 
 const env = validateEnv();
 
-// Connection pool for public schema (tenant management)
-export const publicPool = new Pool({
+// S2 FIX: Explicitly pass credentials if parsed connectionString fails in some environments (e.g. Bun/Vitest in CI)
+const poolConfig: any = {
   connectionString: env.DATABASE_URL,
   ssl: env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
-});
+};
+
+// Manually reinforce if common env vars are present
+if (process.env.POSTGRES_USER) poolConfig.user = process.env.POSTGRES_USER;
+if (process.env.POSTGRES_PASSWORD) poolConfig.password = process.env.POSTGRES_PASSWORD;
+if (process.env.POSTGRES_DB) poolConfig.database = process.env.POSTGRES_DB;
+
+// Connection pool for public schema (tenant management)
+export const publicPool = new Pool(poolConfig);
 
 // Drizzle instance for public schema
 export const publicDb = drizzle(publicPool);

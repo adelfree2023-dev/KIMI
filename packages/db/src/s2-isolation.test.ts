@@ -7,27 +7,46 @@ describe('S2: Tenant Isolation Protocol', () => {
     const tenantBeta = 'beta_test';
 
     beforeAll(async () => {
-        // 🛠️ Setup: Create mock tenant schemas and tables
-        await publicPool.query(`
-      DROP SCHEMA IF EXISTS tenant_${tenantAlpha} CASCADE;
-      DROP SCHEMA IF EXISTS tenant_${tenantBeta} CASCADE;
-      
-      CREATE SCHEMA tenant_${tenantAlpha};
-      CREATE SCHEMA tenant_${tenantBeta};
-      
-      CREATE TABLE tenant_${tenantAlpha}.products (id SERIAL PRIMARY KEY, name TEXT);
-      CREATE TABLE tenant_${tenantBeta}.products (id SERIAL PRIMARY KEY, name TEXT);
-      
-      INSERT INTO tenant_${tenantAlpha}.products (name) VALUES ('Alpha Secret');
-      INSERT INTO tenant_${tenantBeta}.products (name) VALUES ('Beta Secret');
-      
-      -- Ensure tenants exist in the registry for withTenantConnection check
-      DELETE FROM tenants WHERE subdomain IN ('${tenantAlpha}', '${tenantBeta}');
-      INSERT INTO tenants (id, subdomain, name, plan, status) 
-      VALUES (gen_random_uuid(), '${tenantAlpha}', 'Alpha', 'pro', 'active');
-      INSERT INTO tenants (id, subdomain, name, plan, status) 
-      VALUES (gen_random_uuid(), '${tenantBeta}', 'Beta', 'pro', 'active');
-    `);
+        // 🔒 S2 CI Guard: Ensure database connection is configured
+        if (!process.env.DATABASE_URL) {
+            throw new Error('S2 Violation: DATABASE_URL is not defined in the environment. Check CI configuration.');
+        }
+
+        try {
+            // 🛠️ Setup: Create mock tenant schemas and tables
+            await publicPool.query(`
+                DROP SCHEMA IF EXISTS tenant_${tenantAlpha} CASCADE;
+                DROP SCHEMA IF EXISTS tenant_${tenantBeta} CASCADE;
+                
+                CREATE SCHEMA tenant_${tenantAlpha};
+                CREATE SCHEMA tenant_${tenantBeta};
+                
+                CREATE TABLE tenant_${tenantAlpha}.products (id SERIAL PRIMARY KEY, name TEXT);
+                CREATE TABLE tenant_${tenantBeta}.products (id SERIAL PRIMARY KEY, name TEXT);
+                
+                INSERT INTO tenant_${tenantAlpha}.products (name) VALUES ('Alpha Secret');
+                INSERT INTO tenant_${tenantBeta}.products (name) VALUES ('Beta Secret');
+                
+                -- Ensure tenants exist in the registry for withTenantConnection check
+                DELETE FROM tenants WHERE subdomain IN ('${tenantAlpha}', '${tenantBeta}');
+                INSERT INTO tenants (id, subdomain, name, plan, status) 
+                VALUES (gen_random_uuid(), '${tenantAlpha}', 'Alpha', 'pro', 'active');
+                INSERT INTO tenants (id, subdomain, name, plan, status) 
+                VALUES (gen_random_uuid(), '${tenantBeta}', 'Beta', 'pro', 'active');
+            `);
+        } catch (error: any) {
+            console.error('🚨 S2 Setup Failure: Check DATABASE_URL and Permissions');
+            console.error('Error Details:', error.message);
+
+            if (error.message.includes('SASL')) {
+                console.error('💡 TIP: This is likely a password/SCRAM authentication issue. Ensure POSTGRES_PASSWORD is set.');
+            }
+            if (error.message.includes('permission denied')) {
+                console.error('💡 TIP: The CI database user might lack CREATE SCHEMA permissions.');
+            }
+
+            throw error;
+        }
     });
 
     afterAll(async () => {

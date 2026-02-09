@@ -52,6 +52,13 @@ jobs:
           # This runs the new packages/db/src/s2-isolation.test.ts
           bun run test s2-isolation.test.ts
         working-directory: packages/db
+        env:
+          DATABASE_URL: ${{ env.DATABASE_URL }}
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: test
+          JWT_SECRET: ${{ env.JWT_SECRET }}
+          NODE_ENV: test
 
       - name: "S2.2 - Surgical Public Schema Audit"
         run: |

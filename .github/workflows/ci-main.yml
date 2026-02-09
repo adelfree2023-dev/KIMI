@@ -278,18 +278,32 @@ jobs:
           import * as path from 'path';
           
           describe('SQL Injection Defense - ORM Compliance', () => {
-            const schemaFiles = [
-              './packages/db/src/schema.ts',
-              './packages/db/src/schema/storefront/products.ts',
-              './packages/db/src/schema/storefront/reviews.ts'
-            ];
-
-            it('should verify Drizzle ORM usage (pgTable) in all schemas', () => {
-              schemaFiles.forEach(schemaPath => {
-                if (fs.existsSync(schemaPath)) {
-                  const schema = fs.readFileSync(schemaPath, 'utf8');
-                  expect(schema, `Schema ${schemaPath} must use pgTable`).toContain('pgTable');
+            const schemaDir = './packages/db/src/schema';
+            
+            // 🔥 Dynamic discovery: Find all schema files recursively
+            function getAllFiles(dirPath: string, arrayOfFiles: string[] = []) {
+              if (!fs.existsSync(dirPath)) return arrayOfFiles;
+              const files = fs.readdirSync(dirPath);
+              files.forEach(function(file) {
+                const fullPath = path.join(dirPath, file);
+                if (fs.statSync(fullPath).isDirectory()) {
+                  getAllFiles(fullPath, arrayOfFiles);
+                } else {
+                  if (fullPath.endsWith('.ts')) arrayOfFiles.push(fullPath);
                 }
+              });
+              return arrayOfFiles;
+            }
+
+            const schemaFiles = [
+              './packages/db/src/schema.ts', // Base schema
+              ...getAllFiles(schemaDir)     // All sub-schemas
+            ].filter(f => fs.existsSync(f));
+
+            it('should verify Drizzle ORM usage (pgTable) in all discovered schemas', () => {
+              schemaFiles.forEach(schemaPath => {
+                const schema = fs.readFileSync(schemaPath, 'utf8');
+                expect(schema, `Schema ${schemaPath} must use pgTable`).toContain('pgTable');
               });
             });
             

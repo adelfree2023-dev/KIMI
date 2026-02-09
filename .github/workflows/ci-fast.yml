@@ -127,8 +127,8 @@ jobs:
       - name: JSON Syntax Validation
         run: |
           echo "🔍 Validating JSON syntax file by file..."
-          find . -name "*.json" -not -path "*/node_modules/*" -not -path "*/dist/*" | while read file; do
-            jq . "$file" > /dev/null || { echo "❌ Invalid JSON in: $file"; exit 1; }
+          find . -name "*.json" -not -path "*/node_modules/*" -not -path "*/dist/*" -not -path "*/.next/*" -not -path "*/.turbo/*" | while read file; do
+            jq . "$file" > /dev/null || { echo "🚨 CRITICAL: Invalid JSON found in $file"; exit 1; }
           done
           echo "✅ All JSON files are valid"
 

@@ -286,169 +286,67 @@ jobs:
           echo "✅ S11: ORM compliance verification completed"
 
       # ═══════════════════════════════════════════════════════════════════════
-      # S12: ADVANCED XSS & CLIENT-SIDE ATTACK SIMULATION
+      # S12: SURGICAL XSS & CLIENT-SIDE DANGEROUS PATTERN SCAN
       # ═══════════════════════════════════════════════════════════════════════
-      - name: "S12 - Advanced XSS Penetration Test"
+      - name: "S12 - XSS Surgical Grep Checks"
         run: |
           echo "═══════════════════════════════════════════════════════════════════"
-          echo "  S12: ADVANCED XSS & CLIENT-SIDE ATTACK SIMULATION"
+          echo "  S12: XSS SURGICAL GREP CHECKS & STRUCTURAL GATES"
           echo "═══════════════════════════════════════════════════════════════════"
           
-          mkdir -p packages/security/src/xss
-          
-          cat > packages/security/src/xss/xss-penetration.test.ts << 'TESTEOF'
-          import { describe, it, expect } from 'vitest';
-          
-          // Comprehensive XSS Payload Library
-          const XSS_PAYLOADS = {
-            reflected: [
-              '<script>alert(1)</script>',
-              '<img src=x onerror=alert(1)>',
-              '<svg onload=alert(1)>',
-              'javascript:alert(1)',
-              '<iframe src=javascript:alert(1)>',
-              '<body onload=alert(1)>',
-            ],
-            stored: [
-              '<input onfocus=alert(1) autofocus>',
-              '<select onfocus=alert(1) autofocus>',
-              '<textarea onfocus=alert(1) autofocus>',
-              '<keygen onfocus=alert(1) autofocus>',
-            ],
-            dom_based: [
-              '#<img src=x onerror=alert(1)>',
-              'javascript://%0aalert(1)',
-              '/\<svg onload=alert(1)\>',
-            ],
-            polyglot: [
-              '\'`\"><img src=x onerror=alert(1)>',
-              '\";alert(1)//',
-              "';alert(1)//",
-            ],
-            bypass: [
-              '<scr<script>ipt>alert(1)</script>',
-              '<img src=x onerror=\x61lert(1)>',
-              '<svg/onload=alert(1)>',
-              '<img src=x oneonerrorrror=alert(1)>',
-              '<s%00cript>alert(1)</script>',
-            ],
-            html5: [
-              '<video src=x onerror=alert(1)>',
-              '<audio src=x onerror=alert(1)>',
-              '<source src=x onerror=alert(1)>',
-              '<track src=x onerror=alert(1)>',
-              '<details open ontoggle=alert(1)>',
-              '<marquee onstart=alert(1)>',
-            ]
-          };
-          
-          // HTML escaping function (simulate framework defense)
-          const escapeHtml = (input: string): string => {
-            return input
-              .replace(/&/g, '&amp;')
-              .replace(/</g, '&lt;')
-              .replace(/>/g, '&gt;')
-              .replace(/"/g, '&quot;')
-              .replace(/'/g, '&#x27;')
-              .replace(/\//g, '&#x2F;');
-          };
-          
-          // JavaScript escaping
-          const escapeJs = (input: string): string => {
-            return input
-              .replace(/\\/g, '\\\\')
-              .replace(/'/g, "\\'")
-              .replace(/"/g, '\\"')
-              .replace(/\n/g, '\\n')
-              .replace(/\r/g, '\\r')
-              .replace(/\t/g, '\\t');
-          };
-          
-          describe('XSS Defense - Payload Neutralization', () => {
-            Object.entries(XSS_PAYLOADS).forEach(([category, payloads]) => {
-              describe(`${category} XSS payloads`, () => {
-                payloads.forEach(payload => {
-                  it(`should escape: ${payload.substring(0, 40)}...`, () => {
-                    const escaped = escapeHtml(payload);
-                    
-                    // Verify HTML tags are neutralized by escaping angle brackets
-                    // When < is escaped to &lt; and > to &gt;, the browser won't
-                    // interpret the content as HTML, preventing XSS
-                    expect(escaped).not.toMatch(/<[a-zA-Z]/); // No unescaped opening tags
-                    expect(escaped).not.toMatch(/>/); // No unescaped >
-                    
-                    // Verify specific dangerous tags are escaped
-                    expect(escaped).not.toMatch(/<script/i);
-                    expect(escaped).not.toMatch(/<iframe/i);
-                    expect(escaped).not.toMatch(/<svg/i);
-                    expect(escaped).not.toMatch(/<img/i);
-                  });
-                });
-              });
-            });
-          });
-          
-          describe('CSP (Content Security Policy) Compliance', () => {
-            it('should have CSP headers defined', () => {
-              const fs = require('fs');
-              const middlewareFiles = [
-                './packages/middleware/src/security.ts',
-                './apps/web/next.config.js',
-                './apps/web/middleware.ts'
-              ];
-              
-              let cspFound = false;
-              middlewareFiles.forEach(file => {
-                if (fs.existsSync(file)) {
-                  const content = fs.readFileSync(file, 'utf8');
-                  if (content.includes('Content-Security-Policy') || 
-                      content.includes('csp') ||
-                      content.includes("'self'")) {
-                    cspFound = true;
-                  }
-                }
-              });
-              
-              expect(cspFound).toBe(true);
-            });
-          });
-          
-          describe('Template Engine Security', () => {
-            it('should use auto-escaping template engine', () => {
-              const fs = require('fs');
-              const webAppPath = './apps/web';
-              
-              if (fs.existsSync(webAppPath)) {
-                // Check for React usage (auto-escapes by default)
-                const packageJson = JSON.parse(
-                  fs.readFileSync(`${webAppPath}/package.json`, 'utf8')
-                );
-                
-                const hasReact = packageJson.dependencies?.react || 
-                                packageJson.dependencies?.next;
-                
-                expect(hasReact).toBeTruthy();
-              }
-            });
-          });
-          TESTEOF
-          
-          echo "[*] Running XSS penetration tests..."
-          bun test packages/security/src/xss/xss-penetration.test.ts || {
-            echo "❌ S12 FAILED: XSS defense tests failed!"
-            exit 1
-          }
-          
-          # Check for dangerous React patterns
-          echo "[*] Scanning for dangerous React patterns..."
-          DANGEROUS_REACT=$(grep -r "dangerouslySetInnerHTML" packages apps --include="*.tsx" --include="*.ts" 2>/dev/null | head -10 || true)
-          
-          if [ -n "$DANGEROUS_REACT" ]; then
-            echo "⚠️  WARNING: dangerouslySetInnerHTML found (review for XSS safety):"
-            echo "$DANGEROUS_REACT"
+          # Check for dangerouslySetInnerHTML (React/Next.js)
+          echo "[*] Scanning for dangerouslySetInnerHTML..."
+          DANGEROUS_SET=$(grep -rl "dangerouslySetInnerHTML" packages apps --include="*.tsx" --include="*.ts" 2>/dev/null || true)
+          if [ -n "$DANGEROUS_SET" ]; then
+            echo "⚠️  WARNING: dangerouslySetInnerHTML found in these files:"
+            echo "$DANGEROUS_SET"
           fi
           
-          echo "✅ S12: Advanced XSS penetration test completed"
+          # Check for direct DOM manipulation
+          echo "[*] Scanning for direct DOM manipulation (innerHTML/outerHTML)..."
+          DOM_SINK=$(grep -rlE "\.(innerHTML|outerHTML)\s*=" packages apps --include="*.ts" --include="*.tsx" --include="*.js" 2>/dev/null | grep -v "node_modules" || true)
+          if [ -n "$DOM_SINK" ]; then
+            echo "⚠️  WARNING: Direct DOM sink (.innerHTML/.outerHTML) found:"
+            echo "$DOM_SINK"
+          fi
+          
+          # Check for eval() and Function constructor
+          echo "[*] Scanning for eval() and Function constructor..."
+          JS_EVAL=$(grep -rlE "\beval\(|new\s+Function\(" packages apps --include="*.ts" --include="*.tsx" --include="*.js" 2>/dev/null | grep -vE "(node_modules|\.test\.|\.spec\.)" || true)
+          if [ -n "$JS_EVAL" ]; then
+            echo "🚨 CRITICAL: Dangerous execution pattern (eval/Function) found!"
+            echo "$JS_EVAL"
+            echo "❌ S12 FAILED: Dangerous execution patterns detected!"
+            exit 1
+          fi
+          
+          # Check for javascript: protocol in attributes/URLs
+          echo "[*] Scanning for javascript: pseudo-protocol..."
+          JS_PROTOCOL=$(grep -riE "['\"]javascript:" packages apps --include="*.ts" --include="*.tsx" --include="*.js" 2>/dev/null | grep -vE "(\.test\.|\.spec\.)" || true)
+          if [ -n "$JS_PROTOCOL" ]; then
+            echo "⚠️  WARNING: Potential javascript: protocol usage found (XSS risk):"
+            echo "$JS_PROTOCOL"
+          fi
+          
+          # Verify CSP and Security Headers Structural Goal
+          echo "[*] Verifying CSP and Security Headers configuration..."
+          CSP_FILES="./packages/middleware/src/security.ts ./apps/web/next.config.js ./apps/web/middleware.ts"
+          CSP_FOUND=false
+          for f in $CSP_FILES; do
+            if [ -f "$f" ]; then
+              if grep -qiE "(Content-Security-Policy|csp|'self')" "$f"; then
+                CSP_FOUND=true
+                echo "    ✅ Found security header configuration in $f"
+              fi
+            fi
+          done
+          
+          if [ "$CSP_FOUND" = "false" ]; then
+            echo "❌ S12 FAILED: No Content-Security-Policy configuration found!"
+            exit 1
+          fi
+          
+          echo "✅ S12: XSS surgical checks and structural gates completed"
 
       # ═══════════════════════════════════════════════════════════════════════
       # S13: ADVANCED RED TEAM SIMULATION & ATTACK CHAINS

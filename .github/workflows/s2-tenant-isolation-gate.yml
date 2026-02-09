@@ -74,7 +74,7 @@ jobs:
           # Detect 'public.' references in active code
           # Explicitly ALLOWS audit logs and public decorators
           PUBLIC_REFS=$(grep -rn "public\." packages/*/src apps/*/src --include="*.ts" 2>/dev/null | \
-            grep -vE "^\s*//" | \
+            grep -vE "^\s*(//|\*)" | \
             grep -vE "(audit|public\.decorator|tenant-registry\.service|node_modules|\.test\.|\.spec\.)" || true)
 
           if [ -n "$PUBLIC_REFS" ]; then

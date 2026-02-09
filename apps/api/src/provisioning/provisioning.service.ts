@@ -119,7 +119,7 @@ export class ProvisioningService {
   }
 
   /**
-   * Register tenant in the public.tenants table
+   * Register tenant in the Global Tenant Registry
    */
   private async registerTenant(options: ProvisioningOptions, _adminId: string) {
     try {

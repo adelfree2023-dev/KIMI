@@ -93,10 +93,11 @@ jobs:
           # Look for actual schema references like "public.table_name" 
           # Exclude: audit_logs (S4 exception), comments, search_path uses
           violations=$(grep -rn "public\." packages/db/src --include="*.ts" --exclude="*.test.ts" --exclude="*.spec.ts" | \
+            grep -vE "^\s*(//|\*)" | \
             grep -v "audit_logs" | \
             grep -v "node_modules" | \
-            grep -v "//.*public\." | \
-            grep -v "search_path.*public" | \
+            grep -vE "//.*public\." | \
+            grep -vE "search_path.*public" | \
             grep -v "getTenantTableName" | \
             grep -v "tenant_" | \
             head -5)

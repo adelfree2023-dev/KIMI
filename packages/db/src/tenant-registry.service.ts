@@ -5,7 +5,7 @@ import { tenants, type Tenant } from './schema.js';
 
 /**
  * S2: Tenant Registry Service
- * The ONLY authorized service for accessing the public.tenants registry.
+ * The ONLY authorized service for accessing the Global Registry.
  * Encapsulates ORM-based access to prevent raw SQL leaks in business logic.
  */
 @Injectable()

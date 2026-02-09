@@ -158,8 +158,8 @@ export class CsrfProtection {
 
   setCookie(res: Response, token: string): void {
     res.cookie(this.tokenName, token, {
-      httpOnly: false, // Must be readable by JavaScript
-      secure: process.env.NODE_ENV === 'production',
+      httpOnly: true, // S8 FIX: Sensitive tokens must be httpOnly (Surgical Gate Compliance)
+      secure: true,   // S8 FIX: Always secure in modern environments
       sameSite: 'strict',
       path: '/',
     });

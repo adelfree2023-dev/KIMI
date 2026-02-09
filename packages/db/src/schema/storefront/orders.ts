@@ -62,12 +62,12 @@ export const orders = pgTable(
         shippedAt: timestamp('shipped_at', { withTimezone: true }),
         deliveredAt: timestamp('delivered_at', { withTimezone: true }),
     },
-    (table) => [
-        index('idx_orders_customer').on(table.customerId),
-        index('idx_orders_status').on(table.status),
-        index('idx_orders_created').on(table.createdAt).desc(),
-        index('idx_orders_number').on(table.orderNumber),
-    ]
+    (table) => ({
+        idxOrdersCustomer: index('idx_orders_customer').on(table.customerId),
+        idxOrdersStatus: index('idx_orders_status').on(table.status),
+        idxOrdersCreated: index('idx_orders_created').on(table.createdAt),
+        idxOrdersNumber: index('idx_orders_number').on(table.orderNumber),
+    })
 );
 
 /**
@@ -93,9 +93,9 @@ export const orderItems = pgTable(
         attributes: jsonb('attributes'), // Frozen variant attributes
         imageUrl: text('image_url'),
     },
-    (table) => [
-        index('idx_order_items_order').on(table.orderId),
-    ]
+    (table) => ({
+        idxOrderItemsOrder: index('idx_order_items_order').on(table.orderId),
+    })
 );
 
 // Type exports

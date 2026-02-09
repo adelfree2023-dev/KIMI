@@ -36,10 +36,10 @@ export const pages = pgTable(
         createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
         updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
     },
-    (table) => [
-        index('idx_pages_slug').on(table.slug),
-        index('idx_pages_published').on(table.isPublished),
-    ]
+    (table) => ({
+        idxPagesSlug: index('idx_pages_slug').on(table.slug),
+        idxPagesPublished: index('idx_pages_published').on(table.isPublished),
+    })
 );
 
 /**
@@ -63,11 +63,11 @@ export const blogPosts = pgTable(
 
         createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
     },
-    (table) => [
-        index('idx_blog_posts_slug').on(table.slug),
-        index('idx_blog_posts_published').on(table.isPublished),
-        index('idx_blog_posts_published_at').on(table.publishedAt).desc(),
-    ]
+    (table) => ({
+        idxBlogPostsSlug: index('idx_blog_posts_slug').on(table.slug),
+        idxBlogPostsPublished: index('idx_blog_posts_published').on(table.isPublished),
+        idxBlogPostsPublishedAt: index('idx_blog_posts_published_at').on(table.publishedAt),
+    })
 );
 
 // Type exports

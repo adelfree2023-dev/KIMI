@@ -13,7 +13,7 @@
         }
     },
     "scripts": {
-        "build": "tsup",
+        "build": "cross-env NODE_OPTIONS=--max-old-space-size=8192 tsup",
         "dev": "tsup --watch",
         "test": "bun test",
         "test:coverage": "bun test --coverage"
@@ -31,6 +31,7 @@
     },
     "devDependencies": {
         "@types/bun": "latest",
+        "cross-env": "^10.1.0",
         "tsup": "^8.0.1",
         "typescript": "^5.3.3"
     }

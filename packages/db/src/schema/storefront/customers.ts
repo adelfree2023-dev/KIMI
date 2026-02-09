@@ -13,6 +13,7 @@ import {
     text,
     decimal,
     char,
+    integer,
     boolean,
     timestamp,
     index,
@@ -43,9 +44,9 @@ export const customers = pgTable(
         lastLoginAt: timestamp('last_login_at', { withTimezone: true }),
         createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
     },
-    (table) => [
-        index('idx_customers_email').on(table.email),
-    ]
+    (table) => ({
+        idxCustomersEmail: index('idx_customers_email').on(table.email),
+    })
 );
 
 /**
@@ -72,9 +73,9 @@ export const customerAddresses = pgTable(
         phone: varchar('phone', { length: 20 }), // S7: Encrypted
         isDefault: boolean('is_default').default(false),
     },
-    (table) => [
-        index('idx_customer_addresses_customer').on(table.customerId),
-    ]
+    (table) => ({
+        idxCustomerAddressesCustomer: index('idx_customer_addresses_customer').on(table.customerId),
+    })
 );
 
 // Type exports

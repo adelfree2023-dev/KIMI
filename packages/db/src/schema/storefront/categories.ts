@@ -34,10 +34,10 @@ export const categories = pgTable(
         order: integer('order').default(0), // Display order
         isActive: boolean('is_active').default(true),
     },
-    (table) => [
-        index('idx_categories_parent').on(table.parentId),
-        index('idx_categories_active').on(table.isActive),
-    ]
+    (table) => ({
+        idxCategoriesParent: index('idx_categories_parent').on(table.parentId),
+        idxCategoriesActive: index('idx_categories_active').on(table.isActive),
+    })
 );
 
 // Type exports

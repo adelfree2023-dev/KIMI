@@ -12,6 +12,7 @@
         "@biomejs/biome": "1.5.3",
         "@vitest/coverage-istanbul": "1.6.1",
         "@vitest/coverage-v8": "1.6.1",
+        "cross-env": "^10.1.0",
         "reflect-metadata": "^0.2.2",
         "turbo": "latest",
         "vitest": "1.6.1",
@@ -146,6 +147,7 @@
         "@types/node": "^20.0.0",
         "@types/pg": "^8.10.0",
         "bun-types": "latest",
+        "cross-env": "^10.1.0",
         "drizzle-kit": "^0.20.0",
         "typescript": "^5.3.0",
         "vitest": "1.6.1",
@@ -160,6 +162,7 @@
       "devDependencies": {
         "@types/node": "^20.0.0",
         "bun-types": "latest",
+        "cross-env": "^10.1.0",
         "tsup": "^8.0.1",
         "typescript": "^5.3.3",
         "vitest": "^1.2.0",
@@ -247,6 +250,7 @@
       },
       "devDependencies": {
         "@types/bun": "latest",
+        "cross-env": "^10.1.0",
         "tsup": "^8.0.1",
         "typescript": "^5.3.3",
       },
@@ -261,6 +265,7 @@
         "msw": "^2.0.11",
       },
       "devDependencies": {
+        "@apex/validators": "workspace:*",
         "@types/react": "^18.2.45",
         "react": "^18.2.0",
         "tsup": "^8.0.1",
@@ -268,7 +273,6 @@
         "vitest": "^1.0.4",
       },
       "peerDependencies": {
-        "@apex/validators": "workspace:*",
         "react": ">=18.0.0",
       },
     },
@@ -296,6 +300,7 @@
       },
       "devDependencies": {
         "@types/bun": "latest",
+        "cross-env": "^10.1.0",
         "tsup": "^8.0.1",
         "typescript": "^5.3.3",
       },
@@ -498,6 +503,8 @@
     "@colors/colors": ["@colors/colors@1.5.0", "", {}, "sha512-ooWCrlZP11i8GImSjTHYHLkvFDP48nS4+204nGb1RiX/WXYHmJA2III9/e2DWVabCESdW7hBAEzHRqUn9OUVvQ=="],
 
     "@emnapi/runtime": ["@emnapi/runtime@1.8.1", "", { "dependencies": { "tslib": "^2.4.0" } }, "sha512-mehfKSMWjjNol8659Z8KxEMrdSJDDot5SXMq00dM8BN4o+CLNXQ0xH2V7EchNHV4RmbZLmmPdEaXZc5H2FXmDg=="],
+
+    "@epic-web/invariant": ["@epic-web/invariant@1.0.0", "", {}, "sha512-lrTPqgvfFQtR/eY/qkIzp98OGdNJu0m5ji3q/nJI8v3SXkRKEnWiOxMmbvcSoAIzv/cGiuvRy57k4suKQSAdwA=="],
 
     "@esbuild-kit/core-utils": ["@esbuild-kit/core-utils@3.3.2", "", { "dependencies": { "esbuild": "~0.18.20", "source-map-support": "^0.5.21" } }, "sha512-sPRAnw9CdSsRmEtnsl2WXWdyquogVpB3yZ3dgwJfe8zrOzTsV7cJvmwrKVa+0ma5BoiGJ+BoqkMvawbayKUsqQ=="],
 
@@ -1186,6 +1193,8 @@
     "cosmiconfig": ["cosmiconfig@8.3.6", "", { "dependencies": { "import-fresh": "^3.3.0", "js-yaml": "^4.1.0", "parse-json": "^5.2.0", "path-type": "^4.0.0" }, "peerDependencies": { "typescript": ">=4.9.5" }, "optionalPeers": ["typescript"] }, "sha512-kcZ6+W5QzcJ3P1Mt+83OUv/oHFqZHIx8DuxG6eZ5RGMERoLqp4BuGjhHLYGK+Kf5XVkQvqBSmAy/nGWN3qDgEA=="],
 
     "cron-parser": ["cron-parser@4.9.0", "", { "dependencies": { "luxon": "^3.2.1" } }, "sha512-p0SaNjrHOnQeR8/VnfGbmg9te2kfyYSQ7Sc/j/6DtPL3JQvKxmjO9TSjNFpujqV3vEYYBvNNvXSxzyksBWAx1Q=="],
+
+    "cross-env": ["cross-env@10.1.0", "", { "dependencies": { "@epic-web/invariant": "^1.0.0", "cross-spawn": "^7.0.6" }, "bin": { "cross-env": "dist/bin/cross-env.js", "cross-env-shell": "dist/bin/cross-env-shell.js" } }, "sha512-GsYosgnACZTADcmEyJctkJIoqAhHjttw7RsFrVoJNXbsWWqaq6Ym+7kZjq6mS45O0jij6vtiReppKQEtqWy6Dw=="],
 
     "cross-spawn": ["cross-spawn@7.0.6", "", { "dependencies": { "path-key": "^3.1.0", "shebang-command": "^2.0.0", "which": "^2.0.1" } }, "sha512-uV2QOWP2nWzsy2aMp8aRibhi9dlzF5Hgh5SHaB9OiTGEyDTiJJyx0uy51QXdyWbtAHNua4XJzUKca3OzKUd3vA=="],
 

@@ -35,11 +35,11 @@ export const carts = pgTable(
         updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
         expiresAt: timestamp('expires_at', { withTimezone: true }), // Auto-cleanup
     },
-    (table) => [
-        index('idx_carts_customer').on(table.customerId),
-        index('idx_carts_session').on(table.sessionId),
-        index('idx_carts_expires').on(table.expiresAt),
-    ]
+    (table) => ({
+        idxCartsCustomer: index('idx_carts_customer').on(table.customerId),
+        idxCartsSession: index('idx_carts_session').on(table.sessionId),
+        idxCartsExpires: index('idx_carts_expires').on(table.expiresAt),
+    })
 );
 
 // Type exports

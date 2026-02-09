@@ -37,10 +37,10 @@ export const coupons = pgTable(
         expiresAt: timestamp('expires_at', { withTimezone: true }),
         isActive: boolean('is_active').default(true),
     },
-    (table) => [
-        index('idx_coupons_code').on(table.code),
-        index('idx_coupons_active').on(table.isActive),
-    ]
+    (table) => ({
+        idxCouponsCode: index('idx_coupons_code').on(table.code),
+        idxCouponsActive: index('idx_coupons_active').on(table.isActive),
+    })
 );
 
 // Type exports

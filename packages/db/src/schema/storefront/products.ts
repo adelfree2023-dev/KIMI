@@ -67,16 +67,13 @@ export const products = pgTable(
         createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
         updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
     },
-    (table) => [
-        index('idx_products_slug').on(table.slug),
-        index('idx_products_category').on(table.categoryId),
-        index('idx_products_active').on(table.isActive).where(sql`is_active = true`),
+    (table) => ({
+        idxProductsSlug: index('idx_products_slug').on(table.slug),
+        idxProductsCategory: index('idx_products_category').on(table.categoryId),
+        idxProductsActive: index('idx_products_active').on(table.isActive).where(sql`is_active = true`),
         // Full-text search index
-        index('idx_products_search').using(
-            'gin',
-            sql`to_tsvector('english', ${table.name} || ' ' || COALESCE(${table.description}, ''))`
-        ),
-    ]
+        idxProductsSearch: index('idx_products_search').on(table.name),
+    })
 );
 
 /**
@@ -95,9 +92,9 @@ export const productImages = pgTable(
         isPrimary: boolean('is_primary').default(false),
         order: integer('order').default(0),
     },
-    (table) => [
-        index('idx_product_images_product').on(table.productId),
-    ]
+    (table) => ({
+        idxProductImagesProduct: index('idx_product_images_product').on(table.productId),
+    })
 );
 
 /**
@@ -121,10 +118,10 @@ export const productVariants = pgTable(
         attributes: jsonb('attributes').notNull(), // { color: "Red", size: "XL" }
         imageUrl: text('image_url'),
     },
-    (table) => [
-        index('idx_variants_product').on(table.productId),
-        index('idx_variants_attributes').using('gin', table.attributes),
-    ]
+    (table) => ({
+        idxVariantsProduct: index('idx_variants_product').on(table.productId),
+        idxVariantsAttributes: index('idx_variants_attributes').on(table.attributes),
+    })
 );
 
 /**
@@ -138,11 +135,9 @@ export const productTags = pgTable(
             .references(() => products.id, { onDelete: 'cascade' }),
         tag: varchar('tag', { length: 50 }).notNull(),
     },
-    (table) => [
-        {
-            pk: unique().on(table.productId, table.tag),
-        },
-    ]
+    (table) => ({
+        pk: unique().on(table.productId, table.tag),
+    })
 );
 
 // Type exports

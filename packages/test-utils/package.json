@@ -30,6 +30,7 @@
         "msw": "^2.0.11"
     },
     "devDependencies": {
+        "@apex/validators": "workspace:*",
         "@types/react": "^18.2.45",
         "react": "^18.2.0",
         "tsup": "^8.0.1",
@@ -37,7 +38,6 @@
         "vitest": "^1.0.4"
     },
     "peerDependencies": {
-        "@apex/validators": "workspace:*",
         "react": ">=18.0.0"
     }
 }

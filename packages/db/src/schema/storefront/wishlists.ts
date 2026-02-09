@@ -31,11 +31,9 @@ export const wishlists = pgTable(
 
         addedAt: timestamp('added_at', { withTimezone: true }).defaultNow(),
     },
-    (table) => [
-        {
-            pk: unique().on(table.customerId, table.productId),
-        },
-    ]
+    (table) => ({
+        pk: unique().on(table.customerId, table.productId),
+    })
 );
 
 // Type exports

@@ -47,11 +47,11 @@ export const menuItems = pgTable(
         order: integer('order').default(0),
         isActive: boolean('is_active').default(true),
     },
-    (table) => [
-        index('idx_menu_items_type').on(table.menuType),
-        index('idx_menu_items_parent').on(table.parentId),
-        index('idx_menu_items_active').on(table.isActive),
-    ]
+    (table) => ({
+        idxMenuItemsType: index('idx_menu_items_type').on(table.menuType),
+        idxMenuItemsParent: index('idx_menu_items_parent').on(table.parentId),
+        idxMenuItemsActive: index('idx_menu_items_active').on(table.isActive),
+    })
 );
 
 // Type exports

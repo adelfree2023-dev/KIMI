@@ -49,11 +49,11 @@ export const reviews = pgTable(
 
         createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
     },
-    (table) => [
-        index('idx_reviews_product').on(table.productId),
-        index('idx_reviews_approved').on(table.isApproved).where(sql`is_approved = true`),
-        index('idx_reviews_customer').on(table.customerId),
-    ]
+    (table) => ({
+        idxReviewsProduct: index('idx_reviews_product').on(table.productId),
+        idxReviewsApproved: index('idx_reviews_approved').on(table.isApproved).where(sql`is_approved = true`),
+        idxReviewsCustomer: index('idx_reviews_customer').on(table.customerId),
+    })
 );
 
 // Type exports

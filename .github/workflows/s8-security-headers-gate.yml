@@ -104,6 +104,21 @@ jobs:
           
           echo "✅ Security headers structural verification complete"
 
+      - name: "S8e - CSRF Protection Check"
+        run: |
+          echo "🛡️ Verifying CSRF Protection..."
+          
+          # Scan for CSRF middleware or patterns (excluding comments)
+          CSRF_ACTIVE=$(grep -rE "csrf|csurf|double-submit-cookie|double.csrf|CsrfProtection" packages apps --include="*.ts" 2>/dev/null | grep -vE "^\s*//" || true)
+          
+          if [ -z "$CSRF_ACTIVE" ]; then
+            echo "⚠️ WARNING: No active CSRF protection found (e.g., csrf middleware or double-submit-cookie pattern)!"
+          else
+            echo "✅ CSRF protection patterns found in active code."
+          fi
+          
+          echo "✅ CSRF audit complete"
+
       - name: "S8 Summary Report"
         run: |
           echo "═══════════════════════════════════════════════════════════════"

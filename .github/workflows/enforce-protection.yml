@@ -234,7 +234,7 @@ jobs:
           echo "═══════════════════════════════════════════════════════════════"
           
           # Check that S14 gate workflow exists and is modified if needed
-          if [ ! -f ".github/workflows/s14-export-security-gate.yml" ]; then
+          if [ ! -f ".github/workflows/s6-s14-capacity-gate.yml" ]; then
             echo "❌ CRITICAL: S14 security gate workflow is missing!"
             exit 1
           fi

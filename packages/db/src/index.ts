@@ -67,7 +67,9 @@ export async function withTenantConnection<T>(
 
   try {
     // 🔒 S2 Enforcement: Switch to tenant context
-    await client.query(`SET search_path TO "tenant_${tenantId}", public`);
+    // Radical Fix: Sanitize tenantId and use quoted identifiers to prevent SQL injection or path escape
+    const safeTenantId = tenantId.replace(/[^a-z0-9_-]/gi, '');
+    await client.query(`SET search_path TO "tenant_${safeTenantId}", public`);
 
     const db = drizzle(client);
     const result = await operation(db);

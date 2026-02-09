@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import { publicPool, withTenantConnection } from './index';
 import { sql } from 'drizzle-orm';
 
@@ -6,18 +6,17 @@ describe('S2: Tenant Isolation Protocol', () => {
     const tenantAlpha = 'alpha_test';
     const tenantBeta = 'beta_test';
 
-    beforeAll(async () => {
+    beforeEach(async () => {
         // 🔒 S2 CI Guard: Strict environment validation
         const dbUrl = process.env.DATABASE_URL;
         if (!dbUrl || dbUrl.includes('undefined')) {
             console.error("🚨 SECURITY ALERT: Database connection string is invalid or missing password!");
-            console.error("Value found:", dbUrl);
-            process.exit(1); // Stop immediately to prevent false success or vague errors
+            process.exit(1);
         }
 
         try {
             // 🛠️ Setup: Create mock tenant schemas and tables
-            // Radical Fix: Ensure schemas and tables exist or are recreated
+            // Radical Fix: Recreate EVERYTHING before EACH test to ensure isolation
             await publicPool.query(`
                 CREATE SCHEMA IF NOT EXISTS tenant_${tenantAlpha};
                 CREATE SCHEMA IF NOT EXISTS tenant_${tenantBeta};
@@ -28,28 +27,19 @@ describe('S2: Tenant Isolation Protocol', () => {
                 CREATE TABLE tenant_${tenantAlpha}.products (id SERIAL PRIMARY KEY, name TEXT);
                 CREATE TABLE tenant_${tenantBeta}.products (id SERIAL PRIMARY KEY, name TEXT);
                 
-                INSERT INTO tenant_${tenantAlpha}.products (name) VALUES ('Alpha Secret');
-                INSERT INTO tenant_${tenantBeta}.products (name) VALUES ('Beta Secret');
-                
                 -- Ensure tenants exist in the registry for withTenantConnection check
-                -- The global 'tenants' table is created by CI db:push, but we ensure records here
                 DELETE FROM tenants WHERE subdomain IN ('${tenantAlpha}', '${tenantBeta}');
                 INSERT INTO tenants (id, subdomain, name, plan, status) 
                 VALUES (gen_random_uuid(), '${tenantAlpha}', 'Alpha', 'pro', 'active');
                 INSERT INTO tenants (id, subdomain, name, plan, status) 
                 VALUES (gen_random_uuid(), '${tenantBeta}', 'Beta', 'pro', 'active');
+
+                -- 🛡️ Insert clean data for this specific test run
+                INSERT INTO tenant_${tenantAlpha}.products (name) VALUES ('Alpha Secret');
+                INSERT INTO tenant_${tenantBeta}.products (name) VALUES ('Beta Secret');
             `);
         } catch (error: any) {
-            console.error('🚨 S2 Setup Failure: Check DATABASE_URL and Permissions');
-            console.error('Error Details:', error.message);
-
-            if (error.message.includes('SASL')) {
-                console.error('💡 TIP: This is likely a password/SCRAM authentication issue. Ensure POSTGRES_PASSWORD is set.');
-            }
-            if (error.message.includes('permission denied')) {
-                console.error('💡 TIP: The CI database user might lack CREATE SCHEMA permissions.');
-            }
-
+            console.error('🚨 S2 Setup Failure:', error.message);
             throw error;
         }
     });

@@ -3,27 +3,44 @@
   "compilerOptions": {
     "composite": true,
     "outDir": "./dist",
+    "rootDir": ".",
+    "baseUrl": ".",
     "types": [
       "node",
       "bun-types"
     ],
     "declaration": true,
-    "emitDeclarationOnly": true
+    "emitDeclarationOnly": true,
+    "paths": {
+      "@apex/audit": [
+        "../audit/src"
+      ],
+      "@apex/db": [
+        "../db/src"
+      ],
+      "@apex/middleware": [
+        "../middleware/src"
+      ]
+    }
   },
   "include": [
     "src/**/*"
   ],
   "exclude": [
     "node_modules",
-    "dist", "build",
+    "dist",
+    "build",
     "**/*.test.ts"
   ],
   "references": [
     {
-      "path": "../config"
+      "path": "../audit"
     },
     {
-      "path": "../security"
+      "path": "../db"
+    },
+    {
+      "path": "../middleware"
     }
   ]
 }

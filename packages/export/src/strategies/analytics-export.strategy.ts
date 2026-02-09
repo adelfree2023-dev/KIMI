@@ -93,7 +93,7 @@ export class AnalyticsExportStrategy implements ExportStrategy {
         profile: this.name,
         database: {
           tables: ['orders_summary', 'products_performance'],
-          rowCount: ordersResult.rowCount + productsResult.rowCount,
+          rowCount: (ordersResult.rowCount ?? 0) + (productsResult.rowCount ?? 0),
           format: 'csv',
         },
         assets: {
@@ -131,7 +131,7 @@ export class AnalyticsExportStrategy implements ExportStrategy {
       };
     } finally {
       client.release();
-      await Bun.spawn(['rm', '-rf', workDir]).exited.catch(() => {});
+      await Bun.spawn(['rm', '-rf', workDir]).exited.catch(() => { });
     }
   }
 

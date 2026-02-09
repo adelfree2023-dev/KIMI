@@ -62,6 +62,9 @@ export const EnvSchema = z.object({
   // Rate Limiting (S6)
   RATE_LIMIT_TTL: z.string().default('60'),
   RATE_LIMIT_MAX: z.string().default('100'),
+
+  // Tenant Isolation (S2)
+  TENANT_ISOLATION_MODE: z.enum(['strict', 'flexible']).default('strict'),
 });
 
 export type EnvConfig = z.infer<typeof EnvSchema>;

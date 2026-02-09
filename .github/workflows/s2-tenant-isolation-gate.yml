@@ -14,6 +14,8 @@ env:
   MINIO_ACCESS_KEY: test_access_key
   MINIO_SECRET_KEY: test_secret_key
   NODE_ENV: test
+  REDIS_URL: redis://localhost:6379
+  TENANT_ISOLATION_MODE: strict
 
 jobs:
   s2-tenant-isolation-test:

@@ -15,6 +15,7 @@
     "scripts": {
         "build": "cross-env NODE_OPTIONS=--max-old-space-size=8192 tsup",
         "dev": "tsup --watch",
+        "typecheck": "tsc --noEmit",
         "test": "bun test",
         "test:coverage": "bun test --coverage",
         "validate:s1": "bun ../../tools/security-scripts/verify-env-config.ts",

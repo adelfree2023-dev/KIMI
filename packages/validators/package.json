@@ -20,7 +20,7 @@
     "scripts": {
         "build": "cross-env NODE_OPTIONS=--max-old-space-size=8192 tsup",
         "dev": "tsup --watch",
-        "type-check": "tsc --noEmit",
+        "typecheck": "tsc --noEmit",
         "test": "bun test",
         "test:coverage": "bun test --coverage"
     },

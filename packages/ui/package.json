@@ -15,7 +15,9 @@
   },
   "scripts": {
     "build": "tsup src/index.ts --format cjs,esm --dts --external react,react-dom --tsconfig ./tsconfig.json",
-    "dev": "tsup src/index.ts --format cjs,esm --dts --watch --external react --tsconfig ./tsconfig.json"
+    "dev": "tsup src/index.ts --format cjs,esm --dts --watch --external react --tsconfig ./tsconfig.json",
+    "lint": "biome check .",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "react": "^18.0.0",

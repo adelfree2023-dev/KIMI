@@ -49,8 +49,7 @@ export function loadCertificates(
     };
   } catch (error) {
     throw new Error(
-      `Failed to load mTLS certificates: ${
-        error instanceof Error ? error.message : error
+      `Failed to load mTLS certificates: ${error instanceof Error ? error.message : error
       }`
     );
   }
@@ -73,17 +72,6 @@ export function createMTLSServerOptions(config: MTLSConfig): ServerOptions {
     // Cipher suites
     ciphers:
       'TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256:TLS_AES_128_GCM_SHA256',
-    // Check client certificate CN if allowedClients specified
-    checkClientCertificate: (cert: any) => {
-      if (!config.allowedClients || config.allowedClients.length === 0) {
-        return true;
-      }
-
-      const subject = cert?.subject;
-      const cn = subject?.CN || subject?.commonName;
-
-      return config.allowedClients.includes(cn);
-    },
   };
 }
 

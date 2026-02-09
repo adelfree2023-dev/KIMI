@@ -76,7 +76,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     // S5 FIX: In production, ensure no internal details leak
     if (process.env.NODE_ENV === 'production') {
       // Remove any potentially sensitive fields
-      delete (errorResponse as any).stack;
+      (errorResponse as any).stack = undefined;
       // Ensure generic message for 500 errors
       if (statusCode === 500) {
         errorResponse.message = 'Internal server error';
@@ -216,7 +216,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     return `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 
-  private reportToErrorTracking(exception: unknown, requestId: string): void {
+  private reportToErrorTracking(_exception: unknown, requestId: string): void {
     // TODO: Integrate with GlitchTip or Sentry
     // Example:
     // Sentry.captureException(exception, {
@@ -231,11 +231,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
  * Operational: Expected errors (validation, auth, etc.) - 4xx
  * Programming: Bugs (null reference, etc.) - 5xx
  */
-export class OperationalError extends HttpException {
-  constructor(message: string, statusCode: number = HttpStatus.BAD_REQUEST) {
-    super(message, statusCode);
-  }
-}
+export class OperationalError extends HttpException {}
 
 export class ValidationError extends OperationalError {
   constructor(message: string) {

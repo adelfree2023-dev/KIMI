@@ -280,7 +280,7 @@ describe('GlobalExceptionFilter', () => {
       '/app/node_modules/nestjs/core',
     ];
 
-    patterns.forEach((msg) => {
+    for (const msg of patterns) {
       const exception = new HttpException(msg, HttpStatus.BAD_REQUEST);
       filter.catch(exception, mockArgumentsHost);
       expect(mockJson).toHaveBeenCalledWith(
@@ -288,7 +288,7 @@ describe('GlobalExceptionFilter', () => {
           message: 'Invalid request',
         })
       );
-    });
+    }
   });
 
   it('should redact Windows paths in development stack traces', () => {
@@ -364,7 +364,7 @@ describe('GlobalExceptionFilter', () => {
 
 describe('OperationalError', () => {
   it('should be instance of HttpException', () => {
-    const error = new OperationalError('Ops error');
+    const error = new OperationalError('Ops error', HttpStatus.BAD_REQUEST);
     expect(error).toBeInstanceOf(HttpException);
     expect(error.getStatus()).toBe(HttpStatus.BAD_REQUEST);
   });

@@ -15,7 +15,7 @@
     "scripts": {
         "build": "tsup",
         "dev": "tsup --watch",
-        "type-check": "tsc --noEmit",
+        "typecheck": "tsc --noEmit",
         "test": "bun test"
     },
     "dependencies": {

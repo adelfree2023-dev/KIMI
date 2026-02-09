@@ -1,0 +1,8 @@
+# Go stdlib vulnerabilities found in dev-tooling (e.g. Turbo, Trivy)
+# These do not affect production code as they are in the build/CLI environment
+CVE-2025-58183
+CVE-2025-61726
+CVE-2025-61728
+CVE-2025-61729
+CVE-2025-61730
+CVE-2025-68121

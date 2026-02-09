@@ -9,6 +9,7 @@
     "test": "vitest run",
     "test:cov": "vitest run --coverage",
     "lint": "biome check .",
+    "typecheck": "tsc --noEmit",
     "cli": "bun run src/cli/provision.ts"
   },
   "dependencies": {

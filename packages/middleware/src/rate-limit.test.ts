@@ -141,7 +141,7 @@ describe('RateLimitGuard', () => {
   });
 
   it('should handle missing IP and unidentified caller', async () => {
-    delete mockRequest.ip;
+    mockRequest.ip = undefined;
     mockRequest.headers = {};
     const result = await guard.canActivate(mockContext);
     expect(result).toBe(true);
@@ -246,7 +246,7 @@ describe('RedisRateLimitStore Branches', () => {
   });
 
   it('should return null if already connecting', async () => {
-    store['connecting'] = true;
+    store.connecting = true;
     const client = await store.getClient();
     expect(client).toBeNull();
   });

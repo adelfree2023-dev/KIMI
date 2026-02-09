@@ -3,7 +3,7 @@
  * S2 Protocol: Tenant Isolation
  */
 
-import { publicDb, tenants } from '@apex/db';
+import { publicDb } from '@apex/db';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { tenantStorage } from './connection-context.js';
 import {
@@ -28,7 +28,7 @@ vi.mock('@apex/db', () => ({
 // Mock connection-context
 vi.mock('./connection-context.js', () => ({
   tenantStorage: {
-    run: vi.fn((context, callback) => callback()),
+    run: vi.fn((_context, callback) => callback()),
   },
 }));
 

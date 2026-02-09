@@ -122,7 +122,7 @@ export class TenantIsolationMiddleware implements NestMiddleware {
 
         next();
       });
-    } catch (error) {
+    } catch (_error) {
       throw new UnauthorizedException(`Invalid tenant: ${subdomain}`);
     }
   }

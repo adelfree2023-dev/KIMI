@@ -136,27 +136,26 @@ export class RedisRateLimitStore {
       }
 
       return { count, ttl };
-    } else {
-      // Memory fallback (single instance only) - non-production only
-      const now = Date.now();
-      const existing = this.memoryStore.get(key);
-
-      if (!existing || now > existing.resetTime) {
-        const newRecord = {
-          count: 1,
-          resetTime: now + windowMs,
-          violations: 0,
-        };
-        this.memoryStore.set(key, newRecord);
-        return { count: 1, ttl: Math.ceil(windowMs / 1000) };
-      }
-
-      existing.count++;
-      return {
-        count: existing.count,
-        ttl: Math.ceil((existing.resetTime - now) / 1000),
-      };
     }
+    // Memory fallback (single instance only) - non-production only
+    const now = Date.now();
+    const existing = this.memoryStore.get(key);
+
+    if (!existing || now > existing.resetTime) {
+      const newRecord = {
+        count: 1,
+        resetTime: now + windowMs,
+        violations: 0,
+      };
+      this.memoryStore.set(key, newRecord);
+      return { count: 1, ttl: Math.ceil(windowMs / 1000) };
+    }
+
+    existing.count++;
+    return {
+      count: existing.count,
+      ttl: Math.ceil((existing.resetTime - now) / 1000),
+    };
   }
 
   async getViolations(key: string): Promise<number> {
@@ -166,10 +165,9 @@ export class RedisRateLimitStore {
     if (client) {
       const violations = await client.get(violationKey);
       return violations ? parseInt(violations, 10) : 0;
-    } else {
-      const record = this.memoryStore.get(key);
-      return record?.violations || 0;
     }
+    const record = this.memoryStore.get(key);
+    return record?.violations || 0;
   }
 
   async incrementViolations(
@@ -184,19 +182,18 @@ export class RedisRateLimitStore {
       // Set expiry for violation counter (longer than rate limit window)
       await client.expire(violationKey, Math.ceil(blockDurationMs / 1000) * 5);
       return violations;
-    } else {
-      const record = this.memoryStore.get(key);
-      if (record) {
-        record.violations++;
-        return record.violations;
-      }
-      return 1;
     }
+    const record = this.memoryStore.get(key);
+    if (record) {
+      record.violations++;
+      return record.violations;
+    }
+    return 1;
   }
 
   async isBlocked(
     key: string,
-    blockDurationMs: number
+    _blockDurationMs: number
   ): Promise<{ blocked: boolean; retryAfter: number }> {
     const blockKey = `${key}:blocked`;
     const client = await this.getClient();
@@ -207,18 +204,17 @@ export class RedisRateLimitStore {
         return { blocked: true, retryAfter: ttl };
       }
       return { blocked: false, retryAfter: 0 };
-    } else {
-      const record = this.memoryStore.get(key);
-      if (record && record.violations >= 5) {
-        const now = Date.now();
-        const blocked = now < record.resetTime;
-        return {
-          blocked,
-          retryAfter: blocked ? Math.ceil((record.resetTime - now) / 1000) : 0,
-        };
-      }
-      return { blocked: false, retryAfter: 0 };
     }
+    const record = this.memoryStore.get(key);
+    if (record && record.violations >= 5) {
+      const now = Date.now();
+      const blocked = now < record.resetTime;
+      return {
+        blocked,
+        retryAfter: blocked ? Math.ceil((record.resetTime - now) / 1000) : 0,
+      };
+    }
+    return { blocked: false, retryAfter: 0 };
   }
 
   async block(key: string, blockDurationMs: number): Promise<void> {

@@ -19,7 +19,8 @@
     "db:migrate": "bun src/migrate.ts",
     "db:studio": "drizzle-kit studio",
     "test": "vitest run",
-    "lint": "biome check ."
+    "lint": "biome check .",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@apex/config": "workspace:*",

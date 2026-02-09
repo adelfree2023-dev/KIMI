@@ -17,7 +17,9 @@
     "build": "cross-env NODE_OPTIONS=--max-old-space-size=8192 tsup src/index.ts --format cjs,esm --dts --tsconfig ./tsconfig.json",
     "dev": "tsup src/index.ts --format cjs,esm --dts --watch --tsconfig ./tsconfig.json",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "lint": "biome check .",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "zod": "^3.22.4"

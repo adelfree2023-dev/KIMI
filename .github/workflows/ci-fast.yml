@@ -88,7 +88,7 @@ jobs:
           echo "🔍 Checking for unauthorized public. schema references..."
           # Debug: show all matches first
           echo "All matches:"
-          grep -rn "public\." packages/db/src --include="*.ts" --exclude="*.test.ts" --exclude="*.spec.ts"
+          grep -rn "public\." packages/db/src --include="*.ts" --exclude="*.test.ts" --exclude="*.spec.ts" || echo "Zero matches"
           
           # Look for actual schema references like "public.table_name" 
           # Exclude: audit_logs (S4 exception), comments, search_path uses
@@ -100,7 +100,7 @@ jobs:
             grep -vE "search_path.*public" | \
             grep -v "getTenantTableName" | \
             grep -v "tenant_" | \
-            head -5)
+            head -5 || true)
           if [ -n "$violations" ]; then
             echo "❌ S1 Violation: Found unauthorized 'public.' schema references:"
             echo "$violations"

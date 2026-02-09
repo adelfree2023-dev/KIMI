@@ -49,16 +49,14 @@ jobs:
       - name: "S2.1 - Programmatic Isolation Test"
         run: |
           echo "🧪 Running Vitest S2 isolation tests..."
-          # This runs the new packages/db/src/s2-isolation.test.ts
-          bun run test s2-isolation.test.ts
+          # Radical Fix: Explicitly pass DATABASE_URL to the process
+          DATABASE_URL=$DATABASE_URL bun test s2-isolation.test.ts
         working-directory: packages/db
         env:
-          DATABASE_URL: ${{ env.DATABASE_URL }}
-          POSTGRES_USER: test
+          DATABASE_URL: postgresql://test:test@localhost:5432/test
           POSTGRES_PASSWORD: test
-          POSTGRES_DB: test
-          JWT_SECRET: ${{ env.JWT_SECRET }}
           NODE_ENV: test
+          JWT_SECRET: test_secret_key_for_ci_environment_only_32
 
       - name: "S2.2 - Surgical Public Schema Audit"
         run: |

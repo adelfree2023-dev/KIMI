@@ -7,9 +7,12 @@ describe('S2: Tenant Isolation Protocol', () => {
     const tenantBeta = 'beta_test';
 
     beforeAll(async () => {
-        // 🔒 S2 CI Guard: Ensure database connection is configured
-        if (!process.env.DATABASE_URL) {
-            throw new Error('S2 Violation: DATABASE_URL is not defined in the environment. Check CI configuration.');
+        // 🔒 S2 CI Guard: Strict environment validation
+        const dbUrl = process.env.DATABASE_URL;
+        if (!dbUrl || dbUrl.includes('undefined')) {
+            console.error("🚨 SECURITY ALERT: Database connection string is invalid or missing password!");
+            console.error("Value found:", dbUrl);
+            process.exit(1); // Stop immediately to prevent false success or vague errors
         }
 
         try {

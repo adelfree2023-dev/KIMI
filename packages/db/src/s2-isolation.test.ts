@@ -30,11 +30,11 @@ describe('S2: Tenant Isolation Protocol', () => {
                 -- Ensure tenants exist in the registry for withTenantConnection check
                 DELETE FROM tenants WHERE subdomain IN ('${tenantAlpha}', '${tenantBeta}');
                 
-                -- S2 Radical Seeding Fix: Use hardcoded UUIDs to ensure registry presence
+                -- S2 Radical Seeding Fix: Use hardcoded UUIDs and handle conflict
                 INSERT INTO tenants (id, subdomain, name, plan, status) 
-                VALUES ('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', '${tenantAlpha}', 'Alpha', 'pro', 'active');
-                INSERT INTO tenants (id, subdomain, name, plan, status) 
-                VALUES ('b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a22', '${tenantBeta}', 'Beta', 'pro', 'active');
+                VALUES ('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', '${tenantAlpha}', 'Alpha', 'pro', 'active'),
+                       ('b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a22', '${tenantBeta}', 'Beta', 'pro', 'active')
+                ON CONFLICT (id) DO UPDATE SET subdomain = EXCLUDED.subdomain, status = 'active';
 
                 -- 🛡️ Insert clean data for this specific test run
                 INSERT INTO tenant_${tenantAlpha}.products (name) VALUES ('Alpha Secret');

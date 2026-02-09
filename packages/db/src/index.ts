@@ -39,8 +39,8 @@ async function verifyTenantExists(tenantId: string): Promise<boolean> {
     // S1: safe - Querying tenants table via publicPool which uses public schema
     // This is required for S2 tenant isolation verification
     const result = await publicPool.query(
-      'SELECT 1 FROM tenants WHERE id = $1 OR subdomain = $2 LIMIT 1',
-      [tenantId, tenantId]
+      'SELECT 1 FROM tenants WHERE id::text = $1 OR subdomain = $1 LIMIT 1',
+      [tenantId]
     );
     return (result.rowCount ?? 0) > 0;
   } catch {

@@ -10,13 +10,13 @@ export function Footer() {
             © 2026 Apex v2. All rights reserved.
           </p>
           <div className="mt-4 flex space-x-6 md:mt-0">
-            <a href="#" className="text-gray-400 hover:text-white">
+            <a href="/privacy" className="text-gray-400 hover:text-white">
               Privacy
             </a>
-            <a href="#" className="text-gray-400 hover:text-white">
+            <a href="/terms" className="text-gray-400 hover:text-white">
               Terms
             </a>
-            <a href="#" className="text-gray-400 hover:text-white">
+            <a href="/contact" className="text-gray-400 hover:text-white">
               Contact
             </a>
           </div>

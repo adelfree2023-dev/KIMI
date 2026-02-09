@@ -187,56 +187,30 @@ jobs:
           echo "✅ S9: Advanced dependency scan completed"
 
       # ═══════════════════════════════════════════════════════════════════════
-      # S10: ADVANCED SECRET DETECTION & FORENSICS
+      # S10: ADVANCED SECRET DETECTION (HARDENED)
       # ═══════════════════════════════════════════════════════════════════════
-      - name: "S10 - Advanced Secret Detection"
+      - name: "S10a - Gitleaks Scan"
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: "S10b - Secondary Secret & Env Scan"
         run: |
           echo "═══════════════════════════════════════════════════════════════════"
-          echo "  S10: ADVANCED SECRET DETECTION & FORENSIC ANALYSIS"
+          echo "  S10b: SECONDARY SECRET & ENV SCAN"
           echo "═══════════════════════════════════════════════════════════════════"
-          
-          # Install gitleaks
-          echo "[*] Installing Gitleaks..."
-          wget -q https://github.com/gitleaks/gitleaks/releases/download/v8.18.2/gitleaks_8.18.2_linux_x64.tar.gz
-          tar -xzf gitleaks_8.18.2_linux_x64.tar.gz
-          
-          # Run gitleaks on full git history
-          echo "[*] Running Gitleaks on full git history..."
-          ./gitleaks detect --source . --verbose --redact || true
-          
-          # Deep entropy-based secret detection
-          echo "[*] Running entropy-based secret detection..."
-          ENTROPY_PATTERNS='[a-zA-Z0-9]{32,64}|[A-Za-z0-9+/]{40,}={0,2}'
-          HIGH_ENTROPY=$(grep -rE "$ENTROPY_PATTERNS" packages apps --include="*.ts" --include="*.js" --include="*.json" --include="*.yml" --include="*.yaml" 2>/dev/null | \
-            grep -v "node_modules" | \
-            grep -v "package-lock" | \
-            grep -v "bun.lock" | \
-            grep -v "tsconfig" | \
-            head -20 || true)
-          
-          if [ -n "$HIGH_ENTROPY" ]; then
-            echo "⚠️  HIGH ENTROPY STRINGS DETECTED (potential secrets):"
-            echo "$HIGH_ENTROPY"
-          fi
           
           # Check for hardcoded credentials patterns
           echo "[*] Scanning for hardcoded credentials..."
           CRED_PATTERNS="(password|passwd|pwd|secret|token|api_key|apikey)\s*[=:]\s*['\"][^'\"]{8,}['\"]"
           HARDCODED=$(grep -riE "$CRED_PATTERNS" packages apps --include="*.ts" --include="*.tsx" --include="*.js" 2>/dev/null | \
-            grep -v "test" | \
-            grep -v "spec" | \
-            grep -v "example" | \
-            grep -v "placeholder" | \
-            grep -v "process.env" | \
-            grep -v "IS_PUBLIC_KEY" | \
-            grep -v "RATE_LIMIT_KEY" | \
-            grep -v "seeder" | \
-            grep -v "dto" | \
-            grep -v ".spec." || true)
+            grep -vE "(test|spec|example|placeholder|process\.env|IS_PUBLIC_KEY|RATE_LIMIT_KEY|seeder|dto)" || true)
           
           if [ -n "$HARDCODED" ]; then
-            echo "🚨 CRITICAL: Potential hardcoded credentials found:"
-            echo "$HARDCODED"
+            echo "🚨 CRITICAL: Potential hardcoded credentials found!"
+            # We don't print $HARDCODED directly if it might contain secrets, but usually
+            # the matched line is needed for debugging. However, to be safe:
+            echo "    [!] Found matches in files (check locally to avoid log leakage)."
             echo "❌ S10 FAILED: Hardcoded credentials detected!"
             exit 1
           fi
@@ -245,20 +219,13 @@ jobs:
           echo "[*] Checking for exposed .env files..."
           ENV_FILES=$(find . -name ".env*" -type f ! -path "./.git/*" ! -path "./node_modules/*" 2>/dev/null || true)
           if [ -n "$ENV_FILES" ]; then
-            echo "⚠️  .env files found in repository:"
+            echo "🚨 FAIL: .env files found in repository!"
             echo "$ENV_FILES"
-            for f in $ENV_FILES; do
-              if [ -f "$f" ]; then
-                REAL_SECRETS=$(grep -E "^(AWS_|DATABASE_URL|JWT_SECRET|API_KEY|PASSWORD|SECRET)" "$f" 2>/dev/null | head -5 || true)
-                if [ -n "$REAL_SECRETS" ]; then
-                  echo "🚨 REAL SECRETS in $f:"
-                  echo "$REAL_SECRETS"
-                fi
-              fi
-            done
+            echo "❌ S10 FAILED: Exposed environment files detected!"
+            exit 1
           fi
           
-          echo "✅ S10: Advanced secret detection completed"
+          echo "✅ S10: Hardened secret detection completed"
 
       # ═══════════════════════════════════════════════════════════════════════
       # S11: ACTIVE ORM COMPLIANCE & ARCHITECTURAL GATES

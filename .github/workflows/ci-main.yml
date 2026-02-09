@@ -110,7 +110,6 @@ jobs:
         with:
           bun-version: latest
           cache: true
-          cache: true
 
       - name: Install Dependencies
         run: bun install

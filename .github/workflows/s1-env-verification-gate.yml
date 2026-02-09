@@ -42,7 +42,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITLEAKS_ENABLE_COMMENTS: 'false'
 
-      - name: "S1.2 - Hardcoded Credentials Scan"
+      - name: "S1.2 - Hardcoded Credentials & Secret Strength Scan"
         run: |
           echo "🔍 Scanning for hardcoded credentials (Surgical)..."
           
@@ -58,8 +58,22 @@ jobs:
             echo "$HARDCODED"
             exit 1
           fi
+
+          echo "🔐 S1.2: Hardcoded credentials check passed"
+
+          echo "🔍 Verifying JWT_SECRET length (Min 32 chars)..."
+          # Check JWT_SECRET in .env.example
+          if [ -f ".env.example" ]; then
+            JWT_VAL=$(grep "^JWT_SECRET=" .env.example | cut -d= -f2 | tr -d '"' | tr -d "'")
+            JWT_LEN=${#JWT_VAL}
+            echo "Found JWT_SECRET with length: $JWT_LEN"
+            if [ $JWT_LEN -lt 32 ]; then
+              echo "🚨 CRITICAL: JWT_SECRET in .env.example is too short (Found: $JWT_LEN, Min: 32)!"
+              exit 1
+            fi
+          fi
           
-          echo "✅ S1.2: No hardcoded credentials found"
+          echo "✅ S1.2: JWT Secret strength verified"
 
       - name: "S1.3 - Environment vs Schema Consistency"
         run: |
@@ -78,6 +92,15 @@ jobs:
           fi
           
           echo "✅ S1.4: No .env files committed"
+
+      - name: "S1.5 - Dependency Vulnerability Audit (Bun Audit)"
+        run: |
+          echo "🔍 Running supply chain security audit..."
+          bun audit || {
+            echo "❌ S1.5 FAILED: Known security vulnerabilities detected in dependencies!"
+            exit 1
+          }
+          echo "✅ S1.5: Dependency audit passed"
 
       - name: S1 Final Report
         if: always()

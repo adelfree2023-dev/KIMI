@@ -10,7 +10,11 @@ permissions:
 env:
   DATABASE_URL: postgresql://test:test@localhost:5432/test
   JWT_SECRET: test_secret_key_for_ci_environment_only_32
+  MINIO_ENDPOINT: localhost
+  MINIO_ACCESS_KEY: test_access_key
+  MINIO_SECRET_KEY: test_secret_key
   NODE_ENV: test
+  ENABLE_S1_ENFORCEMENT: "false"
 
 jobs:
   s2-tenant-isolation-test:

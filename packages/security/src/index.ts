@@ -31,3 +31,14 @@ export {
   type SecretRotationEvent,
   type RotationListener,
 } from './secrets/index.js';
+
+// Encryption Module (S7)
+export {
+  EncryptionService,
+  encrypt,
+  decrypt,
+  hashApiKey,
+  generateApiKey,
+  maskSensitive,
+  type EncryptedData,
+} from './encryption.js';

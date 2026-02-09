@@ -103,6 +103,7 @@
         "@apex/config": "workspace:*",
         "@apex/db": "workspace:*",
         "@apex/middleware": "workspace:*",
+        "@apex/security": "workspace:*",
         "@nestjs/common": "^10.0.0",
         "@nestjs/jwt": "^10.2.0",
         "@nestjs/passport": "^10.0.0",
@@ -140,8 +141,8 @@
       "name": "@apex/db",
       "version": "1.0.0",
       "dependencies": {
-        "@apex/auth": "workspace:*",
         "@apex/config": "workspace:*",
+        "@apex/security": "workspace:*",
         "drizzle-orm": "^0.29.0",
         "pg": "^8.11.0",
         "zod": "^3.22.4",

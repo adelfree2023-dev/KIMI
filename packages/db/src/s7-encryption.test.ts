@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { publicPool } from './index';
-import { EncryptionService } from '@apex/auth';
+import { EncryptionService } from '@apex/security';
 
 describe('S7: Encryption at Rest Protocol', () => {
     let encryptionService: EncryptionService;

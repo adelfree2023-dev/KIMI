@@ -1,7 +1,7 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "composite": true,
+    "composite": false,
     "outDir": "./dist",
     "rootDir": ".",
     "baseUrl": ".",
@@ -10,7 +10,6 @@
       "bun-types"
     ],
     "declaration": true,
-    "emitDeclarationOnly": true,
     "paths": {
       "@apex/audit": [
         "../audit/src"

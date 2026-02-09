@@ -93,7 +93,7 @@ describe('ExportService Tests', () => {
 
     beforeEach(() => {
       mockAudit = {
-        log: async () => {},
+        log: async () => { },
       };
 
       // Reset DB mock to default
@@ -116,8 +116,12 @@ describe('ExportService Tests', () => {
         release: vi.fn(),
       } as any);
 
+      const mockTenantRegistry = {
+        exists: vi.fn().mockImplementation(async (id) => id !== 'non-existent-tenant'),
+      } as any;
+
       const factory = new ExportStrategyFactory(
-        new LiteExportStrategy(),
+        new LiteExportStrategy(mockTenantRegistry),
         new NativeExportStrategy(),
         new AnalyticsExportStrategy()
       );
@@ -307,7 +311,10 @@ describe('ExportService Tests', () => {
               stat: vi.fn().mockResolvedValue({ size: 100 }),
             }),
           });
-          strategy = new LiteExportStrategy();
+          const mockTenantRegistry = {
+            exists: vi.fn().mockResolvedValue(true),
+          } as any;
+          strategy = new LiteExportStrategy(mockTenantRegistry);
         });
 
         it('should enforce row count limit (100K)', async () => {

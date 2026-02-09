@@ -58,6 +58,8 @@ jobs:
           ENCRYPTION_MASTER_KEY: ValidTestKey32CharsWith1$!Abc1234
           NODE_ENV: test
           JWT_SECRET: test_secret_key_for_ci_environment_only_32
+          MINIO_ACCESS_KEY: test_access_key
+          MINIO_SECRET_KEY: test_secret_key
 
       - name: "S7.2 - Surgical Pattern Scan"
         run: |

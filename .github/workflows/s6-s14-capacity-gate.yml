@@ -60,10 +60,12 @@ jobs:
 
       - name: "S6.3 - Active Throttling Stress Test"
         run: bun run tools/security-scripts/simulate-ddos-check.ts
+        timeout-minutes: 2
         env:
           REDIS_URL: redis://localhost:6379
           MAX_REQUESTS: 10
           DATABASE_URL: postgresql://test:test@localhost:5432/test
+          JWT_SECRET: test_secret_key_for_ci_environment_only_32
 
       # ═══════════════════════════════════════════════════════════════
       # S14: EXPORT SECURITY (Structural Scans)

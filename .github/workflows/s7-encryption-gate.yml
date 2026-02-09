@@ -46,7 +46,7 @@ jobs:
         run: |
           echo "🧪 Running Vitest encryption storage tests..."
           # This runs the new packages/db/src/s7-encryption.test.ts
-          bun run test --filter s7-encryption.test.ts
+          bun run test s7-encryption.test.ts
         working-directory: packages/db
 
       - name: "S7.2 - Surgical Pattern Scan"

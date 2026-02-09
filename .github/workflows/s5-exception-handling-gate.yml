@@ -28,7 +28,7 @@ jobs:
         run: |
           echo "🧪 Running Vitest exception filter safety tests..."
           # This runs the existing packages/middleware/src/exception-filter.test.ts
-          bun run test --filter exception-filter.test.ts
+          bun run test exception-filter.test.ts
         working-directory: packages/middleware
 
       - name: "S5.2 - Surgical Leak Scan"

@@ -46,7 +46,7 @@ jobs:
         run: |
           echo "🧪 Running Vitest S2 isolation tests..."
           # This runs the new packages/db/src/s2-isolation.test.ts
-          bun run test --filter s2-isolation.test.ts
+          bun run test s2-isolation.test.ts
         working-directory: packages/db
 
       - name: "S2.2 - Surgical Public Schema Audit"

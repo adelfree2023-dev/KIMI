@@ -18,10 +18,8 @@
       "bun-types",
       "express"
     ],
-    /* 1. تفعيل الـ Decorators عشان NestJS */
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    /* 2. تعريف المسارات (أهم جزء لحل الأخطاء) */
     "baseUrl": ".",
     "paths": {
       "@apex/audit": [
@@ -67,7 +65,8 @@
   },
   "exclude": [
     "node_modules",
-    "dist", "build"
+    "dist",
+    "build"
   ],
   "references": [
     {

@@ -16,7 +16,12 @@
     "typecheck": "turbo run typecheck",
     "cli": "cd apps/api && bun run cli",
     "db:push": "echo 'No migrations to push'",
-    "postinstall": "echo 'Run: bun install'"
+    "postinstall": "echo 'Run: bun install'",
+    "security:validate:s1": "cd packages/template-security && bun run validate:s1",
+    "security:scan:patterns": "cd packages/template-security && bun run scan:patterns",
+    "security:report:orchestrate": "cd packages/template-security && bun run report:orchestrate",
+    "security:score:calculate": "cd packages/template-security && bun run security:score:calculate",
+    "report:orchestrate": "cd packages/template-security && bun run report:orchestrate"
   },
   "devDependencies": {
     "@biomejs/biome": "1.5.3",

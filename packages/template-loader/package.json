@@ -1,0 +1,36 @@
+{
+    "name": "@apex/template-loader",
+    "version": "1.0.0",
+    "description": "Dynamic, tenant-aware template loading for Apex v2",
+    "main": "./dist/index.js",
+    "module": "./dist/index.mjs",
+    "types": "./dist/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.mjs",
+            "require": "./dist/index.js"
+        }
+    },
+    "scripts": {
+        "build": "tsup",
+        "dev": "tsup --watch",
+        "type-check": "tsc --noEmit",
+        "test": "bun test"
+    },
+    "dependencies": {
+        "react": "^18.2.0",
+        "zod": "^3.22.4",
+        "@apex/config": "workspace:*",
+        "@apex/audit": "workspace:*"
+    },
+    "devDependencies": {
+        "@types/bun": "latest",
+        "@types/react": "^18.2.0",
+        "tsup": "^8.0.1",
+        "typescript": "^5.3.3"
+    },
+    "peerDependencies": {
+        "react": ">=18.0.0"
+    }
+}

@@ -1,7 +1,7 @@
 name: "🔐 S1 Environment Verification Gate"
 
 on:
-  workflow_call: # Only called by aggregator to avoid duplicates
+  workflow_call:
 
 permissions:
   contents: read
@@ -17,107 +17,63 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Full history needed for Gitleaks
+          fetch-depth: 0
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v1
         with:
           bun-version: latest
 
-      - name: Check for Secrets in Code (Gitleaks)
+      - name: Install Dependencies
+        run: bun install
+
+      - name: "S1.1 - Secret Detection (Gitleaks)"
         uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE || 'free' }}
           GITLEAKS_ENABLE_COMMENTS: 'false'
 
-      - name: Verify Environment Variables Structure
+      - name: "S1.2 - Hardcoded Credentials Scan"
         run: |
-          echo "🔍 Verifying environment variable patterns..."
+          echo "🔍 Scanning for hardcoded credentials (Surgical)..."
+          
+          # Detect password/secret assignments in strings (active code only)
+          # Excludes comments, tests, and explicit safe marks
+          HARDCODED=$(grep -rnE "(password|secret|apiKey|token)\s*=\s*['\"][^'\"]+['\"]" packages/*/src apps/*/src \
+            --include="*.ts" 2>/dev/null | \
+            grep -vE "^\s*//" | \
+            grep -vE "(\.test\.|\.spec\.|// S1: safe)" || true)
 
-          # Check that sensitive vars use process.env, not hardcoded
-          HARDCODED_SECRETS=$(grep -rn "password.*=.*['\"]" packages/*/src apps/*/src --include="*.ts" 2>/dev/null | \
-            grep -v "\.test\." | \
-            grep -v "\.spec\." | \
-            grep -v "// S1: safe" || echo "")
-
-          if [ -n "$HARDCODED_SECRETS" ]; then
-            echo "🚨 WARNING: Potential hardcoded credentials detected"
-            echo "$HARDCODED_SECRETS"
-          else
-            echo "✅ No hardcoded credentials found"
-          fi
-
-      - name: Verify Config Package Exports
-        run: |
-          echo "🔍 Checking @apex/config package..."
-
-          if [ ! -f "packages/config/src/index.ts" ]; then
-            echo "❌ Config package not found"
+          if [ -n "$HARDCODED" ]; then
+            echo "🚨 CRITICAL: Hardcoded credentials found in active code!"
+            echo "$HARDCODED"
             exit 1
           fi
+          
+          echo "✅ S1.2: No hardcoded credentials found"
 
-          # Verify config exports environment validation
-          if ! grep -q "process\.env" packages/config/src/index.ts; then
-            echo "⚠️ WARNING: Config package may not be reading environment variables"
-          else
-            echo "✅ Config package uses environment variables"
-          fi
-
-      - name: Check for .env Files (Should Not Be Committed)
+      - name: "S1.3 - Environment vs Schema Consistency"
         run: |
-          echo "🔍 Checking for committed .env files..."
+          echo "🔍 Verifying .env.example vs @apex/config schema..."
+          bun run tools/security-scripts/verify-env-config.ts
 
-          # .env files should NOT be in git (only .env.example is allowed)
-          ENV_FILES=$(find . -name ".env" -not -path "*/node_modules/*" 2>/dev/null || echo "")
+      - name: "S1.4 - Forbidden .env Commits"
+        run: |
+          echo "🔍 Checking for illegally committed .env files..."
+          ENV_FILES=$(find . -name ".env" -not -path "*/node_modules/*" 2>/dev/null || true)
 
           if [ -n "$ENV_FILES" ]; then
             echo "🚨 CRITICAL: .env files found in repository!"
             echo "$ENV_FILES"
-            echo "These files should be in .gitignore"
             exit 1
           fi
+          
+          echo "✅ S1.4: No .env files committed"
 
-          echo "✅ No .env files committed to repository"
-
-      - name: Report Failure
-        if: failure()
+      - name: S1 Final Report
+        if: always()
         run: |
-          echo "═══════════════════════════════════════════════════════════════"
-          echo "🚨 S1 ENVIRONMENT VERIFICATION GATE FAILED"
-          echo "═══════════════════════════════════════════════════════════════"
-          echo "❌ CRITICAL: Environment security violations detected!"
           echo ""
-          echo "📋 S1 Protocol Violation Details:"
-          echo "   - Secrets leaked in code or committed .env files"
-          echo "   - Or hardcoded credentials found"
-          echo "   - Risk: Credential exposure"
-          echo ""
-          echo "🔒 Security Impact:"
-          echo "   - CRITICAL: API keys, passwords may be exposed"
-          echo "   - HIGH: Security breach via source code"
-          echo ""
-          echo "📝 Action Required:"
-          echo "   1. Remove all secrets from code"
-          echo "   2. Use environment variables via @apex/config"
-          echo "   3. Add .env to .gitignore"
-          echo "   4. Rotate any exposed credentials"
-          echo ""
-          echo "🛑 Build rejected. Fix S1 violation before merging."
-          exit 1
-
-      - name: Report Success
-        if: success()
-        run: |
-          echo "═══════════════════════════════════════════════════════════════"
-          echo "✅ S1 ENVIRONMENT VERIFICATION GATE PASSED"
-          echo "═══════════════════════════════════════════════════════════════"
-          echo ""
-          echo "All environment security checks passed:"
-          echo "  ✓ No secrets leaked (Gitleaks scan clean)"
-          echo "  ✓ No hardcoded credentials"
-          echo "  ✓ No .env files committed"
-          echo "  ✓ Config package properly configured"
-          echo ""
-          echo "🔐 Environment security validated"
-          echo "═══════════════════════════════════════════════════════════════"
+          echo "╔═══════════════════════════════════════════════════════════════╗"
+          echo "║           S1 ENVIRONMENT VERIFICATION COMPLETE                ║"
+          echo "╚═══════════════════════════════════════════════════════════════╝"

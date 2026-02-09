@@ -54,7 +54,11 @@ To be eligible for a bounty:
 
 ## 📋 Reporting a Vulnerability
 
-### Via HackerOne (Preferred)
+### Via GitHub (Recommended)
+We have enabled **GitHub Private Vulnerability Reporting**. 
+Please use the **"Report a vulnerability"** button located under the **Security** tab of this repository. This creates a private draft security advisory that only our core security team can see.
+
+### Via HackerOne
 Submit reports at: [https://hackerone.com/60sec-shop](https://hackerone.com/60sec-shop) *(when active)*
 
 ### Via Email

@@ -10,3 +10,9 @@ export {
   logSecurityEvent,
   query,
 } from './audit.service.js';
+
+export {
+  AuditLog,
+  type AuditLogOptions,
+  AUDIT_LOG_METADATA_KEY,
+} from './audit.decorator.js';

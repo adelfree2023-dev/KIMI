@@ -29,8 +29,8 @@ jobs:
           TITLE="${{ github.event.issue.title }}"
           BODY="${{ github.event.issue.body }}"
           
-          # Keywords that indicate actual vulnerability
-          VULN_KEYWORDS="vulnerability|exploit|RCE|SQL injection|XSS|bypass|leak|breach"
+          # Keywords that indicate actual vulnerability (Surgical)
+          VULN_KEYWORDS="vulnerability|exploit|RCE|SQL injection|XSS|bypass|leak|breach|unauthorized|PII|credential|CVE|0day"
           
           if echo "$TITLE $BODY" | grep -iE "$VULN_KEYWORDS"; then
             echo "🚨 POTENTIAL VULNERABILITY DISCLOSED PUBLICLY!"
@@ -40,7 +40,7 @@ jobs:
             echo "needs_closing=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Auto-close public vulnerability reports
+      - name: Redirect to Private Vulnerability Reporting
         if: steps.triage.outputs.needs_closing == 'true'
         uses: actions/github-script@v7
         with:
@@ -53,12 +53,9 @@ jobs:
               
               Thank you for your report. However, **please do not disclose security vulnerabilities publicly**.
               
-              Please follow our responsible disclosure process:
+              We have enabled **GitHub Private Vulnerability Reporting**. Please use the "Report a vulnerability" button in the **Security** tab of this repository to submit your findings privately.
               
-              📧 **Email**: security@60sec.shop
-              🐛 **HackerOne**: https://hackerone.com/60sec-shop
-              
-              See our [Security Policy](https://github.com/${{ github.repository }}/blob/main/SECURITY.md) for details.
+              For more details, see our [Security Policy](https://github.com/${{ github.repository }}/blob/main/SECURITY.md).
               
               This issue will be closed to prevent public disclosure.`
             });

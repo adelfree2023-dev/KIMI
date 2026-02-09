@@ -3,7 +3,7 @@
  * Exposed API for Super Admins to create new store environments
  */
 
-import { AuditService } from '@apex/audit';
+import { AuditLog, AuditService } from '@apex/audit';
 import {
   Body,
   Controller,
@@ -31,6 +31,7 @@ export class ProvisioningController {
    * POST /api/provision
    * Core engine endpoint to create a 60-second store
    */
+  @AuditLog({ action: 'TENANT_PROVISIONED', entityType: 'tenant' })
   @Post()
   @HttpCode(HttpStatus.CREATED)
   async provisionStore(@Body() dto: ProvisionRequestDto) {

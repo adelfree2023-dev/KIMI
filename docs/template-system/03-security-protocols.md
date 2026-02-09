@@ -1,11 +1,11 @@
 # 🔐 Template Security Protocols
-*S1-S9 Compliance Checklist for Storefront Templates*
+*S1-S14 Compliance Checklist for Elite Security Gates*
 
 ---
 
 ## 🎯 Purpose
 
-Every storefront template MUST comply with all security protocols defined in [architecture.md](../architecture.md). This document provides a **checklist** for template developers.
+Every storefront template MUST comply with all 14 security protocols defined in the **Elite Security Pipeline**. This document provides a **checklist** for template developers. Compliance is programmatically verified by the CI/CD gates using specialized TS scanners and Vitest integration tests.
 
 ---
 

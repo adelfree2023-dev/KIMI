@@ -7,17 +7,18 @@ import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
+import { HealthModule } from './health/health.module.js';
 import { ProvisioningModule } from './provisioning/provisioning.module.js';
 import { TenantIsolationMiddleware } from '@apex/middleware';
 
 @Module({
   imports: [
     // S1: Configuration
-    ConfigModule.forRoot({ 
+    ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: ['.env', '.env.s1.local'],
     }),
-    
+
     // S6: Rate Limiting (Throttler)
     ThrottlerModule.forRoot([
       {
@@ -31,8 +32,9 @@ import { TenantIsolationMiddleware } from '@apex/middleware';
         limit: 10, // For auth endpoints
       },
     ]),
-    
+
     // Feature Modules
+    HealthModule,
     ProvisioningModule,
   ],
   providers: [

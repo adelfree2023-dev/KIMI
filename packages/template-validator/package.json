@@ -1,0 +1,31 @@
+{
+    "name": "@apex/template-validator",
+    "version": "1.0.0",
+    "description": "Logical and structural validation for Apex v2 templates",
+    "main": "./dist/index.js",
+    "module": "./dist/index.mjs",
+    "types": "./dist/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.mjs",
+            "require": "./dist/index.js"
+        }
+    },
+    "scripts": {
+        "build": "tsup",
+        "dev": "tsup --watch",
+        "type-check": "tsc --noEmit",
+        "test": "bun test"
+    },
+    "dependencies": {
+        "@apex/template-config": "workspace:*",
+        "zod": "^3.22.4",
+        "fast-glob": "^3.3.2"
+    },
+    "devDependencies": {
+        "@types/bun": "latest",
+        "tsup": "^8.0.1",
+        "typescript": "^5.3.3"
+    }
+}

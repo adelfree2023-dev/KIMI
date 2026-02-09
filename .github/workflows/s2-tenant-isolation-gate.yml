@@ -1,13 +1,7 @@
-# ═══════════════════════════════════════════════════════════════
-# S2 Tenant Isolation Gate - CRITICAL SECURITY CHECK
-# Tests that Tenant A cannot access Tenant B's data
-# NOTE: Only runs via aggregator workflow to avoid duplicates
-# ═══════════════════════════════════════════════════════════════
-
 name: "🔒 S2 Tenant Isolation Gate"
 
 on:
-  workflow_call: # Only called by aggregator
+  workflow_call:
 
 permissions:
   contents: read
@@ -16,6 +10,7 @@ permissions:
 env:
   DATABASE_URL: postgresql://test:test@localhost:5432/test
   JWT_SECRET: test_secret_key_for_ci_environment_only_32
+  NODE_ENV: test
 
 jobs:
   s2-tenant-isolation-test:
@@ -35,15 +30,6 @@ jobs:
           --health-interval 5s
           --health-timeout 3s
           --health-retries 5
-      redis:
-        image: redis:7-alpine
-        ports:
-          - 6379:6379
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 5s
-          --health-timeout 3s
-          --health-retries 5
 
     steps:
       - uses: actions/checkout@v4
@@ -56,168 +42,35 @@ jobs:
       - name: Install dependencies
         run: bun install
 
-      - name: Setup Database Schema
+      - name: "S2.1 - Programmatic Isolation Test"
         run: |
-          echo "🗄️ Setting up tenant isolation test schema..."
-          psql "$DATABASE_URL" -c "
-            -- Create test tenants
-            DROP SCHEMA IF EXISTS tenant_alpha CASCADE;
-            DROP SCHEMA IF EXISTS tenant_beta CASCADE;
-            
-            CREATE SCHEMA tenant_alpha;
-            CREATE SCHEMA tenant_beta;
-            
-            -- Create products table in both schemas
-            CREATE TABLE tenant_alpha.products (
-              id SERIAL PRIMARY KEY,
-              name VARCHAR(255) NOT NULL,
-              price DECIMAL(10,2),
-              secret_data VARCHAR(255)
-            );
-            
-            CREATE TABLE tenant_beta.products (
-              id SERIAL PRIMARY KEY,
-              name VARCHAR(255) NOT NULL,
-              price DECIMAL(10,2),
-              secret_data VARCHAR(255)
-            );
-            
-            -- Insert test data
-            INSERT INTO tenant_alpha.products (name, price, secret_data) 
-            VALUES ('Alpha Product', 99.99, 'ALPHA_SECRET_KEY');
-            
-            INSERT INTO tenant_beta.products (name, price, secret_data) 
-            VALUES ('Beta Product', 49.99, 'BETA_SECRET_KEY');
-          "
+          echo "🧪 Running Vitest S2 isolation tests..."
+          # This runs the new packages/db/src/s2-isolation.test.ts
+          bun run test --filter s2-isolation.test.ts
+        working-directory: packages/db
 
-      - name: Test Cross-Tenant Data Isolation
+      - name: "S2.2 - Surgical Public Schema Audit"
         run: |
-          echo "🔒 Testing S2 Tenant Isolation..."
+          echo "🔍 Scanning for unauthorized public schema access (Surgical)..."
+          
+          # Detect 'public.' references in active code
+          # Explicitly ALLOWS audit logs and public decorators
+          PUBLIC_REFS=$(grep -rn "public\." packages/*/src apps/*/src --include="*.ts" 2>/dev/null | \
+            grep -vE "^\s*//" | \
+            grep -vE "(audit|public\.decorator|node_modules|\.test\.|\.spec\.)" || true)
 
-          # Test 1: Verify Alpha data exists in Alpha schema
-          echo "Test 1: Verify Alpha tenant data..."
-          ALPHA_DATA=$(psql "$DATABASE_URL" -t -c "SELECT secret_data FROM tenant_alpha.products WHERE name='Alpha Product';" | xargs)
-          if [ "$ALPHA_DATA" != "ALPHA_SECRET_KEY" ]; then
-            echo "❌ FAIL: Cannot read Alpha tenant data"
+          if [ -n "$PUBLIC_REFS" ]; then
+            echo "🚨 CRITICAL: Unauthorized public schema access detected!"
+            echo "$PUBLIC_REFS"
             exit 1
           fi
-          echo "✅ Alpha tenant data accessible"
+          
+          echo "✅ S2.2: No unauthorized public schema access found"
 
-          # Test 2: Verify Beta data exists in Beta schema
-          echo "Test 2: Verify Beta tenant data..."
-          BETA_DATA=$(psql "$DATABASE_URL" -t -c "SELECT secret_data FROM tenant_beta.products WHERE name='Beta Product';" | xargs)
-          if [ "$BETA_DATA" != "BETA_SECRET_KEY" ]; then
-            echo "❌ FAIL: Cannot read Beta tenant data"
-            exit 1
-          fi
-          echo "✅ Beta tenant data accessible"
-
-          # Test 3: Verify search_path isolation (application-level, not DB-level)
-          echo "Test 3: Verify application enforces tenant context..."
-
-          # S2 NOTE: PostgreSQL allows fully qualified table names (tenant_alpha.products) 
-          # even when search_path is tenant_beta. Database-level blocking requires:
-          #   - Row-Level Security (RLS) policies  
-          #   - PostgreSQL GRANT/REVOKE per schema
-          #   - Separate DB roles per tenant
-          #
-          # This is enforced in PRODUCTION via:
-          #   1. TenantMiddleware sets context before all queries
-          #   2. Application code never uses qualified names
-          #   3. SET search_path is enforced before every query
-          #
-          # CI Test: Verify code pattern compliance, not live DB exploit attempts
-
-          echo "✅ Cross-tenant access controlled at application layer (middleware + search_path)"
-          echo "⚠️ Note: Full DB-level isolation (RLS) should be configured in production"
-
-      - name: Test Row-Level Security (RLS)
+      - name: S2 Final Report
+        if: always()
         run: |
-          echo "🛡️ Testing Row-Level Security policies..."
-
-          # Enable RLS on test tables
-          psql "$DATABASE_URL" -c "
-            ALTER TABLE tenant_alpha.products ENABLE ROW LEVEL SECURITY;
-            ALTER TABLE tenant_beta.products ENABLE ROW LEVEL SECURITY;
-          " || true
-
-          # Check if RLS is enabled
-          RLS_STATUS=$(psql "$DATABASE_URL" -t -c "
-            SELECT relrowsecurity FROM pg_class WHERE relname = 'products' AND relnamespace = 'tenant_alpha'::regnamespace;
-          " | xargs)
-
-          if [ "$RLS_STATUS" = "t" ]; then
-            echo "✅ RLS is enabled on tenant tables"
-          else
-            echo "⚠️ RLS not detected (may be handled at application layer)"
-          fi
-
-      - name: Verify Tenant Context Enforcement
-        run: |
-          echo "🔍 Verifying tenant context enforcement..."
-
-          # Check application code for tenant isolation patterns
-          ISOLATION_PATTERNS=$(grep -r "search_path\|tenant_\|setTenant" packages/*/src apps/*/src --include="*.ts" 2>/dev/null | wc -l)
-
-          if [ "$ISOLATION_PATTERNS" -eq 0 ]; then
-            echo "🚨 CRITICAL: No tenant isolation patterns found in code!"
-            echo "Expected: SET search_path, tenant_ prefix, or setTenant calls"
-            exit 1
-          fi
-
-          echo "✅ Found $ISOLATION_PATTERNS tenant isolation patterns"
-
-          # S2 FIX: Audit logs are deliberately in public schema (S4 audit protocol)
-          # They are tenant-isolated via tenant_id column, not via schema
-          # Exclude audit-related public. references from violation detection
-          echo "🔍 Checking for unauthorized public schema access..."
-          UNAUTHORIZED_PUBLIC=$(grep -rn "public\." packages/*/src apps/*/src --include="*.ts" 2>/dev/null | \
-            grep -v "audit" | \
-            grep -v "public.decorator" | \
-            grep -v "node_modules" | \
-            grep -v "test\|spec" | \
-            wc -l)
-
-          if [ "$UNAUTHORIZED_PUBLIC" -gt 0 ]; then
-            echo "⚠️ WARNING: Found $UNAUTHORIZED_PUBLIC potential public schema references"
-            echo "Review these manually to ensure they're legitimate:"
-            grep -rn "public\." packages/*/src apps/*/src --include="*.ts" 2>/dev/null | \
-              grep -v "audit" | \
-              grep -v "public.decorator" | \
-              grep -v "node_modules" | \
-              grep -v "test\|spec" | head -5
-            # Don't fail - these may be decorators or other legitimate uses
-          else
-            echo "✅ No unauthorized public schema access found"
-          fi
-
-      - name: Report Success
-        if: success()
-        run: |
-          echo "═══════════════════════════════════════════════════════════════"
-          echo "✅ S2 TENANT ISOLATION GATE PASSED"
-          echo "═══════════════════════════════════════════════════════════════"
-          echo "✓ Tenant Alpha data is isolated"
-          echo "✓ Tenant Beta data is isolated"
-          echo "✓ Cross-tenant access attempts are blocked"
-          echo "✓ Tenant isolation patterns verified in code"
-          echo "═══════════════════════════════════════════════════════════════"
-
-      - name: Report Failure
-        if: failure()
-        run: |
-          echo "═══════════════════════════════════════════════════════════════"
-          echo "🚨 S2 TENANT ISOLATION GATE FAILED"
-          echo "═══════════════════════════════════════════════════════════════"
-          echo "❌ CRITICAL SECURITY VIOLATION DETECTED"
           echo ""
-          echo "Impact: Cross-tenant data leakage risk"
-          echo "Severity: CRITICAL"
-          echo ""
-          echo "Required Actions:"
-          echo "  1. Verify SET search_path uses correct tenant schema"
-          echo "  2. Check that all queries include tenant context"
-          echo "  3. Review TenantMiddleware implementation"
-          echo "  4. Add Row-Level Security policies if missing"
-          echo "═══════════════════════════════════════════════════════════════"
-          exit 1
+          echo "╔═══════════════════════════════════════════════════════════════╗"
+          echo "║           S2 TENANT ISOLATION GATE COMPLETE                   ║"
+          echo "╚═══════════════════════════════════════════════════════════════╝"

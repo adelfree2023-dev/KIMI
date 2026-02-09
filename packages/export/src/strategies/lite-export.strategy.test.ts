@@ -80,8 +80,8 @@ describe('LiteExportStrategy', () => {
       expect(result).toBe(false);
     });
 
-    it('should release connection on error', async () => {
-      mockClient.query.mockRejectedValue(new Error('DB error'));
+    it('should handle registry errors', async () => {
+      mockTenantRegistry.exists.mockRejectedValue(new Error('Registry error'));
 
       const options: ExportOptions = {
         tenantId: 'tenant-123',
@@ -89,8 +89,7 @@ describe('LiteExportStrategy', () => {
         requestedBy: 'user-456',
       };
 
-      await expect(strategy.validate(options)).rejects.toThrow('DB error');
-      expect(mockClient.release).toHaveBeenCalled();
+      await expect(strategy.validate(options)).rejects.toThrow('Registry error');
     });
   });
 

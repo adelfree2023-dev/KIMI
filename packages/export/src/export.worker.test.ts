@@ -8,7 +8,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ExportStrategyFactory } from './export-strategy.factory.js';
 import { ExportWorker } from './export.worker.js';
 
-// Mock BullMQ Worker
+// Mock BullMQ
 vi.mock('bullmq', () => ({
   Worker: vi.fn().mockImplementation((name, processor, options) => {
     return {
@@ -16,6 +16,10 @@ vi.mock('bullmq', () => ({
       close: vi.fn().mockResolvedValue(undefined),
     };
   }),
+  Queue: vi.fn().mockImplementation(() => ({
+    getJob: vi.fn(),
+    add: vi.fn(),
+  })),
 }));
 
 // Mock S3 Client
@@ -68,6 +72,7 @@ const mockFactory = {
 // Mock fs
 vi.mock('fs/promises', () => ({
   readFile: vi.fn().mockResolvedValue(Buffer.from('test data')),
+  rm: vi.fn().mockResolvedValue(undefined),
 }));
 
 describe('ExportWorker', () => {

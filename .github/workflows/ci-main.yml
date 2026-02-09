@@ -116,6 +116,10 @@ jobs:
           languages: javascript-typescript
           queries: security-and-quality
 
+      # Build the project so CodeQL can observe the compilation
+      - name: Build Project for CodeQL
+        run: bun run build
+
       # ═══════════════════════════════════════════════════════════════════════
       # S9: ADVANCED DEPENDENCY VULNERABILITY & SUPPLY CHAIN SECURITY
       # ═══════════════════════════════════════════════════════════════════════
@@ -257,15 +261,15 @@ jobs:
           echo "✅ S10: Advanced secret detection completed"
 
       # ═══════════════════════════════════════════════════════════════════════
-      # S11: ACTIVE ORM COMPLIANCE & PENETRATION TESTING
+      # S11: ACTIVE ORM COMPLIANCE & ARCHITECTURAL GATES
       # ═══════════════════════════════════════════════════════════════════════
-      - name: "S11 - ORM Compliance & Penetration Test"
+      - name: "S11 - ORM Compliance Checks"
         run: |
           echo "═══════════════════════════════════════════════════════════════════"
           echo "  S11: ORM COMPLIANCE & ARCHITECTURAL GATES"
           echo "═══════════════════════════════════════════════════════════════════"
           
-          # Create comprehensive SQL injection and ORM compliance test suite
+          # Create comprehensive ORM compliance test suite
           mkdir -p packages/security/src/sqli
           
           cat > packages/security/src/sqli/sqli-penetration.test.ts << 'TESTEOF'
@@ -273,32 +277,23 @@ jobs:
           import * as fs from 'fs';
           import * as path from 'path';
           
-          // SQL Injection Payload Library (OWASP Top 10)
-          const SQLI_PAYLOADS = {
-            classic: ["' OR '1'='1", "' OR 1=1 --", "' OR '1'='1' --"],
-            union_based: ["' UNION SELECT null,null,null --", "' UNION SELECT username,password FROM users --"],
-            time_based: ["' OR pg_sleep(5) --", "' AND SLEEP(5) --"],
-            nosql: ['{ "$ne": null }', '{ "$gt": "" }'],
-          };
-          
           describe('SQL Injection Defense - ORM Compliance', () => {
-            it('should verify ORM is used (Drizzle) instead of raw SQL', () => {
-              const schemaFiles = [
-                './packages/db/src/schema.ts',
-                './packages/db/src/schema/storefront/products.ts',
-                './packages/db/src/schema/storefront/reviews.ts'
-              ];
-              
+            const schemaFiles = [
+              './packages/db/src/schema.ts',
+              './packages/db/src/schema/storefront/products.ts',
+              './packages/db/src/schema/storefront/reviews.ts'
+            ];
+
+            it('should verify Drizzle ORM usage (pgTable) in all schemas', () => {
               schemaFiles.forEach(schemaPath => {
                 if (fs.existsSync(schemaPath)) {
                   const schema = fs.readFileSync(schemaPath, 'utf8');
-                  // Drizzle ORM uses pgTable
-                  expect(schema).toContain('pgTable');
+                  expect(schema, `Schema ${schemaPath} must use pgTable`).toContain('pgTable');
                 }
               });
             });
             
-            it('should verify Parameterized Query Defense in DB layer', () => {
+            it('should enforce Parameterized Query patterns in the database layer', () => {
               const dbDir = './packages/db/src';
               if (fs.existsSync(dbDir)) {
                 const files = fs.readdirSync(dbDir, { recursive: true }) as string[];
@@ -306,39 +301,23 @@ jobs:
                 
                 dbFiles.forEach(file => {
                   const content = fs.readFileSync(path.join(dbDir, file), 'utf8');
-                  // Ensure any raw SQL usages are using drizzle.execute() or sql tag correctly
-                  // (Deep analysis performed by CodeQL, this is a structural check)
+                  // Ensure any 'sql' usage is accompanied by Drizzle imports (parameterization safety)
                   if (content.includes('sql`')) {
-                    expect(content).toContain('drizzle-orm');
+                    expect(content, `File ${file} uses sql tag without drizzle-orm import`).toContain('drizzle-orm');
                   }
                 });
               }
             });
           });
-          
-          describe('SQL Injection Payload Library Verification', () => {
-            it('should have comprehensive payload coverage', () => {
-              expect(SQLI_PAYLOADS.classic.length).toBeGreaterThanOrEqual(3);
-              expect(SQLI_PAYLOADS.nosql.length).toBeGreaterThanOrEqual(2);
-            });
-          });
           TESTEOF
           
-          echo "[*] Running ORM compliance tests..."
+          echo "[*] Running ORM compliance structural verification..."
           bun test packages/security/src/sqli/sqli-penetration.test.ts || {
             echo "❌ S11 FAILED: ORM compliance or architectural goals violated!"
             exit 1
           }
           
-          echo "✅ S11: ORM compliance and penetration test completed"
-
-      # ═══════════════════════════════════════════════════════════════════════
-      # S11b: ADVANCED STATIC SECURITY ANALYSIS (CodeQL)
-      # ═══════════════════════════════════════════════════════════════════════
-      - name: "S11b - CodeQL Analysis"
-        uses: github/codeql-action/analyze@v3
-        with:
-          category: "/language:javascript-typescript"
+          echo "✅ S11: ORM compliance verification completed"
 
       # ═══════════════════════════════════════════════════════════════════════
       # S12: ADVANCED XSS & CLIENT-SIDE ATTACK SIMULATION
@@ -801,6 +780,14 @@ jobs:
           fi
           
           echo "✅ S13: Advanced Red Team simulation completed"
+
+      # ═══════════════════════════════════════════════════════════════════════
+      # S11b: ADVANCED STATIC SECURITY ANALYSIS (CodeQL) - ANALYSIS PHASE
+      # ═══════════════════════════════════════════════════════════════════════
+      - name: "S11b - CodeQL Analysis"
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:javascript-typescript"
 
       # ═══════════════════════════════════════════════════════════════════════
       # FINAL SUMMARY REPORT

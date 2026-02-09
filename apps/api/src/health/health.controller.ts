@@ -1,5 +1,5 @@
 import { Controller, Get, HttpStatus, Res } from '@nestjs/common';
-import { Response } from 'express';
+import type * as express from 'express';
 import { createClient } from 'redis';
 
 /**
@@ -9,7 +9,7 @@ import { createClient } from 'redis';
 @Controller('health')
 export class HealthController {
     @Get('redis')
-    async checkRedis(@Res() res: Response) {
+    async checkRedis(@Res() res: express.Response) {
         const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
         const client = createClient({ url: redisUrl });
 
@@ -33,8 +33,8 @@ export class HealthController {
         }
     }
 
-    @Get('live')
-    checkLiveness(@Res() res: Response) {
+    @Get('liveness')
+    checkLiveness(@Res() res: express.Response) {
         return res.status(HttpStatus.OK).json({ status: 'ok' });
     }
 }

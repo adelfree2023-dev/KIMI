@@ -4,6 +4,8 @@
     "outDir": "./dist",
     "composite": true,
     "baseUrl": ".",
+    "module": "ESNext",
+    "moduleResolution": "Node",
     "paths": {
       "@apex/audit": [
         "../../packages/audit/src/index.ts"

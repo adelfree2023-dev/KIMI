@@ -127,10 +127,12 @@ jobs:
       - name: Biome Lint Check
         run: bun run lint
 
-      - name: Type Check (TSC)
         run: |
           echo "📝 Running TypeScript type checking..."
           bunx tsc --noEmit
+
+      - name: Architectural Lockdown (Rule 1.1)
+        run: bunx dependency-cruiser . --config .dependency-cruiser.js
 
   # ═══════════════════════════════════════════════════════════════
   # Phase 3: Database Schema Validation
@@ -178,29 +180,14 @@ jobs:
     needs: [s1-compliance]
     steps:
       - uses: actions/checkout@v4
-      - name: Check Cross-Boundary Imports
-        run: |
-          echo "🔍 Checking for cross-boundary imports..."
-          
-          # Check that web doesn't import from api
-          web_api_imports=$(grep -r "from.*apps/api" apps/web --include="*.ts" --include="*.tsx" 2>/dev/null | wc -l)
-          
-          # Check that packages don't import from apps
-          pkg_app_imports=$(grep -r "from.*apps/" packages/ --include="*.ts" 2>/dev/null | wc -l)
-          
-          if [ "$web_api_imports" -gt 0 ]; then
-            echo "❌ Rule 1.1 Violation: apps/web imports from apps/api"
-            grep -r "from.*apps/api" apps/web --include="*.ts" --include="*.tsx" 2>/dev/null || true
-            exit 1
-          fi
-          
-          if [ "$pkg_app_imports" -gt 0 ]; then
-            echo "❌ Rule 1.1 Violation: packages/ import from apps/"
-            grep -r "from.*apps/" packages/ --include="*.ts" 2>/dev/null || true
-            exit 1
-          fi
-          
-          echo "✅ No cross-boundary import violations"
+      - name: IaC & Container Security Scan (Trivy)
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'config'
+          hide-progress: false
+          format: 'table'
+          exit-code: '1'
+          severity: 'CRITICAL,HIGH'
 
   # ═══════════════════════════════════════════════════════════════
   # Phase 5: Zod Schema Lockdown Check
@@ -579,6 +566,22 @@ jobs:
             
             echo "✅ Dockerfile validation complete"
           fi
+
+      - name: Container Vulnerability Scan (Trivy - API)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'apps/api/Dockerfile'
+          scan-type: 'config'
+          exit-code: '1'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Container Vulnerability Scan (Trivy - Web)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'apps/web/Dockerfile'
+          scan-type: 'config'
+          exit-code: '1'
+          severity: 'CRITICAL,HIGH'
       
       - name: Wait for Services Health
         run: |

@@ -131,18 +131,28 @@ jobs:
             exit 1
           }
 
-      - name: "S9b - Dependency Review (GitHub Native)"
-        if: github.event_name == 'pull_request'
-        uses: actions/dependency-review-action@v4
+      - name: "S9c - SBOM Generation (Syft)"
+        uses: anchore/sbom-action@v0
         with:
-          fail-on-severity: high
-          base-ref: ${{ github.event.pull_request.base.sha }}
-          head-ref: ${{ github.event.pull_request.head.sha }}
+          format: spdx-json
+          output-file: sbom.spdx.json
 
-      - name: "S9c - Supply Chain & Lockfile Integrity"
+      - name: "S9d - SBOM Vulnerability Scan (Trivy)"
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'sbom'
+          scan-ref: 'sbom.spdx.json'
+          format: 'table'
+          exit-code: '1'
+          severity: 'CRITICAL,HIGH'
+
+      - name: "S9e - Architectural Lockdown (Rule 1.1)"
+        run: bunx dependency-cruiser . --config .dependency-cruiser.js
+
+      - name: "S9f - Supply Chain & Lockfile Integrity"
         run: |
           echo "═══════════════════════════════════════════════════════════════════"
-          echo "  S9c: SUPPLY CHAIN & LOCKFILE INTEGRITY SCAN"
+          echo "  S9f: SUPPLY CHAIN & LOCKFILE INTEGRITY SCAN"
           echo "═══════════════════════════════════════════════════════════════════"
           
           # Lockfile integrity check
@@ -720,13 +730,15 @@ jobs:
           NODE_ENV: test
           PORT: 3000
       
-      - name: OWASP ZAP Baseline Scan
-        uses: zaproxy/action-baseline@v0.12.0
+      - name: "S13 - OWASP ZAP Full Scan (DAST)"
+        uses: zaproxy/action-full-scan@v0.12.0
         with:
           target: 'http://localhost:3000'
           rules_file_name: '.zap/rules.tsv'
           cmd_options: '-a'
           allow_issue_writing: false
+        # We now want this to fail if critical issues are found, 
+        # but the parsing step below handles the failure logic.
         continue-on-error: true
       
       - name: Upload ZAP Report
@@ -951,10 +963,6 @@ jobs:
           echo "  $(icon '${{ needs.s9-s13-penetration.result }}') S12: XSS Test"
           echo "  $(icon '${{ needs.s9-s13-penetration.result }}') S13: Red Team Simulation"
           echo ""          
-          # DAST
-          echo "🔍 Dynamic Testing:"
-          echo "  $(icon '${{ needs.dast-scan.result }}') DAST (OWASP ZAP)"
-          echo ""
 
           # Other phases
           echo "⏱️ Performance:"

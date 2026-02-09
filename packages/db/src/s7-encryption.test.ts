@@ -20,7 +20,6 @@ describe('S7: Encryption at Rest Protocol', () => {
     }
 
     process.env.ENCRYPTION_MASTER_KEY = masterKey;
-    process.env.NODE_ENV = 'test';
     encryptionService = new EncryptionService();
 
     // 🛠️ Setup: Ensure audit_logs table exists for testing storage

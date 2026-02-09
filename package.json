@@ -28,6 +28,7 @@
     "@vitest/coverage-istanbul": "1.6.1",
     "@vitest/coverage-v8": "1.6.1",
     "cross-env": "^10.1.0",
+    "redis": "^5.10.0",
     "reflect-metadata": "^0.2.2",
     "turbo": "latest",
     "vitest": "1.6.1"

@@ -8,6 +8,12 @@ describe('S7: Encryption at Rest Protocol', () => {
     const masterKey = 'ValidTestKey32CharsWith1$!Abc1234';
 
     beforeAll(async () => {
+        // 🔒 S7 CI Guard: Strict environment validation
+        if (!process.env.DATABASE_URL || process.env.DATABASE_URL.includes('undefined')) {
+            console.error("🚨 SECURITY ALERT: Database connection string is invalid or missing password!");
+            process.exit(1);
+        }
+
         process.env.ENCRYPTION_MASTER_KEY = masterKey;
         process.env.NODE_ENV = 'test';
         encryptionService = new EncryptionService();

@@ -89,10 +89,8 @@ export interface CorsConfig {
 }
 
 /**
- * S8 FIX: Changed from `origin: false` to dynamic whitelist
- * origin: false breaks all cross-origin requests
- * origin: true allows all (unsafe)
- * This uses a whitelist approach with explicit configuration
+ * Dynamic whitelist approach for CORS
+ * In production, configure with actual domains via ALLOWED_ORIGINS
  */
 export const defaultCorsConfig: CorsConfig = {
   // Use whitelist pattern - by default only same-origin

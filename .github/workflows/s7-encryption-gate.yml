@@ -50,9 +50,15 @@ jobs:
       - name: "S7.1 - Encryption Storage Integration Test"
         run: |
           echo "🧪 Running Vitest encryption storage tests..."
-          # This runs the new packages/db/src/s7-encryption.test.ts
-          bun run test s7-encryption.test.ts
+          DATABASE_URL=$DATABASE_URL bun test s7-encryption.test.ts
         working-directory: packages/db
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/test
+          POSTGRES_PASSWORD: test
+          ENCRYPTION_MASTER_KEY: ValidTestKey32CharsWith1$!Abc1234
+          NODE_ENV: test
+          JWT_SECRET: test_secret_key_for_ci_environment_only_32
+          ENABLE_S1_ENFORCEMENT: "false"
 
       - name: "S7.2 - Surgical Pattern Scan"
         run: |

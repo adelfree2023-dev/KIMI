@@ -18,6 +18,7 @@ export * from './auth.service.js';
 export * from './strategies/jwt.strategy.js';
 export * from './decorators/current-user.decorator.js';
 export * from './decorators/public.decorator.js';
+export * from './encryption.js';
 export type { TenantContext };
 
 @Injectable()

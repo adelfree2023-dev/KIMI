@@ -81,11 +81,10 @@ jobs:
           if [ ! -f "$SERVICE_FILE" ]; then echo "❌ Missing $SERVICE_FILE"; exit 1; fi
           
           # Verify concurrency and active job checks in active code
-            THROTTLING=$(grep -E "(concurrency|activeJobs)" "$SERVICE_FILE" | grep -vE "^\s*//" || true)
-            if [ -z "$THROTTLING" ]; then
-              echo "🚨 CRITICAL: Missing queue throttling or concurrency control!"
-              exit 1
-            fi
+          THROTTLING=$(grep -E "(concurrency|activeJobs)" "$SERVICE_FILE" | grep -vE "^\s*//" || true)
+          if [ -z "$THROTTLING" ]; then
+            echo "🚨 CRITICAL: Missing queue throttling or concurrency control!"
+            exit 1
           fi
           
           echo "✅ S14.3: Queue security verified"
@@ -98,11 +97,10 @@ jobs:
           if [ ! -f "$WORKER_FILE" ]; then echo "❌ Missing $WORKER_FILE"; exit 1; fi
           
           # Check for active presigned URL usage and expiry
-            STORAGE_SEC=$(grep -E "(getSignedUrl|expiresIn.*24)" "$WORKER_FILE" | grep -vE "^\s*//" || true)
-            if [ -z "$STORAGE_SEC" ]; then
-              echo "🚨 CRITICAL: Missing secure storage access (presigned URLs with expiry)!"
-              exit 1
-            fi
+          STORAGE_SEC=$(grep -E "(getSignedUrl|expiresIn.*24)" "$WORKER_FILE" | grep -vE "^\s*//" || true)
+          if [ -z "$STORAGE_SEC" ]; then
+            echo "🚨 CRITICAL: Missing secure storage access (presigned URLs with expiry)!"
+            exit 1
           fi
           
           echo "✅ S14.4: Storage security verified"
@@ -131,11 +129,10 @@ jobs:
           if [ ! -f "$CONTROLLER" ]; then echo "❌ Missing $CONTROLLER"; exit 1; fi
           
           # Verify admin role and tenant ownership check in active code
-            AUTH_CHECK=$(grep -E "(role|admin|tenantId.*user.tenantId)" "$CONTROLLER" | grep -vE "^\s*//" || true)
-            if [ -z "$AUTH_CHECK" ]; then
-              echo "🚨 CRITICAL: Missing essential access control checks in export controller!"
-              exit 1
-            fi
+          AUTH_CHECK=$(grep -E "(role|admin|tenantId.*user.tenantId)" "$CONTROLLER" | grep -vE "^\s*//" || true)
+          if [ -z "$AUTH_CHECK" ]; then
+            echo "🚨 CRITICAL: Missing essential access control checks in export controller!"
+            exit 1
           fi
           
           echo "✅ S14.6: Access control verified"

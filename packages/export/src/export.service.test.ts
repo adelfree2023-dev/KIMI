@@ -138,7 +138,7 @@ describe('ExportService Tests', () => {
         }),
       });
 
-      service = new ExportService(factory, mockAudit, new Queue('test'));
+      service = new ExportService(factory, mockAudit);
     });
 
     describe('S14.1: Tenant Isolation', () => {

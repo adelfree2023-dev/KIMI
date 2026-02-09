@@ -19,6 +19,9 @@
       ],
       "@apex/middleware": [
         "../middleware/src"
+      ],
+      "@apex/config": [
+        "../config/src"
       ]
     }
   },
@@ -40,6 +43,9 @@
     },
     {
       "path": "../middleware"
+    },
+    {
+      "path": "../config"
     }
   ]
 }

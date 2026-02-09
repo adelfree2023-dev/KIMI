@@ -11,10 +11,7 @@ vi.mock('@nestjs/passport', () => ({
     register: () => ({ module: 'PassportModule' }),
   },
   // PassportStrategy is a mixin function that returns a class
-  PassportStrategy: () =>
-    class MockPassportStrategy {
-      constructor() {}
-    },
+  PassportStrategy: () => class MockPassportStrategy {},
   AuthGuard: () =>
     class MockAuthGuard {
       canActivate() {
@@ -38,10 +35,10 @@ vi.mock('@nestjs/jwt', () => ({
 
 vi.mock('@apex/config', () => ({
   ConfigService: class MockConfigService {
-    get(key: string) {
+    get(_key: string) {
       return 'test-value';
     }
-    getWithDefault(key: string, defaultValue: string) {
+    getWithDefault(_key: string, defaultValue: string) {
       return defaultValue;
     }
   },
@@ -60,15 +57,15 @@ describe('AuthModule', () => {
   });
 
   it('should configure JwtModule correctly using ConfigService', async () => {
-    const { AuthModule } = await import('./auth.module.js');
-    const { JwtModule } = await import('@nestjs/jwt');
-    const { ConfigService } = await import('@apex/config');
+    await import('./auth.module.js');
+    await import('@nestjs/jwt');
+    await import('@apex/config');
 
     // Extract the factory from JwtModule.registerAsync mock
     expect(jwtMocks.registerAsync).toHaveBeenCalled();
     const call = jwtMocks.registerAsync.mock.calls.find((c) => c[0].useFactory);
     expect(call).toBeDefined();
-    const config = call![0];
+    const config = call?.[0];
     expect(config.useFactory).toBeDefined();
 
     const mockConfigService = {

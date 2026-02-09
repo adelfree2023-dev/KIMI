@@ -3,7 +3,7 @@
  * Super-#01: Tenant Overview Table
  */
 
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import {
   type TenantPlan,
   type TenantStatus,

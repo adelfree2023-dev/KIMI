@@ -5,12 +5,11 @@
 
 import type { Job } from 'bullmq';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { ExportStrategyFactory } from './export-strategy.factory.js';
 import { ExportWorker } from './export.worker.js';
 
 // Mock BullMQ
 vi.mock('bullmq', () => ({
-  Worker: vi.fn().mockImplementation((name, processor, options) => {
+  Worker: vi.fn().mockImplementation((_name, _processor, _options) => {
     return {
       on: vi.fn(),
       close: vi.fn().mockResolvedValue(undefined),

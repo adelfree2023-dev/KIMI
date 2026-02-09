@@ -4,7 +4,7 @@
  */
 
 import { AuditService } from '@apex/audit';
-import { TenantRegistryService, publicPool } from '@apex/db';
+import { TenantRegistryService } from '@apex/db';
 import {
   createStorageBucket,
   createTenantSchema,

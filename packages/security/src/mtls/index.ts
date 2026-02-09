@@ -49,7 +49,8 @@ export function loadCertificates(
     };
   } catch (error) {
     throw new Error(
-      `Failed to load mTLS certificates: ${error instanceof Error ? error.message : error
+      `Failed to load mTLS certificates: ${
+        error instanceof Error ? error.message : error
       }`
     );
   }

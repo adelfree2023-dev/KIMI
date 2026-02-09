@@ -9,7 +9,7 @@
 import { randomUUID } from 'crypto';
 import { AuditService } from '@apex/audit';
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { Job, Queue } from 'bullmq';
+import { Queue } from 'bullmq';
 import { ExportStrategyFactory } from './export-strategy.factory.js';
 import type { ExportJob, ExportOptions, ExportResult } from './types.js';
 
@@ -77,13 +77,14 @@ export class ExportService {
       (j) =>
         j.data.tenantId === options.tenantId &&
         j.data.profile === options.profile &&
-        Date.now() - j.processedOn! < 60 * 1000
+        j.processedOn &&
+        Date.now() - j.processedOn < 60 * 1000
     );
 
     if (recentDuplicate) {
       throw new Error(
         `Duplicate export request. Similar export completed ${Math.floor(
-          (Date.now() - recentDuplicate.processedOn!) / 1000
+          (Date.now() - (recentDuplicate.processedOn ?? 0)) / 1000
         )}s ago.`
       );
     }
@@ -91,7 +92,7 @@ export class ExportService {
     const jobId = randomUUID();
 
     // Add to queue
-    const bullJob = await this.exportQueue.add(
+    const _bullJob = await this.exportQueue.add(
       'export',
       {
         id: jobId,

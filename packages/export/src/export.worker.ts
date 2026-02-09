@@ -96,7 +96,7 @@ export class ExportWorker implements OnModuleInit, OnModuleDestroy {
     this.logger.log(`Processing export job ${job.id} for tenant ${tenantId}`);
     await job.updateProgress(10);
 
-    const workDir = `/tmp/export-${tenantId}-${Date.now()}`;
+    const _workDir = `/tmp/export-${tenantId}-${Date.now()}`;
     let localFilePath: string | null = null;
 
     try {
@@ -130,7 +130,7 @@ export class ExportWorker implements OnModuleInit, OnModuleDestroy {
       if (result.sizeBytes > this.MAX_EXPORT_SIZE_BYTES) {
         throw new Error(
           `Export size (${(result.sizeBytes / 1024 / 1024).toFixed(2)}MB) ` +
-          `exceeds limit (${this.MAX_EXPORT_SIZE_BYTES / 1024 / 1024}MB)`
+            `exceeds limit (${this.MAX_EXPORT_SIZE_BYTES / 1024 / 1024}MB)`
         );
       }
 
@@ -171,7 +171,7 @@ export class ExportWorker implements OnModuleInit, OnModuleDestroy {
 
       // EXPERIMENTAL: Immediate cleanup mode
       // File will be deleted when: 1) User calls confirm-download, or 2) 5 min timeout
-      const deleteJob = setTimeout(
+      const _deleteJob = setTimeout(
         async () => {
           try {
             await this.deleteExportFile(
@@ -195,7 +195,7 @@ export class ExportWorker implements OnModuleInit, OnModuleDestroy {
       });
 
       // Cleanup local file immediately (S14.8: Native Node.js cleanup)
-      await rm(result.downloadUrl, { force: true }).catch(() => { });
+      await rm(result.downloadUrl, { force: true }).catch(() => {});
       this.logger.log(`Cleaned up local file: ${result.downloadUrl}`);
 
       await job.updateProgress(100);
@@ -233,7 +233,7 @@ export class ExportWorker implements OnModuleInit, OnModuleDestroy {
 
       // Cleanup on failure (S14.8: Native Node.js cleanup)
       if (localFilePath) {
-        await rm(localFilePath, { force: true }).catch(() => { });
+        await rm(localFilePath, { force: true }).catch(() => {});
         this.logger.log(`Cleaned up failed export file: ${localFilePath}`);
       }
 

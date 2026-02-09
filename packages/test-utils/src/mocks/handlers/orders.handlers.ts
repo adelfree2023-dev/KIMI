@@ -17,7 +17,7 @@ const BASE_URL = '/api';
 export const ordersHandlers = [
   // POST /api/orders - Create order
   http.post(`${BASE_URL}/orders`, async ({ request }) => {
-    const body = (await request.json()) as any;
+    await request.json();
 
     const order = createPendingOrder();
 

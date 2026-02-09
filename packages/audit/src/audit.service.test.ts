@@ -67,7 +67,7 @@ describe('Audit Service (S4 Protocol)', () => {
           /INSERT INTO public\.audit_logs/i.test(c[0])
       );
       expect(queryCall).toBeDefined();
-      expect(queryCall![1]).toContain('TENANT_PROVISIONED');
+      expect(queryCall?.[1]).toContain('TENANT_PROVISIONED');
       expect(mockClient.release).toHaveBeenCalled();
     });
 
@@ -96,7 +96,7 @@ describe('Audit Service (S4 Protocol)', () => {
       );
       expect(queryCall).toBeDefined();
       // Ensure the email is in the params (index 2 corresponds to actor_email in the schema)
-      const params = queryCall![1];
+      const params = queryCall?.[1];
       const emailParam = params[2];
       expect(
         typeof emailParam === 'string' &&
@@ -155,8 +155,8 @@ describe('Audit Service (S4 Protocol)', () => {
           /INSERT INTO public\.audit_logs/i.test(c[0])
       );
       expect(queryCall).toBeDefined();
-      expect(queryCall![1][6]).toContain('Database connection failed'); // metadata is index 6 after adding userEmail
-      expect(queryCall![1]).toContain('FAILURE');
+      expect(queryCall?.[1][6]).toContain('Database connection failed'); // metadata is index 6 after adding userEmail
+      expect(queryCall?.[1]).toContain('FAILURE');
     });
 
     it('should serialize metadata as JSON', async () => {
@@ -186,7 +186,7 @@ describe('Audit Service (S4 Protocol)', () => {
           /INSERT INTO public\.audit_logs/i.test(c[0])
       );
       expect(queryCall).toBeDefined();
-      const metadataJson = queryCall![1].find(
+      const metadataJson = queryCall?.[1].find(
         (arg: any) => typeof arg === 'string' && arg.includes('changedFields')
       );
       expect(metadataJson).toContain('changedFields');
@@ -256,7 +256,7 @@ describe('Audit Service (S4 Protocol)', () => {
       );
       expect(queryCall).toBeDefined();
       // Verify defaults are applied
-      const params = queryCall![1];
+      const params = queryCall?.[1];
       expect(params[1]).toBeNull(); // userId should be null
       expect(params[7]).toBeNull(); // ipAddress should be null
       expect(params[9]).toBe('INFO'); // severity default
@@ -347,9 +347,9 @@ describe('Audit Service (S4 Protocol)', () => {
           /INSERT INTO public\.audit_logs/i.test(c[0])
       );
       expect(queryCall).toBeDefined();
-      expect(queryCall![1]).toContain('TENANT_PROVISIONED');
-      expect(queryCall![1]).toContain('SUCCESS');
-      expect(queryCall![1]).toContain('test-store');
+      expect(queryCall?.[1]).toContain('TENANT_PROVISIONED');
+      expect(queryCall?.[1]).toContain('SUCCESS');
+      expect(queryCall?.[1]).toContain('test-store');
     });
 
     it('should log failed provisioning with error', async () => {
@@ -369,9 +369,9 @@ describe('Audit Service (S4 Protocol)', () => {
           /INSERT INTO public\.audit_logs/i.test(c[0])
       );
       expect(queryCall).toBeDefined();
-      expect(queryCall![1]).toContain('FAILURE');
-      expect(queryCall![1][6]).toContain('Schema creation failed'); // metadata is index 6 after adding userEmail
-      expect(queryCall![1]).toContain('HIGH'); // Failures are HIGH severity
+      expect(queryCall?.[1]).toContain('FAILURE');
+      expect(queryCall?.[1][6]).toContain('Schema creation failed'); // metadata is index 6 after adding userEmail
+      expect(queryCall?.[1]).toContain('HIGH'); // Failures are HIGH severity
     });
   });
 
@@ -391,11 +391,11 @@ describe('Audit Service (S4 Protocol)', () => {
           /INSERT INTO public\.audit_logs/i.test(c[0])
       );
       expect(queryCall).toBeDefined();
-      expect(queryCall![1]).toContain('CRITICAL');
-      expect(queryCall![1]).toContain('CROSS_TENANT_ACCESS_ATTEMPT');
-      expect(queryCall![1]).toContain('attacker-123');
-      expect(queryCall![1]).toContain('victim-tenant');
-      expect(queryCall![1][6]).toContain('requestedResource'); // metadata is index 6 after adding userEmail
+      expect(queryCall?.[1]).toContain('CRITICAL');
+      expect(queryCall?.[1]).toContain('CROSS_TENANT_ACCESS_ATTEMPT');
+      expect(queryCall?.[1]).toContain('attacker-123');
+      expect(queryCall?.[1]).toContain('victim-tenant');
+      expect(queryCall?.[1][6]).toContain('requestedResource'); // metadata is index 6 after adding userEmail
     });
 
     it('should always result in FAILURE for security events', async () => {
@@ -412,7 +412,7 @@ describe('Audit Service (S4 Protocol)', () => {
           /INSERT INTO public\.audit_logs/i.test(c[0])
       );
       expect(queryCall).toBeDefined();
-      expect(queryCall![1]).toContain('FAILURE');
+      expect(queryCall?.[1]).toContain('FAILURE');
     });
   });
 

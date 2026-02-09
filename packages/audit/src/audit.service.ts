@@ -105,7 +105,7 @@ export class AuditService {
           timestamp,
         ]
       );
-    } catch (error) {
+    } catch (_error) {
       // Critical failure if audit logging fails
       // In high-security mode, we must fail the operation if audit logging fails
       throw new Error('Audit Persistence Failure');

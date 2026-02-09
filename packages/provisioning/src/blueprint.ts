@@ -59,6 +59,9 @@ export interface BlueprintRecord {
 /**
  * Validate blueprint JSON structure
  */
+/**
+ * Validate blueprint JSON structure
+ */
 export function validateBlueprint(
   blueprint: unknown
 ): blueprint is BlueprintTemplate {
@@ -80,32 +83,46 @@ export function validateBlueprint(
 
   // Validate products if present
   if (bp.products !== undefined) {
-    if (!Array.isArray(bp.products)) {
-      throw new Error('products must be an array');
-    }
-    for (const product of bp.products) {
-      if (typeof product.name !== 'string') {
-        throw new Error('Product must have a name');
-      }
-      if (typeof product.price !== 'number' || product.price < 0) {
-        throw new Error('Product must have a valid price');
-      }
-    }
+    validateProducts(bp.products);
   }
 
   // Validate pages if present
   if (bp.pages !== undefined) {
-    if (!Array.isArray(bp.pages)) {
-      throw new Error('pages must be an array');
-    }
-    for (const page of bp.pages) {
-      if (typeof page.slug !== 'string' || typeof page.title !== 'string') {
-        throw new Error('Page must have slug and title');
-      }
-    }
+    validatePages(bp.pages);
   }
 
   return true;
+}
+
+/**
+ * Validate products array in blueprint
+ */
+function validateProducts(products: unknown): void {
+  if (!Array.isArray(products)) {
+    throw new Error('products must be an array');
+  }
+  for (const product of products) {
+    if (typeof product.name !== 'string') {
+      throw new Error('Product must have a name');
+    }
+    if (typeof product.price !== 'number' || product.price < 0) {
+      throw new Error('Product must have a valid price');
+    }
+  }
+}
+
+/**
+ * Validate pages array in blueprint
+ */
+function validatePages(pages: unknown): void {
+  if (!Array.isArray(pages)) {
+    throw new Error('pages must be an array');
+  }
+  for (const page of pages) {
+    if (typeof page.slug !== 'string' || typeof page.title !== 'string') {
+      throw new Error('Page must have slug and title');
+    }
+  }
 }
 
 /**

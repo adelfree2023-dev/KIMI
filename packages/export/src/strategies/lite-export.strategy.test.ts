@@ -89,7 +89,9 @@ describe('LiteExportStrategy', () => {
         requestedBy: 'user-456',
       };
 
-      await expect(strategy.validate(options)).rejects.toThrow('Registry error');
+      await expect(strategy.validate(options)).rejects.toThrow(
+        'Registry error'
+      );
     });
   });
 
@@ -154,7 +156,7 @@ describe('LiteExportStrategy', () => {
         call[0].includes('table_schema = $1')
       );
       expect(schemaQuery).toBeDefined();
-      expect(schemaQuery![1]).toEqual(['tenant_tenant-123']);
+      expect(schemaQuery?.[1]).toEqual(['tenant_tenant-123']);
     });
 
     it('should reject tables exceeding row limit', async () => {

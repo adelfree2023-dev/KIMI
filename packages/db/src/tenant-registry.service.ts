@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { eq, or } from 'drizzle-orm';
-import { publicDb } from './index.js';
+import { publicDb } from './connection.js';
 import { type Tenant, tenants } from './schema.js';
 
 /**

@@ -98,9 +98,9 @@ describe('NativeExportStrategy', () => {
         (call) => Array.isArray(call[0]) && call[0].includes('pg_dump')
       );
       expect(pgDumpCall).toBeDefined();
-      expect(pgDumpCall![0]).toContain('-n');
-      expect(pgDumpCall![0]).toContain(`tenant_${options.tenantId}`);
-      expect(pgDumpCall![0]).toContain('-Fc'); // Binary format
+      expect(pgDumpCall?.[0]).toContain('-n');
+      expect(pgDumpCall?.[0]).toContain(`tenant_${options.tenantId}`);
+      expect(pgDumpCall?.[0]).toContain('-Fc'); // Binary format
     });
 
     it('should enforce S2 tenant isolation in pg_dump', async () => {
@@ -118,9 +118,9 @@ describe('NativeExportStrategy', () => {
       );
 
       // Verify only tenant schema is exported
-      expect(pgDumpCall![0]).toContain('-n');
-      expect(pgDumpCall![0]).toContain(`tenant_${options.tenantId}`);
-      expect(pgDumpCall![0]).not.toContain('public');
+      expect(pgDumpCall?.[0]).toContain('-n');
+      expect(pgDumpCall?.[0]).toContain(`tenant_${options.tenantId}`);
+      expect(pgDumpCall?.[0]).not.toContain('public');
     });
 
     it('should handle pg_dump failure', async () => {

@@ -1,6 +1,6 @@
 import { ExecutionContext } from '@nestjs/common';
 import 'reflect-metadata';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 const { mocks } = vi.hoisted(() => ({
   mocks: {

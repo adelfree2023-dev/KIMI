@@ -14,7 +14,6 @@ import {
   getSignedUploadUrl,
   getStorageStats,
   resetMinioClient,
-  setMinioClient,
 } from './storage-manager.js';
 
 // Mock MinIO client
@@ -72,7 +71,7 @@ describe('Storage Manager', () => {
     // Trigger lazy init (ignore errors if it already exists or fails during init)
     try {
       await createStorageBucket('init');
-    } catch (e) {
+    } catch (_e) {
       // Ignore init errors in beforeEach
     }
   });

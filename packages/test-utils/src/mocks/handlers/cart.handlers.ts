@@ -21,7 +21,7 @@ export const cartHandlers = [
 
   // POST /api/cart/items - Add item to cart
   http.post(`${BASE_URL}/cart/items`, async ({ request }) => {
-    const body = (await request.json()) as any;
+    await request.json();
 
     // Add item to mock cart (simplified)
     mockCart = createMockCart(); // In real test, you'd add the actual item
@@ -31,7 +31,7 @@ export const cartHandlers = [
 
   // PATCH /api/cart/items/:id - Update cart item quantity
   http.patch(`${BASE_URL}/cart/items/:id`, async ({ request }) => {
-    const body = (await request.json()) as any;
+    await request.json();
 
     // Update item in mock cart
     mockCart = createMockCart();

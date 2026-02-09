@@ -5,8 +5,7 @@
  */
 
 import { GetObjectCommand, S3Client } from '@aws-sdk/client-s3';
-import { Queue } from 'bullmq';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it } from 'vitest';
 
 const INTEGRATION_TEST = process.env.RUN_INTEGRATION_TESTS === 'true';
 
@@ -93,7 +92,7 @@ const INTEGRATION_TEST = process.env.RUN_INTEGRATION_TESTS === 'true';
           await s3Client.send(
             new GetObjectCommand({ Bucket: bucketName, Key: objectKey })
           );
-        } catch (err) {
+        } catch (_err) {
           throw new Error(`Export file not found in S3: ${objectKey}`);
         }
       }, 60000);
@@ -101,7 +100,7 @@ const INTEGRATION_TEST = process.env.RUN_INTEGRATION_TESTS === 'true';
       it('should enforce tenant isolation during export', async () => {
         // Try to export data from another tenant's schema
         const maliciousTenant = 'tenant-a';
-        const victimTenant = 'tenant-b';
+        const _victimTenant = 'tenant-b';
 
         // This should only export tenant-a's data, never tenant-b
         const response = await fetch(
@@ -121,7 +120,7 @@ const INTEGRATION_TEST = process.env.RUN_INTEGRATION_TESTS === 'true';
         );
 
         expect(response.status).toBe(202);
-        const { job } = await response.json();
+        const _jobData = await response.json();
 
         // Wait for completion
         await new Promise((r) => setTimeout(r, 5000));
@@ -365,9 +364,9 @@ const INTEGRATION_TEST = process.env.RUN_INTEGRATION_TESTS === 'true';
         const results = await Promise.all(promises);
 
         // All should be accepted (concurrency limit is per-tenant)
-        results.forEach((res) => {
+        for (const res of results) {
           expect([202, 409]).toContain(res.status);
-        });
+        }
       });
     });
   }

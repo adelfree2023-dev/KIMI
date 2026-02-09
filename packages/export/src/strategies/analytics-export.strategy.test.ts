@@ -153,7 +153,7 @@ describe('AnalyticsExportStrategy', () => {
         (call) => call[0].includes('orders') && call[0].includes('created_at')
       );
       expect(ordersQuery).toBeDefined();
-      expect(ordersQuery![0]).toContain('created_at BETWEEN $1 AND $2');
+      expect(ordersQuery?.[0]).toContain('created_at BETWEEN $1 AND $2');
     });
 
     it('should enforce S2 tenant isolation', async () => {
@@ -176,11 +176,11 @@ describe('AnalyticsExportStrategy', () => {
 
       // Verify all queries use tenant schema
       const queryCalls = mockClient.query.mock.calls;
-      queryCalls.forEach((call) => {
+      for (const call of queryCalls) {
         if (call[0].includes('SELECT')) {
           expect(call[0]).toContain('tenant_tenant-456');
         }
-      });
+      }
     });
 
     it('should convert rows to CSV format', async () => {
@@ -219,8 +219,8 @@ describe('AnalyticsExportStrategy', () => {
         call[0].toString().includes('products_performance.csv')
       );
       expect(csvWrite).toBeDefined();
-      expect(csvWrite![1]).toContain('name,sku,times_ordered,total_quantity');
-      expect(csvWrite![1]).toContain('Item 1,SKU1,10,100');
+      expect(csvWrite?.[1]).toContain('name,sku,times_ordered,total_quantity');
+      expect(csvWrite?.[1]).toContain('Item 1,SKU1,10,100');
     });
 
     it('should handle empty result sets', async () => {

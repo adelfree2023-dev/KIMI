@@ -341,7 +341,7 @@ describe('ProvisionRequestSchema', () => {
     });
 
     it('should reject missing superAdminKey', () => {
-      const { superAdminKey, ...dataWithoutKey } = validProvisionData;
+      const { ...dataWithoutKey } = validProvisionData;
 
       const result = ProvisionRequestSchema.safeParse(dataWithoutKey);
       expect(result.success).toBe(false);
@@ -375,19 +375,19 @@ describe('ProvisionRequestSchema', () => {
     });
 
     it('should reject missing subdomain', () => {
-      const { subdomain, ...dataWithoutSubdomain } = validProvisionData;
+      const { ...dataWithoutSubdomain } = validProvisionData;
       const result = ProvisionRequestSchema.safeParse(dataWithoutSubdomain);
       expect(result.success).toBe(false);
     });
 
     it('should reject missing storeName', () => {
-      const { storeName, ...dataWithoutStoreName } = validProvisionData;
+      const { ...dataWithoutStoreName } = validProvisionData;
       const result = ProvisionRequestSchema.safeParse(dataWithoutStoreName);
       expect(result.success).toBe(false);
     });
 
     it('should reject missing adminEmail', () => {
-      const { adminEmail, ...dataWithoutEmail } = validProvisionData;
+      const { ...dataWithoutEmail } = validProvisionData;
       const result = ProvisionRequestSchema.safeParse(dataWithoutEmail);
       expect(result.success).toBe(false);
     });

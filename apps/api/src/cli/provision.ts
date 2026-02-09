@@ -57,7 +57,7 @@ export async function main(args: string[] = process.argv.slice(2)) {
     );
     // Stack traces only in development mode for security
     if (process.env.NODE_ENV === 'development' && error instanceof Error) {
-      console.error('Stack:', (error as Error)['stack']);
+      console.error('Stack:', (error as Error).stack);
     }
     throw error;
   }

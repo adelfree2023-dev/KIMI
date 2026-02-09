@@ -17,7 +17,7 @@ export class NativeExportStrategy implements ExportStrategy {
   readonly name = 'native' as const;
   private readonly logger = new Logger(NativeExportStrategy.name);
 
-  async validate(options: ExportOptions): Promise<boolean> {
+  async validate(_options: ExportOptions): Promise<boolean> {
     // Check pg_dump availability
     try {
       const proc = Bun.spawn(['pg_dump', '--version']);

@@ -1,4 +1,4 @@
-import { SetMetadata, UseInterceptors, applyDecorators } from '@nestjs/common';
+import { SetMetadata, applyDecorators } from '@nestjs/common';
 
 /**
  * Metadata key for audit logging

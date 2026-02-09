@@ -12,7 +12,7 @@ import type { ExportOptions, ExportResult } from './types.js';
 import { AuditService } from '@apex/audit';
 import { S3Client, PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { readFile } from 'fs/promises';
+import { readFile, rm } from 'fs/promises';
 
 @Injectable()
 export class ExportWorker implements OnModuleInit, OnModuleDestroy {
@@ -168,8 +168,8 @@ export class ExportWorker implements OnModuleInit, OnModuleDestroy {
         objectKey,
       });
 
-      // Cleanup local file immediately
-      await Bun.spawn(['rm', '-f', result.downloadUrl]).exited.catch(() => {});
+      // Cleanup local file immediately (S14.8: Native Node.js cleanup)
+      await rm(result.downloadUrl, { force: true }).catch(() => { });
       this.logger.log(`Cleaned up local file: ${result.downloadUrl}`);
 
       await job.updateProgress(100);
@@ -205,9 +205,9 @@ export class ExportWorker implements OnModuleInit, OnModuleDestroy {
         },
       });
 
-      // Cleanup on failure
+      // Cleanup on failure (S14.8: Native Node.js cleanup)
       if (localFilePath) {
-        await Bun.spawn(['rm', '-f', localFilePath]).exited.catch(() => {});
+        await rm(localFilePath, { force: true }).catch(() => { });
         this.logger.log(`Cleaned up failed export file: ${localFilePath}`);
       }
 

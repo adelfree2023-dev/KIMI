@@ -31,7 +31,7 @@ jobs:
         uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
-          cache: true
+          cache: false
 
       - name: Install Dependencies
         run: bun install

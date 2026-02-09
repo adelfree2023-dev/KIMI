@@ -124,6 +124,12 @@ jobs:
       - name: Install Dependencies
         run: bun install
 
+      - name: JSON Syntax Validation
+        run: |
+          echo "🔍 Validating JSON syntax..."
+          find . -name "*.json" -not -path "*/node_modules/*" -not -path "*/dist/*" -exec jq . {} + 1>/dev/null
+          echo "✅ All JSON files are valid"
+
       - name: Biome Lint Check
         run: bun run lint
 

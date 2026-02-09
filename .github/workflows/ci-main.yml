@@ -107,6 +107,12 @@ jobs:
       - name: Install Dependencies
         run: bun install
 
+      - name: JSON Syntax Validation
+        run: |
+          echo "🔍 Validating JSON syntax..."
+          find . -name "*.json" -not -path "*/node_modules/*" -not -path "*/dist/*" -exec jq . {} + 1>/dev/null
+          echo "✅ All JSON files are valid"
+
       # Initializes the CodeQL tools for scanning.
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3

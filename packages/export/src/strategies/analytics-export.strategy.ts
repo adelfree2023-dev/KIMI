@@ -4,9 +4,14 @@
  * Best for: Reporting, data analysis, BI tools
  */
 
-import { Injectable, Logger } from '@nestjs/common';
-import type { ExportStrategy, ExportOptions, ExportResult, ExportManifest } from '../types.js';
 import { publicPool } from '@apex/db';
+import { Injectable, Logger } from '@nestjs/common';
+import type {
+  ExportManifest,
+  ExportOptions,
+  ExportResult,
+  ExportStrategy,
+} from '../types.js';
 
 @Injectable()
 export class AnalyticsExportStrategy implements ExportStrategy {
@@ -18,8 +23,10 @@ export class AnalyticsExportStrategy implements ExportStrategy {
   }
 
   async export(options: ExportOptions): Promise<ExportResult> {
-    this.logger.log(`Starting analytics export for tenant: ${options.tenantId}`);
-    
+    this.logger.log(
+      `Starting analytics export for tenant: ${options.tenantId}`
+    );
+
     const schemaName = `tenant_${options.tenantId}`;
     const workDir = `/tmp/export-${options.tenantId}-${Date.now()}`;
     await Bun.spawn(['mkdir', '-p', `${workDir}/analytics`]).exited;
@@ -40,7 +47,7 @@ export class AnalyticsExportStrategy implements ExportStrategy {
         GROUP BY DATE(created_at)
         ORDER BY date
       `;
-      
+
       const ordersResult = await client.query(ordersQuery, [
         options.dateRange?.from,
         options.dateRange?.to,
@@ -66,7 +73,7 @@ export class AnalyticsExportStrategy implements ExportStrategy {
         GROUP BY p.id
         ORDER BY times_ordered DESC
       `;
-      
+
       const productsResult = await client.query(productsQuery, [
         options.dateRange?.from,
         options.dateRange?.to,
@@ -109,7 +116,9 @@ export class AnalyticsExportStrategy implements ExportStrategy {
       const fileData = await Bun.file(outputFile).arrayBuffer();
       const hashBuffer = await crypto.subtle.digest('SHA-256', fileData);
       const hashArray = Array.from(new Uint8Array(hashBuffer));
-      const checksumHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      const checksumHex = hashArray
+        .map((b) => b.toString(16).padStart(2, '0'))
+        .join('');
 
       this.logger.log(`Analytics export completed: ${outputFile}`);
 
@@ -132,9 +141,9 @@ export class AnalyticsExportStrategy implements ExportStrategy {
     headers: string[]
   ): Promise<void> {
     const csvLines = [headers.join(',')];
-    
+
     for (const row of rows) {
-      const values = headers.map(h => {
+      const values = headers.map((h) => {
         const val = row[h];
         if (val === null || val === undefined) return '';
         // Escape quotes and wrap in quotes if contains comma

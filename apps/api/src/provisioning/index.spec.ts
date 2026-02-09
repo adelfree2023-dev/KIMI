@@ -1,5 +1,9 @@
-import { describe, it, expect } from 'vitest';
-import { ProvisioningController, ProvisioningService, ProvisioningModule } from './index.js';
+import { describe, expect, it } from 'vitest';
+import {
+  ProvisioningController,
+  ProvisioningModule,
+  ProvisioningService,
+} from './index.js';
 
 describe('Provisioning Index Exports', () => {
   it('should export ProvisioningController', () => {

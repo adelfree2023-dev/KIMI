@@ -5,14 +5,23 @@
  * S4: Comprehensive audit logging
  */
 
-import { Worker, Job } from 'bullmq';
-import { Injectable, Logger, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
+import { AuditService } from '@apex/audit';
+import {
+  GetObjectCommand,
+  PutObjectCommand,
+  S3Client,
+} from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import {
+  Injectable,
+  Logger,
+  OnModuleDestroy,
+  OnModuleInit,
+} from '@nestjs/common';
+import { Job, Worker } from 'bullmq';
+import { readFile, rm } from 'fs/promises';
 import { ExportStrategyFactory } from './export-strategy.factory.js';
 import type { ExportOptions, ExportResult } from './types.js';
-import { AuditService } from '@apex/audit';
-import { S3Client, PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { readFile, rm } from 'fs/promises';
 
 @Injectable()
 export class ExportWorker implements OnModuleInit, OnModuleDestroy {
@@ -22,7 +31,7 @@ export class ExportWorker implements OnModuleInit, OnModuleDestroy {
 
   constructor(
     private readonly strategyFactory: ExportStrategyFactory,
-    private readonly audit: AuditService,
+    private readonly audit: AuditService
   ) {
     // Initialize S3/MinIO client
     this.s3Client = new S3Client({
@@ -72,7 +81,8 @@ export class ExportWorker implements OnModuleInit, OnModuleDestroy {
   private readonly MAX_EXPORT_SIZE_BYTES = 500 * 1024 * 1024; // 500MB limit
 
   private async processJob(job: Job): Promise<ExportResult> {
-    const { tenantId, profile, requestedBy, includeAssets, dateRange } = job.data;
+    const { tenantId, profile, requestedBy, includeAssets, dateRange } =
+      job.data;
 
     this.logger.log(`Processing export job ${job.id} for tenant ${tenantId}`);
     await job.updateProgress(10);
@@ -111,7 +121,7 @@ export class ExportWorker implements OnModuleInit, OnModuleDestroy {
       if (result.sizeBytes > this.MAX_EXPORT_SIZE_BYTES) {
         throw new Error(
           `Export size (${(result.sizeBytes / 1024 / 1024).toFixed(2)}MB) ` +
-          `exceeds limit (${this.MAX_EXPORT_SIZE_BYTES / 1024 / 1024}MB)`
+            `exceeds limit (${this.MAX_EXPORT_SIZE_BYTES / 1024 / 1024}MB)`
         );
       }
 
@@ -133,7 +143,7 @@ export class ExportWorker implements OnModuleInit, OnModuleDestroy {
           Metadata: {
             'tenant-id': tenantId,
             'export-id': job.id as string,
-            'checksum': result.checksum,
+            checksum: result.checksum,
           },
         })
       );
@@ -152,13 +162,20 @@ export class ExportWorker implements OnModuleInit, OnModuleDestroy {
 
       // EXPERIMENTAL: Immediate cleanup mode
       // File will be deleted when: 1) User calls confirm-download, or 2) 5 min timeout
-      const deleteJob = setTimeout(async () => {
-        try {
-          await this.deleteExportFile(bucketName, objectKey, job.id as string);
-        } catch (err) {
-          this.logger.error(`Auto-delete failed for ${objectKey}:`, err);
-        }
-      }, 5 * 60 * 1000); // 5 minutes safety timeout
+      const deleteJob = setTimeout(
+        async () => {
+          try {
+            await this.deleteExportFile(
+              bucketName,
+              objectKey,
+              job.id as string
+            );
+          } catch (err) {
+            this.logger.error(`Auto-delete failed for ${objectKey}:`, err);
+          }
+        },
+        5 * 60 * 1000
+      ); // 5 minutes safety timeout
 
       // Store delete job reference for manual cleanup
       await job.updateData({
@@ -169,7 +186,7 @@ export class ExportWorker implements OnModuleInit, OnModuleDestroy {
       });
 
       // Cleanup local file immediately (S14.8: Native Node.js cleanup)
-      await rm(result.downloadUrl, { force: true }).catch(() => { });
+      await rm(result.downloadUrl, { force: true }).catch(() => {});
       this.logger.log(`Cleaned up local file: ${result.downloadUrl}`);
 
       await job.updateProgress(100);
@@ -207,7 +224,7 @@ export class ExportWorker implements OnModuleInit, OnModuleDestroy {
 
       // Cleanup on failure (S14.8: Native Node.js cleanup)
       if (localFilePath) {
-        await rm(localFilePath, { force: true }).catch(() => { });
+        await rm(localFilePath, { force: true }).catch(() => {});
         this.logger.log(`Cleaned up failed export file: ${localFilePath}`);
       }
 
@@ -240,7 +257,7 @@ export class ExportWorker implements OnModuleInit, OnModuleDestroy {
   private async deleteExportFile(
     bucket: string,
     key: string,
-    jobId: string,
+    jobId: string
   ): Promise<void> {
     try {
       await this.s3Client.send(
@@ -274,11 +291,7 @@ export class ExportWorker implements OnModuleInit, OnModuleDestroy {
       throw new Error('Export job not found or file already deleted');
     }
 
-    await this.deleteExportFile(
-      job.data.bucketName,
-      job.data.objectKey,
-      jobId
-    );
+    await this.deleteExportFile(job.data.bucketName, job.data.objectKey, jobId);
 
     // Clear safety timeout
     // Note: In production, use Redis to track this

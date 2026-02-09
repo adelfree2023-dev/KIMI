@@ -92,7 +92,7 @@ export class SecretsManager {
         options.nextRotationAt ||
         new Date(
           now.getTime() +
-          (options.rotationInterval || this.DEFAULT_ROTATION_INTERVAL)
+            (options.rotationInterval || this.DEFAULT_ROTATION_INTERVAL)
         ),
       previousValue: options.previousValue,
     };
@@ -260,7 +260,7 @@ export class SecretsManager {
       nextRotationAt: config.nextRotationAt,
       daysUntilRotation: Math.ceil(
         (config.nextRotationAt.getTime() - now.getTime()) /
-        (1000 * 60 * 60 * 24)
+          (1000 * 60 * 60 * 24)
       ),
     }));
   }

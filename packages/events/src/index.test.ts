@@ -1,11 +1,11 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import {
   InMemoryEventBus,
-  createEventId,
+  TenantProvisioningStartedSchema,
   createCorrelationId,
+  createEventId,
   createTimestamp,
   validateEvent,
-  TenantProvisioningStartedSchema,
 } from './index.js';
 
 describe('Events Module Exports', () => {

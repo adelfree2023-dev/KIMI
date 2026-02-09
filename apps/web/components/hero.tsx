@@ -9,7 +9,7 @@ export function Hero() {
     e.preventDefault();
     // TODO: Submit to API
     console.log('Lead captured:', email);
-    alert('Thanks! We\'ll be in touch soon.');
+    alert("Thanks! We'll be in touch soon.");
     setEmail('');
   };
 

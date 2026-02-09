@@ -4,9 +4,12 @@
  * Rule 4.1: Test Coverage Mandate
  */
 
-import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { TenantJwtMatchGuard, type TenantRequest } from './tenant-jwt-match.guard.js';
 import { UnauthorizedException } from '@nestjs/common';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  TenantJwtMatchGuard,
+  type TenantRequest,
+} from './tenant-jwt-match.guard.js';
 
 describe('TenantJwtMatchGuard', () => {
   let guard: TenantJwtMatchGuard;
@@ -16,7 +19,7 @@ describe('TenantJwtMatchGuard', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     guard = new TenantJwtMatchGuard();
-    
+
     mockRequest = {
       tenantContext: {
         tenantId: 'tenant-123',
@@ -43,14 +46,14 @@ describe('TenantJwtMatchGuard', () => {
 
     it('should allow access when no user (unauthenticated request)', () => {
       mockRequest.user = undefined;
-      
+
       const result = guard.canActivate(mockContext);
       expect(result).toBe(true);
     });
 
     it('should allow access when no tenant context (public endpoint)', () => {
       mockRequest.tenantContext = undefined;
-      
+
       const result = guard.canActivate(mockContext);
       expect(result).toBe(true);
     });
@@ -62,13 +65,19 @@ describe('TenantJwtMatchGuard', () => {
         email: 'test@example.com',
       };
 
-      expect(() => guard.canActivate(mockContext)).toThrow(UnauthorizedException);
-      expect(() => guard.canActivate(mockContext)).toThrow('Cross-tenant access denied');
+      expect(() => guard.canActivate(mockContext)).toThrow(
+        UnauthorizedException
+      );
+      expect(() => guard.canActivate(mockContext)).toThrow(
+        'Cross-tenant access denied'
+      );
     });
 
     it('should log S2 violation when cross-tenant access is attempted', () => {
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-      
+      const consoleSpy = vi
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
+
       mockRequest.user = {
         tenantId: 'attacker-tenant',
         id: 'user-456',
@@ -108,7 +117,7 @@ describe('TenantJwtMatchGuard', () => {
         tenantContext: { tenantId: 'minimal-tenant' },
         user: { tenantId: 'minimal-tenant' },
       };
-      
+
       mockContext.switchToHttp().getRequest.mockReturnValue(mockRequest);
 
       const result = guard.canActivate(mockContext);
@@ -124,7 +133,9 @@ describe('TenantJwtMatchGuard', () => {
         tenantId: 'tenant-abc',
       };
 
-      expect(() => guard.canActivate(mockContext)).toThrow(UnauthorizedException);
+      expect(() => guard.canActivate(mockContext)).toThrow(
+        UnauthorizedException
+      );
     });
 
     it('should be case sensitive for tenant IDs', () => {
@@ -136,7 +147,9 @@ describe('TenantJwtMatchGuard', () => {
         tenantId: 'tenant-123',
       };
 
-      expect(() => guard.canActivate(mockContext)).toThrow(UnauthorizedException);
+      expect(() => guard.canActivate(mockContext)).toThrow(
+        UnauthorizedException
+      );
     });
 
     it('should handle both user and tenantContext being undefined', () => {
@@ -150,7 +163,7 @@ describe('TenantJwtMatchGuard', () => {
     it('should handle different UUID formats correctly', () => {
       const uuid1 = '550e8400-e29b-41d4-a716-446655440000';
       const uuid2 = '550e8400-e29b-41d4-a716-446655440001';
-      
+
       mockRequest.user = {
         tenantId: uuid1,
         id: 'user-123',
@@ -159,12 +172,14 @@ describe('TenantJwtMatchGuard', () => {
         tenantId: uuid2,
       };
 
-      expect(() => guard.canActivate(mockContext)).toThrow(UnauthorizedException);
+      expect(() => guard.canActivate(mockContext)).toThrow(
+        UnauthorizedException
+      );
     });
 
     it('should allow access when UUIDs match', () => {
       const uuid = '550e8400-e29b-41d4-a716-446655440000';
-      
+
       mockRequest.user = {
         tenantId: uuid,
         id: 'user-123',

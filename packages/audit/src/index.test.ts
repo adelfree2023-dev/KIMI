@@ -1,5 +1,12 @@
-import { describe, it, expect } from 'vitest';
-import { AuditService, log, logProvisioning, logSecurityEvent, query, initializeAuditTable } from './index.js';
+import { describe, expect, it } from 'vitest';
+import {
+  AuditService,
+  initializeAuditTable,
+  log,
+  logProvisioning,
+  logSecurityEvent,
+  query,
+} from './index.js';
 
 describe('Audit Module Exports', () => {
   it('should export AuditService', () => {

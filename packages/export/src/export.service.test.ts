@@ -3,14 +3,23 @@
  * Validates export functionality and security compliance
  */
 
-import { describe, it, expect, beforeEach, afterEach, beforeAll, afterAll, vi } from 'vitest';
-import { ExportService } from './export.service.js';
-import { ExportStrategyFactory } from './export-strategy.factory.js';
-import { LiteExportStrategy } from './strategies/lite-export.strategy.js';
-import { NativeExportStrategy } from './strategies/native-export.strategy.js';
-import { AnalyticsExportStrategy } from './strategies/analytics-export.strategy.js';
 import { secretsManager } from '@apex/security';
 import { Queue } from 'bullmq';
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from 'vitest';
+import { ExportStrategyFactory } from './export-strategy.factory.js';
+import { ExportService } from './export.service.js';
+import { AnalyticsExportStrategy } from './strategies/analytics-export.strategy.js';
+import { LiteExportStrategy } from './strategies/lite-export.strategy.js';
+import { NativeExportStrategy } from './strategies/native-export.strategy.js';
 
 // Mock BullMQ
 vi.mock('bullmq', () => ({
@@ -30,7 +39,11 @@ vi.mock('bullmq', () => ({
         jobs.push(job);
         return Promise.resolve(job);
       }),
-      getJob: vi.fn().mockImplementation((id) => Promise.resolve(jobs.find(j => j.id === id) || null)),
+      getJob: vi
+        .fn()
+        .mockImplementation((id) =>
+          Promise.resolve(jobs.find((j) => j.id === id) || null)
+        ),
       getJobs: vi.fn().mockImplementation(() => Promise.resolve(jobs)),
     };
   }),
@@ -80,13 +93,16 @@ describe('ExportService Tests', () => {
 
     beforeEach(() => {
       mockAudit = {
-        log: async () => { },
+        log: async () => {},
       };
 
       // Reset DB mock to default
       vi.mocked(publicPool).connect.mockResolvedValue({
         query: vi.fn().mockImplementation(async (sql, params) => {
-          if (typeof sql === 'string' && sql.includes('SELECT 1 FROM public.tenants')) {
+          if (
+            typeof sql === 'string' &&
+            sql.includes('SELECT 1 FROM public.tenants')
+          ) {
             if (params && params[0] === 'non-existent-tenant') {
               return { rows: [], rowCount: 0 };
             }
@@ -103,7 +119,7 @@ describe('ExportService Tests', () => {
       const factory = new ExportStrategyFactory(
         new LiteExportStrategy(),
         new NativeExportStrategy(),
-        new AnalyticsExportStrategy(),
+        new AnalyticsExportStrategy()
       );
 
       // Mock Bun
@@ -120,8 +136,6 @@ describe('ExportService Tests', () => {
 
       service = new ExportService(factory, mockAudit, new Queue('test'));
     });
-
-
 
     describe('S14.1: Tenant Isolation', () => {
       it('should reject export for non-existent tenant', async () => {
@@ -224,7 +238,9 @@ describe('ExportService Tests', () => {
         const status = await service.getJobStatus(job.id);
         expect(status).toBeDefined();
         expect(status?.id).toBe(job.id);
-        expect(['pending', 'processing', 'completed']).toContain(status?.status);
+        expect(['pending', 'processing', 'completed']).toContain(
+          status?.status
+        );
       });
 
       it('should allow cancelling pending jobs', async () => {
@@ -274,7 +290,6 @@ describe('ExportService Tests', () => {
         );
       });
     });
-
 
     describe('Export Strategies', () => {
       describe('LiteExportStrategy', () => {

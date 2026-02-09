@@ -1,6 +1,6 @@
 /**
  * Storefront validators export
- * 
+ *
  * All Zod schemas for template data contracts.
  */
 

@@ -30,7 +30,9 @@ export async function main(args: string[] = process.argv.slice(2)) {
       logger: ['error', 'warn'], // Always show errors and warnings
     });
 
-    const provisioningService = app.get<ProvisioningService>('PROVISIONING_SERVICE');
+    const provisioningService = app.get<ProvisioningService>(
+      'PROVISIONING_SERVICE'
+    );
 
     // Execute provisioning
     const result = await provisioningService.provision({
@@ -49,7 +51,10 @@ export async function main(args: string[] = process.argv.slice(2)) {
     await app.close();
     return result;
   } catch (error) {
-    console.error('❌ Provisioning failed:', error instanceof Error ? error.message : error);
+    console.error(
+      '❌ Provisioning failed:',
+      error instanceof Error ? error.message : error
+    );
     // Stack traces only in development mode for security
     if (process.env.NODE_ENV === 'development' && error instanceof Error) {
       console.error('Stack:', (error as Error)['stack']);
@@ -77,7 +82,12 @@ function parseArgs(args: string[]): ProvisionOptions {
     }
   }
 
-  if (!options.subdomain || !options.email || !options.password || !options.storeName) {
+  if (
+    !options.subdomain ||
+    !options.email ||
+    !options.password ||
+    !options.storeName
+  ) {
     throw new Error('Missing required arguments');
   }
 
@@ -85,7 +95,10 @@ function parseArgs(args: string[]): ProvisionOptions {
 }
 
 // Only run if called directly
-if (import.meta.url === `file://${process.argv[1]}` || process.argv[1]?.endsWith('provision.ts')) {
+if (
+  import.meta.url === `file://${process.argv[1]}` ||
+  process.argv[1]?.endsWith('provision.ts')
+) {
   main().catch((err) => {
     console.error('❌ Fatal CLI Error:', err);
     process.exit(1);

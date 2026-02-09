@@ -41,14 +41,14 @@ export const ProvisionRequestSchema = z.object({
   superAdminKey: z
     .string({
       required_error: 'Super Admin key is required',
-      invalid_type_error: 'Super Admin key must be a string'
+      invalid_type_error: 'Super Admin key must be a string',
     })
     .min(32, 'Super Admin key must be at least 32 characters')
     .max(128, 'Super Admin key too long (max 128)')
     .regex(
       /^[A-Za-z0-9-_]+$/,
       'Super Admin key must be alphanumeric with hyphens/underscores only'
-    )
+    ),
 });
 
 export class ProvisionRequestDto extends createZodDto(ProvisionRequestSchema) {}

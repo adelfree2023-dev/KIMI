@@ -4,8 +4,8 @@
  */
 
 import { readFileSync } from 'fs';
-import { join } from 'path';
 import { Server, ServerOptions, createServer } from 'https';
+import { join } from 'path';
 
 export interface MTLSConfig {
   /** Path to CA certificate */
@@ -49,7 +49,8 @@ export function loadCertificates(
     };
   } catch (error) {
     throw new Error(
-      `Failed to load mTLS certificates: ${error instanceof Error ? error.message : error
+      `Failed to load mTLS certificates: ${
+        error instanceof Error ? error.message : error
       }`
     );
   }

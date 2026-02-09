@@ -1,5 +1,5 @@
-import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vitest/config';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -15,10 +15,16 @@ export default defineConfig({
       '@apex/config': resolve(__dirname, 'packages/config/src/index.ts'),
       '@apex/db': resolve(__dirname, 'packages/db/src/index.ts'),
       '@apex/audit': resolve(__dirname, 'packages/audit/src/index.ts'),
-      '@apex/middleware': resolve(__dirname, 'packages/middleware/src/index.ts'),
+      '@apex/middleware': resolve(
+        __dirname,
+        'packages/middleware/src/index.ts'
+      ),
       '@apex/auth': resolve(__dirname, 'packages/auth/src/index.ts'),
       '@apex/events': resolve(__dirname, 'packages/events/src/index.ts'),
-      '@apex/provisioning': resolve(__dirname, 'packages/provisioning/src/index.ts'),
+      '@apex/provisioning': resolve(
+        __dirname,
+        'packages/provisioning/src/index.ts'
+      ),
       '@apex/ui': resolve(__dirname, 'packages/ui/src/index.ts'),
     },
   },
@@ -30,11 +36,15 @@ export default defineConfig({
       provider: 'v8', // Revert to v8 with location-independent globs
       all: true,
       // Reporters: text shows summary at end, others for artifact generation
-      reporter: ['text', 'text-summary', 'json', 'html', 'json-summary', 'lcov'],
-      include: [
-        '**/packages/*/src/**/*.ts',
-        '**/apps/*/src/**/*.ts'
+      reporter: [
+        'text',
+        'text-summary',
+        'json',
+        'html',
+        'json-summary',
+        'lcov',
       ],
+      include: ['**/packages/*/src/**/*.ts', '**/apps/*/src/**/*.ts'],
       exclude: [
         '**/*.spec.ts',
         '**/*.test.ts',
@@ -49,10 +59,10 @@ export default defineConfig({
       // Coverage Thresholds (90% minimum for all metrics)
       // Constitution Rule 4.1: Comprehensive Test Coverage Mandate
       thresholds: {
-        branches: 90,    // 90% minimum branch coverage
-        functions: 95,   // 95% function coverage
-        lines: 95,       // 95% line coverage
-        statements: 95,  // 95% statement coverage
+        branches: 90, // 90% minimum branch coverage
+        functions: 95, // 95% function coverage
+        lines: 95, // 95% line coverage
+        statements: 95, // 95% statement coverage
       },
       // Report uncovered files
       reportOnFailure: true,

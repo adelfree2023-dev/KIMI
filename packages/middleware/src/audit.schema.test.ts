@@ -6,8 +6,8 @@
 import { describe, expect, it } from 'vitest';
 import {
   AuditLogSchema,
-  CreateAuditLogSchema,
   type CreateAuditLogDto,
+  CreateAuditLogSchema,
 } from './audit.schema.js';
 
 describe('Audit Schema Validation', () => {
@@ -51,7 +51,14 @@ describe('Audit Schema Validation', () => {
     });
 
     it('should accept all valid actions', () => {
-      const actions = ['CREATE', 'UPDATE', 'DELETE', 'LOGIN', 'LOGOUT', 'EXPORT'];
+      const actions = [
+        'CREATE',
+        'UPDATE',
+        'DELETE',
+        'LOGIN',
+        'LOGOUT',
+        'EXPORT',
+      ];
 
       for (const action of actions) {
         const log = {

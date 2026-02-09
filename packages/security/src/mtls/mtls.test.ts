@@ -35,7 +35,7 @@ describe('mTLS Implementation', () => {
   afterAll(() => {
     try {
       rmSync(testDir, { recursive: true });
-    } catch { }
+    } catch {}
   });
 
   describe('Certificate Loading', () => {

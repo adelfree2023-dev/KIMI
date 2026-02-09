@@ -1,9 +1,9 @@
 /**
  * @apex/validators
- * 
+ *
  * Zod validation schemas for Apex v2 template system.
  * Provides type-safe validation for all data contracts.
- * 
+ *
  * @see docs/template-system/01-data-contracts.md
  */
 

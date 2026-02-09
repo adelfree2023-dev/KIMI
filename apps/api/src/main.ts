@@ -3,14 +3,14 @@
  * Implements S1-S8 Security Protocols + OpenAPI Documentation
  */
 
-import { Logger, ValidationPipe, VersioningType } from '@nestjs/common';
-import { NestFactory } from '@nestjs/core';
-import { ZodValidationPipe } from 'nestjs-zod';
-import helmet from 'helmet';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { AppModule } from './app.module.js';
 import { GlobalExceptionFilter } from '@apex/middleware';
 import { defaultCorsConfig } from '@apex/middleware';
+import { Logger, ValidationPipe, VersioningType } from '@nestjs/common';
+import { NestFactory } from '@nestjs/core';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import helmet from 'helmet';
+import { ZodValidationPipe } from 'nestjs-zod';
+import { AppModule } from './app.module.js';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
@@ -40,31 +40,33 @@ async function bootstrap() {
   // S8: Security Headers (Helmet)
   // CRITICAL FIX (S8): Removed 'unsafe-inline' from scriptSrc
   // Using strict CSP with nonce generation for inline scripts
-  app.use(helmet({
-    contentSecurityPolicy: {
-      directives: {
-        defaultSrc: ["'self'"],
-        // S8: No 'unsafe-inline' - scripts must have nonce or be external
-        scriptSrc: ["'self'"],
-        // S8: styleSrc allows 'unsafe-inline' for CSS (less critical than JS)
-        styleSrc: ["'self'", "'unsafe-inline'"],
-        imgSrc: ["'self'", 'data:', 'https:'],
-        connectSrc: ["'self'"],
-        fontSrc: ["'self'"],
-        objectSrc: ["'none'"],
-        upgradeInsecureRequests: [],
+  app.use(
+    helmet({
+      contentSecurityPolicy: {
+        directives: {
+          defaultSrc: ["'self'"],
+          // S8: No 'unsafe-inline' - scripts must have nonce or be external
+          scriptSrc: ["'self'"],
+          // S8: styleSrc allows 'unsafe-inline' for CSS (less critical than JS)
+          styleSrc: ["'self'", "'unsafe-inline'"],
+          imgSrc: ["'self'", 'data:', 'https:'],
+          connectSrc: ["'self'"],
+          fontSrc: ["'self'"],
+          objectSrc: ["'none'"],
+          upgradeInsecureRequests: [],
+        },
       },
-    },
-    hsts: {
-      maxAge: 31536000,
-      includeSubDomains: true,
-      preload: true,
-    },
-    // S8: Additional security headers
-    xContentTypeOptions: true,
-    xFrameOptions: { action: 'deny' },
-    referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
-  }));
+      hsts: {
+        maxAge: 31536000,
+        includeSubDomains: true,
+        preload: true,
+      },
+      // S8: Additional security headers
+      xContentTypeOptions: true,
+      xFrameOptions: { action: 'deny' },
+      referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+    })
+  );
 
   // S8: CORS Configuration
   app.enableCors(defaultCorsConfig);
@@ -96,7 +98,8 @@ async function bootstrap() {
     swaggerOptions: {
       persistAuthorization: true,
     },
-    customCssUrl: 'https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.9.0/swagger-ui.css',
+    customCssUrl:
+      'https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.9.0/swagger-ui.css',
     customJs: [
       'https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.9.0/swagger-ui-bundle.js',
       'https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.9.0/swagger-ui-standalone-preset.js',

@@ -3,307 +3,307 @@
  * Verifies JSON export with tenant isolation (S2)
  */
 
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { LiteExportStrategy } from './lite-export.strategy.js';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ExportOptions } from '../types.js';
+import { LiteExportStrategy } from './lite-export.strategy.js';
 
 // Mock database
 const { mockClient } = vi.hoisted(() => ({
-    mockClient: {
-        query: vi.fn(),
-        release: vi.fn(),
-    },
+  mockClient: {
+    query: vi.fn(),
+    release: vi.fn(),
+  },
 }));
 
 vi.mock('@apex/db', () => ({
-    publicPool: {
-        connect: vi.fn().mockResolvedValue(mockClient),
-    },
+  publicPool: {
+    connect: vi.fn().mockResolvedValue(mockClient),
+  },
 }));
 
 // Mock Bun
 global.Bun = {
-    spawn: vi.fn().mockReturnValue({
-        exited: Promise.resolve(),
-    }),
-    write: vi.fn().mockResolvedValue(undefined),
-    file: vi.fn().mockReturnValue({
-        arrayBuffer: vi.fn().mockResolvedValue(new ArrayBuffer(100)),
-        stat: vi.fn().mockResolvedValue({ size: 1024 }),
-    }),
+  spawn: vi.fn().mockReturnValue({
+    exited: Promise.resolve(),
+  }),
+  write: vi.fn().mockResolvedValue(undefined),
+  file: vi.fn().mockReturnValue({
+    arrayBuffer: vi.fn().mockResolvedValue(new ArrayBuffer(100)),
+    stat: vi.fn().mockResolvedValue({ size: 1024 }),
+  }),
 } as any;
 
 describe('LiteExportStrategy', () => {
-    let strategy: LiteExportStrategy;
+  let strategy: LiteExportStrategy;
 
-    beforeEach(() => {
-        vi.clearAllMocks();
-        strategy = new LiteExportStrategy();
+  beforeEach(() => {
+    vi.clearAllMocks();
+    strategy = new LiteExportStrategy();
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  describe('validate', () => {
+    it('should validate existing tenant', async () => {
+      mockClient.query.mockResolvedValue({ rowCount: 1 });
+
+      const options: ExportOptions = {
+        tenantId: 'tenant-123',
+        profile: 'lite',
+        requestedBy: 'user-456',
+      };
+
+      const result = await strategy.validate(options);
+
+      expect(result).toBe(true);
+      expect(mockClient.query).toHaveBeenCalledWith(
+        'SELECT 1 FROM public.tenants WHERE subdomain = $1',
+        ['tenant-123']
+      );
+      expect(mockClient.release).toHaveBeenCalled();
     });
 
-    afterEach(() => {
-        vi.clearAllMocks();
+    it('should reject non-existent tenant', async () => {
+      mockClient.query.mockResolvedValue({ rowCount: 0 });
+
+      const options: ExportOptions = {
+        tenantId: 'non-existent',
+        profile: 'lite',
+        requestedBy: 'user-456',
+      };
+
+      const result = await strategy.validate(options);
+
+      expect(result).toBe(false);
     });
 
-    describe('validate', () => {
-        it('should validate existing tenant', async () => {
-            mockClient.query.mockResolvedValue({ rowCount: 1 });
+    it('should release connection on error', async () => {
+      mockClient.query.mockRejectedValue(new Error('DB error'));
 
-            const options: ExportOptions = {
-                tenantId: 'tenant-123',
-                profile: 'lite',
-                requestedBy: 'user-456',
-            };
+      const options: ExportOptions = {
+        tenantId: 'tenant-123',
+        profile: 'lite',
+        requestedBy: 'user-456',
+      };
 
-            const result = await strategy.validate(options);
+      await expect(strategy.validate(options)).rejects.toThrow('DB error');
+      expect(mockClient.release).toHaveBeenCalled();
+    });
+  });
 
-            expect(result).toBe(true);
-            expect(mockClient.query).toHaveBeenCalledWith(
-                'SELECT 1 FROM public.tenants WHERE subdomain = $1',
-                ['tenant-123']
-            );
-            expect(mockClient.release).toHaveBeenCalled();
-        });
+  describe('export', () => {
+    it('should export tenant data successfully', async () => {
+      // Mock table discovery
+      mockClient.query.mockResolvedValueOnce({
+        rows: [{ table_name: 'users' }, { table_name: 'orders' }],
+      });
 
-        it('should reject non-existent tenant', async () => {
-            mockClient.query.mockResolvedValue({ rowCount: 0 });
+      // Mock row count checks
+      mockClient.query.mockResolvedValueOnce({ rows: [{ count: '100' }] });
+      mockClient.query.mockResolvedValueOnce({
+        rows: [{ id: 1, name: 'User 1' }],
+        rowCount: 1,
+      });
 
-            const options: ExportOptions = {
-                tenantId: 'non-existent',
-                profile: 'lite',
-                requestedBy: 'user-456',
-            };
+      mockClient.query.mockResolvedValueOnce({ rows: [{ count: '50' }] });
+      mockClient.query.mockResolvedValueOnce({
+        rows: [{ id: 1, total: 100 }],
+        rowCount: 1,
+      });
 
-            const result = await strategy.validate(options);
+      const options: ExportOptions = {
+        tenantId: 'tenant-123',
+        profile: 'lite',
+        requestedBy: 'user-456',
+      };
 
-            expect(result).toBe(false);
-        });
+      const result = await strategy.export(options);
 
-        it('should release connection on error', async () => {
-            mockClient.query.mockRejectedValue(new Error('DB error'));
-
-            const options: ExportOptions = {
-                tenantId: 'tenant-123',
-                profile: 'lite',
-                requestedBy: 'user-456',
-            };
-
-            await expect(strategy.validate(options)).rejects.toThrow('DB error');
-            expect(mockClient.release).toHaveBeenCalled();
-        });
+      expect(result).toBeDefined();
+      expect(result.manifest.tenantId).toBe('tenant-123');
+      expect(result.manifest.database.tables).toEqual(['users', 'orders']);
+      expect(result.manifest.database.rowCount).toBe(2);
+      expect(result.checksum).toBeDefined();
+      expect(mockClient.release).toHaveBeenCalled();
     });
 
-    describe('export', () => {
-        it('should export tenant data successfully', async () => {
-            // Mock table discovery
-            mockClient.query.mockResolvedValueOnce({
-                rows: [{ table_name: 'users' }, { table_name: 'orders' }],
-            });
+    it('should enforce S2 tenant isolation', async () => {
+      mockClient.query.mockResolvedValueOnce({
+        rows: [{ table_name: 'users' }],
+      });
 
-            // Mock row count checks
-            mockClient.query.mockResolvedValueOnce({ rows: [{ count: '100' }] });
-            mockClient.query.mockResolvedValueOnce({
-                rows: [{ id: 1, name: 'User 1' }],
-                rowCount: 1,
-            });
+      mockClient.query.mockResolvedValueOnce({ rows: [{ count: '10' }] });
+      mockClient.query.mockResolvedValueOnce({
+        rows: [],
+        rowCount: 0,
+      });
 
-            mockClient.query.mockResolvedValueOnce({ rows: [{ count: '50' }] });
-            mockClient.query.mockResolvedValueOnce({
-                rows: [{ id: 1, total: 100 }],
-                rowCount: 1,
-            });
+      const options: ExportOptions = {
+        tenantId: 'tenant-123',
+        profile: 'lite',
+        requestedBy: 'user-456',
+      };
 
-            const options: ExportOptions = {
-                tenantId: 'tenant-123',
-                profile: 'lite',
-                requestedBy: 'user-456',
-            };
+      await strategy.export(options);
 
-            const result = await strategy.export(options);
-
-            expect(result).toBeDefined();
-            expect(result.manifest.tenantId).toBe('tenant-123');
-            expect(result.manifest.database.tables).toEqual(['users', 'orders']);
-            expect(result.manifest.database.rowCount).toBe(2);
-            expect(result.checksum).toBeDefined();
-            expect(mockClient.release).toHaveBeenCalled();
-        });
-
-        it('should enforce S2 tenant isolation', async () => {
-            mockClient.query.mockResolvedValueOnce({
-                rows: [{ table_name: 'users' }],
-            });
-
-            mockClient.query.mockResolvedValueOnce({ rows: [{ count: '10' }] });
-            mockClient.query.mockResolvedValueOnce({
-                rows: [],
-                rowCount: 0,
-            });
-
-            const options: ExportOptions = {
-                tenantId: 'tenant-123',
-                profile: 'lite',
-                requestedBy: 'user-456',
-            };
-
-            await strategy.export(options);
-
-            // Verify schema-scoped queries
-            const queryCalls = mockClient.query.mock.calls;
-            const schemaQuery = queryCalls.find((call) =>
-                call[0].includes('table_schema = $1')
-            );
-            expect(schemaQuery).toBeDefined();
-            expect(schemaQuery![1]).toEqual(['tenant_tenant-123']);
-        });
-
-        it('should reject tables exceeding row limit', async () => {
-            mockClient.query.mockResolvedValueOnce({
-                rows: [{ table_name: 'huge_table' }],
-            });
-
-            // Return count > MAX_ROWS_PER_TABLE (100K)
-            mockClient.query.mockResolvedValueOnce({
-                rows: [{ count: '150000' }],
-            });
-
-            const options: ExportOptions = {
-                tenantId: 'tenant-123',
-                profile: 'lite',
-                requestedBy: 'user-456',
-            };
-
-            await expect(strategy.export(options)).rejects.toThrow(
-                'exceeds max rows'
-            );
-            expect(mockClient.release).toHaveBeenCalled();
-        });
-
-        it('should cleanup on export failure', async () => {
-            mockClient.query.mockRejectedValue(new Error('Export failed'));
-
-            const options: ExportOptions = {
-                tenantId: 'tenant-123',
-                profile: 'lite',
-                requestedBy: 'user-456',
-            };
-
-            await expect(strategy.export(options)).rejects.toThrow('Export failed');
-
-            // Verify cleanup was called
-            expect(Bun.spawn).toHaveBeenCalledWith(
-                expect.arrayContaining(['rm', '-rf'])
-            );
-            expect(mockClient.release).toHaveBeenCalled();
-        });
-
-        it('should create manifest with correct metadata', async () => {
-            mockClient.query.mockResolvedValueOnce({
-                rows: [{ table_name: 'products' }],
-            });
-
-            mockClient.query.mockResolvedValueOnce({ rows: [{ count: '25' }] });
-            mockClient.query.mockResolvedValueOnce({
-                rows: Array(25).fill({ id: 1 }),
-                rowCount: 25,
-            });
-
-            const options: ExportOptions = {
-                tenantId: 'tenant-123',
-                profile: 'lite',
-                requestedBy: 'user-456',
-            };
-
-            const result = await strategy.export(options);
-
-            expect(result.manifest).toMatchObject({
-                tenantId: 'tenant-123',
-                profile: 'lite',
-                database: {
-                    tables: ['products'],
-                    rowCount: 25,
-                    format: 'json',
-                },
-                version: '1.0.0',
-            });
-        });
-
-        it('should handle empty tables', async () => {
-            mockClient.query.mockResolvedValueOnce({
-                rows: [{ table_name: 'empty_table' }],
-            });
-
-            mockClient.query.mockResolvedValueOnce({ rows: [{ count: '0' }] });
-            mockClient.query.mockResolvedValueOnce({
-                rows: [],
-                rowCount: 0,
-            });
-
-            const options: ExportOptions = {
-                tenantId: 'tenant-123',
-                profile: 'lite',
-                requestedBy: 'user-456',
-            };
-
-            const result = await strategy.export(options);
-
-            expect(result.manifest.database.rowCount).toBe(0);
-        });
-
-        it('should calculate SHA-256 checksum', async () => {
-            mockClient.query.mockResolvedValueOnce({ rows: [] });
-
-            const options: ExportOptions = {
-                tenantId: 'tenant-123',
-                profile: 'lite',
-                requestedBy: 'user-456',
-            };
-
-            const result = await strategy.export(options);
-
-            expect(result.checksum).toMatch(/^[a-f0-9]{64}$/);
-        });
-
-        it('should set 24h expiry', async () => {
-            mockClient.query.mockResolvedValueOnce({ rows: [] });
-
-            const options: ExportOptions = {
-                tenantId: 'tenant-123',
-                profile: 'lite',
-                requestedBy: 'user-456',
-            };
-
-            const result = await strategy.export(options);
-
-            const now = Date.now();
-            const expiryTime = result.expiresAt.getTime();
-            const expectedExpiry = now + 24 * 60 * 60 * 1000;
-
-            expect(expiryTime).toBeGreaterThan(now);
-            expect(expiryTime).toBeLessThanOrEqual(expectedExpiry + 1000); // 1s tolerance
-        });
-
-        it('should cleanup work directory after success', async () => {
-            mockClient.query.mockResolvedValueOnce({ rows: [] });
-
-            const options: ExportOptions = {
-                tenantId: 'tenant-123',
-                profile: 'lite',
-                requestedBy: 'user-456',
-            };
-
-            await strategy.export(options);
-
-            // Verify work directory cleanup (but not tar.gz)
-            const spawnCalls = vi.mocked(Bun.spawn).mock.calls;
-            const cleanupCall = spawnCalls.find(
-                (call) =>
-                    Array.isArray(call[0]) &&
-                    call[0].includes('rm') &&
-                    call[0].includes('-rf') &&
-                    !call[0].some((arg) => arg.includes('.tar.gz'))
-            );
-            expect(cleanupCall).toBeDefined();
-        });
+      // Verify schema-scoped queries
+      const queryCalls = mockClient.query.mock.calls;
+      const schemaQuery = queryCalls.find((call) =>
+        call[0].includes('table_schema = $1')
+      );
+      expect(schemaQuery).toBeDefined();
+      expect(schemaQuery![1]).toEqual(['tenant_tenant-123']);
     });
+
+    it('should reject tables exceeding row limit', async () => {
+      mockClient.query.mockResolvedValueOnce({
+        rows: [{ table_name: 'huge_table' }],
+      });
+
+      // Return count > MAX_ROWS_PER_TABLE (100K)
+      mockClient.query.mockResolvedValueOnce({
+        rows: [{ count: '150000' }],
+      });
+
+      const options: ExportOptions = {
+        tenantId: 'tenant-123',
+        profile: 'lite',
+        requestedBy: 'user-456',
+      };
+
+      await expect(strategy.export(options)).rejects.toThrow(
+        'exceeds max rows'
+      );
+      expect(mockClient.release).toHaveBeenCalled();
+    });
+
+    it('should cleanup on export failure', async () => {
+      mockClient.query.mockRejectedValue(new Error('Export failed'));
+
+      const options: ExportOptions = {
+        tenantId: 'tenant-123',
+        profile: 'lite',
+        requestedBy: 'user-456',
+      };
+
+      await expect(strategy.export(options)).rejects.toThrow('Export failed');
+
+      // Verify cleanup was called
+      expect(Bun.spawn).toHaveBeenCalledWith(
+        expect.arrayContaining(['rm', '-rf'])
+      );
+      expect(mockClient.release).toHaveBeenCalled();
+    });
+
+    it('should create manifest with correct metadata', async () => {
+      mockClient.query.mockResolvedValueOnce({
+        rows: [{ table_name: 'products' }],
+      });
+
+      mockClient.query.mockResolvedValueOnce({ rows: [{ count: '25' }] });
+      mockClient.query.mockResolvedValueOnce({
+        rows: Array(25).fill({ id: 1 }),
+        rowCount: 25,
+      });
+
+      const options: ExportOptions = {
+        tenantId: 'tenant-123',
+        profile: 'lite',
+        requestedBy: 'user-456',
+      };
+
+      const result = await strategy.export(options);
+
+      expect(result.manifest).toMatchObject({
+        tenantId: 'tenant-123',
+        profile: 'lite',
+        database: {
+          tables: ['products'],
+          rowCount: 25,
+          format: 'json',
+        },
+        version: '1.0.0',
+      });
+    });
+
+    it('should handle empty tables', async () => {
+      mockClient.query.mockResolvedValueOnce({
+        rows: [{ table_name: 'empty_table' }],
+      });
+
+      mockClient.query.mockResolvedValueOnce({ rows: [{ count: '0' }] });
+      mockClient.query.mockResolvedValueOnce({
+        rows: [],
+        rowCount: 0,
+      });
+
+      const options: ExportOptions = {
+        tenantId: 'tenant-123',
+        profile: 'lite',
+        requestedBy: 'user-456',
+      };
+
+      const result = await strategy.export(options);
+
+      expect(result.manifest.database.rowCount).toBe(0);
+    });
+
+    it('should calculate SHA-256 checksum', async () => {
+      mockClient.query.mockResolvedValueOnce({ rows: [] });
+
+      const options: ExportOptions = {
+        tenantId: 'tenant-123',
+        profile: 'lite',
+        requestedBy: 'user-456',
+      };
+
+      const result = await strategy.export(options);
+
+      expect(result.checksum).toMatch(/^[a-f0-9]{64}$/);
+    });
+
+    it('should set 24h expiry', async () => {
+      mockClient.query.mockResolvedValueOnce({ rows: [] });
+
+      const options: ExportOptions = {
+        tenantId: 'tenant-123',
+        profile: 'lite',
+        requestedBy: 'user-456',
+      };
+
+      const result = await strategy.export(options);
+
+      const now = Date.now();
+      const expiryTime = result.expiresAt.getTime();
+      const expectedExpiry = now + 24 * 60 * 60 * 1000;
+
+      expect(expiryTime).toBeGreaterThan(now);
+      expect(expiryTime).toBeLessThanOrEqual(expectedExpiry + 1000); // 1s tolerance
+    });
+
+    it('should cleanup work directory after success', async () => {
+      mockClient.query.mockResolvedValueOnce({ rows: [] });
+
+      const options: ExportOptions = {
+        tenantId: 'tenant-123',
+        profile: 'lite',
+        requestedBy: 'user-456',
+      };
+
+      await strategy.export(options);
+
+      // Verify work directory cleanup (but not tar.gz)
+      const spawnCalls = vi.mocked(Bun.spawn).mock.calls;
+      const cleanupCall = spawnCalls.find(
+        (call) =>
+          Array.isArray(call[0]) &&
+          call[0].includes('rm') &&
+          call[0].includes('-rf') &&
+          !call[0].some((arg) => arg.includes('.tar.gz'))
+      );
+      expect(cleanupCall).toBeDefined();
+    });
+  });
 });

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { eq, or } from 'drizzle-orm';
 import { publicDb } from './index.js';
-import { tenants, type Tenant } from './schema.js';
+import { type Tenant, tenants } from './schema.js';
 
 /**
  * S2: Tenant Registry Service
@@ -10,51 +10,53 @@ import { tenants, type Tenant } from './schema.js';
  */
 @Injectable()
 export class TenantRegistryService {
-    /**
-     * Check if a tenant exists by id or subdomain
-     */
-    async exists(identifier: string): Promise<boolean> {
-        const result = await publicDb
-            .select({ count: tenants.id })
-            .from(tenants)
-            .where(or(eq(tenants.id, identifier as any), eq(tenants.subdomain, identifier)))
-            .limit(1);
+  /**
+   * Check if a tenant exists by id or subdomain
+   */
+  async exists(identifier: string): Promise<boolean> {
+    const result = await publicDb
+      .select({ count: tenants.id })
+      .from(tenants)
+      .where(
+        or(eq(tenants.id, identifier as any), eq(tenants.subdomain, identifier))
+      )
+      .limit(1);
 
-        return result.length > 0;
-    }
+    return result.length > 0;
+  }
 
-    /**
-     * Get tenant metadata by subdomain
-     */
-    async getBySubdomain(subdomain: string): Promise<Tenant | null> {
-        const result = await publicDb
-            .select()
-            .from(tenants)
-            .where(eq(tenants.subdomain, subdomain))
-            .limit(1);
+  /**
+   * Get tenant metadata by subdomain
+   */
+  async getBySubdomain(subdomain: string): Promise<Tenant | null> {
+    const result = await publicDb
+      .select()
+      .from(tenants)
+      .where(eq(tenants.subdomain, subdomain))
+      .limit(1);
 
-        return result[0] || null;
-    }
+    return result[0] || null;
+  }
 
-    /**
-     * Register a new tenant in the registry
-     */
-    async register(data: {
-        subdomain: string;
-        name: string;
-        plan: 'free' | 'basic' | 'pro' | 'enterprise';
-        status?: string;
-    }): Promise<Tenant> {
-        const [newTenant] = await publicDb
-            .insert(tenants)
-            .values({
-                subdomain: data.subdomain,
-                name: data.name,
-                plan: data.plan,
-                status: data.status || 'active',
-            })
-            .returning();
+  /**
+   * Register a new tenant in the registry
+   */
+  async register(data: {
+    subdomain: string;
+    name: string;
+    plan: 'free' | 'basic' | 'pro' | 'enterprise';
+    status?: string;
+  }): Promise<Tenant> {
+    const [newTenant] = await publicDb
+      .insert(tenants)
+      .values({
+        subdomain: data.subdomain,
+        name: data.name,
+        plan: data.plan,
+        status: data.status || 'active',
+      })
+      .returning();
 
-        return newTenant;
-    }
+    return newTenant;
+  }
 }

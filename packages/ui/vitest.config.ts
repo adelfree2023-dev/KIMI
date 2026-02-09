@@ -2,10 +2,10 @@ import { defineConfig, mergeConfig } from 'vitest/config';
 import rootConfig from '../../vitest.config';
 
 export default mergeConfig(
-    rootConfig,
-    defineConfig({
-        test: {
-            name: 'ui',
-        },
-    })
+  rootConfig,
+  defineConfig({
+    test: {
+      name: 'ui',
+    },
+  })
 );

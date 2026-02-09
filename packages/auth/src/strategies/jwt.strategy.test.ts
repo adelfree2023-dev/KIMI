@@ -3,9 +3,9 @@
  * Rule 4.1: Test Coverage Mandate
  */
 
-import { describe, expect, it, beforeEach, vi } from 'vitest';
-import { JwtStrategy } from './jwt.strategy.js';
 import { UnauthorizedException } from '@nestjs/common';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { JwtStrategy } from './jwt.strategy.js';
 
 const mockConfigService = {
   get: vi.fn(),
@@ -52,11 +52,15 @@ describe('JwtStrategy', () => {
         email: 'test@example.com',
       };
 
-      await expect(strategy.validate(payload as any)).rejects.toThrow(UnauthorizedException);
+      await expect(strategy.validate(payload as any)).rejects.toThrow(
+        UnauthorizedException
+      );
     });
 
     it('should throw UnauthorizedException for null payload', async () => {
-      await expect(strategy.validate(null as any)).rejects.toThrow(UnauthorizedException);
+      await expect(strategy.validate(null as any)).rejects.toThrow(
+        UnauthorizedException
+      );
     });
 
     it('should throw UnauthorizedException for undefined sub', async () => {
@@ -65,7 +69,9 @@ describe('JwtStrategy', () => {
         email: 'test@example.com',
       };
 
-      await expect(strategy.validate(payload as any)).rejects.toThrow(UnauthorizedException);
+      await expect(strategy.validate(payload as any)).rejects.toThrow(
+        UnauthorizedException
+      );
     });
 
     it('should handle payload without tenantId', async () => {

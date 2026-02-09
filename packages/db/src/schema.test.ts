@@ -1,5 +1,13 @@
-import { describe, it, expect } from 'vitest';
-import { tenants, users, stores, settings, auditLogs, getTenantTableName, setTenantSearchPath } from './schema.js';
+import { describe, expect, it } from 'vitest';
+import {
+  auditLogs,
+  getTenantTableName,
+  setTenantSearchPath,
+  settings,
+  stores,
+  tenants,
+  users,
+} from './schema.js';
 
 describe('Schema', () => {
   describe('Tenants table', () => {

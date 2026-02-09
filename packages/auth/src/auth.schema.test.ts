@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { LoginSchema, RegisterSchema, JwtPayloadSchema } from './auth.schema.js';
+import {
+  JwtPayloadSchema,
+  LoginSchema,
+  RegisterSchema,
+} from './auth.schema.js';
 
 describe('Auth Schemas (Rule 5.1)', () => {
   describe('LoginSchema', () => {

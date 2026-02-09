@@ -97,7 +97,10 @@ export async function createStorageBucket(
     await client.setBucketPolicy(bucketName, JSON.stringify(policy));
 
     // Set bucket tagging with plan info
-    await client.setBucketTagging(bucketName, { plan, tenant: subdomain } as any);
+    await client.setBucketTagging(bucketName, {
+      plan,
+      tenant: subdomain,
+    } as any);
 
     // Create folder structure
     await client.putObject(
@@ -122,8 +125,9 @@ export async function createStorageBucket(
     return {
       success: true,
       bucketName,
-      endpoint: `${env.MINIO_USE_SSL === 'true' ? 'https' : 'http'}://${env.MINIO_ENDPOINT
-        }:${env.MINIO_PORT}/${bucketName}`,
+      endpoint: `${env.MINIO_USE_SSL === 'true' ? 'https' : 'http'}://${
+        env.MINIO_ENDPOINT
+      }:${env.MINIO_PORT}/${bucketName}`,
       quotaBytes: PLAN_QUOTAS[plan] || PLAN_QUOTAS.free,
       durationMs: duration,
       createdAt: new Date(),
@@ -131,7 +135,8 @@ export async function createStorageBucket(
   } catch (error) {
     logger.error('Failed to create storage bucket', { subdomain, error });
     throw new Error(
-      `Failed to create storage bucket: ${error instanceof Error ? error.message : 'Unknown error'
+      `Failed to create storage bucket: ${
+        error instanceof Error ? error.message : 'Unknown error'
       }`
     );
   }
@@ -260,16 +265,17 @@ export async function getStorageStats(
       lastModified:
         objects.length > 0
           ? new Date(
-            Math.max(
-              ...objects.map((o) => new Date(o.lastModified || 0).getTime())
+              Math.max(
+                ...objects.map((o) => new Date(o.lastModified || 0).getTime())
+              )
             )
-          )
           : null,
     };
   } catch (error) {
     logger.error('Failed to get storage stats', { bucketName, error });
     throw new Error(
-      `Failed to get storage stats: ${error instanceof Error ? error.message : 'Unknown error'
+      `Failed to get storage stats: ${
+        error instanceof Error ? error.message : 'Unknown error'
       }`
     );
   }

@@ -6,12 +6,12 @@
  * S7: Secure presigned URLs
  */
 
-import { Injectable, Logger, Inject } from '@nestjs/common';
-import { Queue, Job } from 'bullmq';
-import type { ExportJob, ExportOptions, ExportResult } from './types.js';
-import { ExportStrategyFactory } from './export-strategy.factory.js';
-import { AuditService } from '@apex/audit';
 import { randomUUID } from 'crypto';
+import { AuditService } from '@apex/audit';
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Job, Queue } from 'bullmq';
+import { ExportStrategyFactory } from './export-strategy.factory.js';
+import type { ExportJob, ExportOptions, ExportResult } from './types.js';
 
 @Injectable()
 export class ExportService {
@@ -20,7 +20,7 @@ export class ExportService {
 
   constructor(
     private readonly strategyFactory: ExportStrategyFactory,
-    @Inject('AUDIT_SERVICE') private readonly audit: AuditService,
+    @Inject('AUDIT_SERVICE') private readonly audit: AuditService
   ) {
     // Initialize BullMQ queue
     this.exportQueue = new Queue('tenant-export', {
@@ -41,7 +41,9 @@ export class ExportService {
 
     // Concurrency: 1 per tenant (throttling)
     this.exportQueue.on('waiting', (job) => {
-      this.logger.log(`Export job ${job.id} waiting for tenant ${job.data.tenantId}`);
+      this.logger.log(
+        `Export job ${job.id} waiting for tenant ${job.data.tenantId}`
+      );
     });
   }
 
@@ -59,27 +61,30 @@ export class ExportService {
     // Check tenant concurrency (1 job per tenant)
     const activeJobs = await this.exportQueue.getJobs(['active', 'waiting']);
     const tenantJobs = activeJobs.filter(
-      j => j.data.tenantId === options.tenantId
+      (j) => j.data.tenantId === options.tenantId
     );
 
     if (tenantJobs.length > 0) {
       throw new Error(
         `Export already in progress for tenant ${options.tenantId}. ` +
-        `Job ID: ${tenantJobs[0].id}. Please wait for completion.`
+          `Job ID: ${tenantJobs[0].id}. Please wait for completion.`
       );
     }
 
     // Check for duplicate requests (same profile within 1 minute)
     const recentJobs = await this.exportQueue.getJobs(['completed']);
     const recentDuplicate = recentJobs.find(
-      j => j.data.tenantId === options.tenantId &&
-           j.data.profile === options.profile &&
-           (Date.now() - j.processedOn!) < 60 * 1000
+      (j) =>
+        j.data.tenantId === options.tenantId &&
+        j.data.profile === options.profile &&
+        Date.now() - j.processedOn! < 60 * 1000
     );
 
     if (recentDuplicate) {
       throw new Error(
-        `Duplicate export request. Similar export completed ${Math.floor((Date.now() - recentDuplicate.processedOn!) / 1000)}s ago.`
+        `Duplicate export request. Similar export completed ${Math.floor(
+          (Date.now() - recentDuplicate.processedOn!) / 1000
+        )}s ago.`
       );
     }
 
@@ -115,7 +120,9 @@ export class ExportService {
       },
     });
 
-    this.logger.log(`Export job created: ${jobId} for tenant ${options.tenantId}`);
+    this.logger.log(
+      `Export job created: ${jobId} for tenant ${options.tenantId}`
+    );
 
     return {
       id: jobId,
@@ -145,10 +152,12 @@ export class ExportService {
       requestedAt: new Date(job.timestamp),
       status: this.mapJobState(state),
       progress: job.progress as number | undefined,
-      result: result ? {
-        ...result,
-        expiresAt: new Date(result.expiresAt),
-      } : undefined,
+      result: result
+        ? {
+            ...result,
+            expiresAt: new Date(result.expiresAt),
+          }
+        : undefined,
       error: job.failedReason || undefined,
     };
   }
@@ -190,8 +199,8 @@ export class ExportService {
     ]);
 
     return jobs
-      .filter(j => j.data.tenantId === tenantId)
-      .map(j => ({
+      .filter((j) => j.data.tenantId === tenantId)
+      .map((j) => ({
         id: j.id as string,
         tenantId: j.data.tenantId,
         profile: j.data.profile,

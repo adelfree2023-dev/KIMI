@@ -5,7 +5,12 @@
  */
 
 import { Injectable, Logger } from '@nestjs/common';
-import type { ExportStrategy, ExportOptions, ExportResult, ExportManifest } from '../types.js';
+import type {
+  ExportManifest,
+  ExportOptions,
+  ExportResult,
+  ExportStrategy,
+} from '../types.js';
 
 @Injectable()
 export class NativeExportStrategy implements ExportStrategy {
@@ -25,21 +30,23 @@ export class NativeExportStrategy implements ExportStrategy {
 
   async export(options: ExportOptions): Promise<ExportResult> {
     this.logger.log(`Starting native export for tenant: ${options.tenantId}`);
-    
+
     const schemaName = `tenant_${options.tenantId}`;
     const outputFile = `/tmp/export-${options.tenantId}-${Date.now()}.dump`;
-    
+
     // Run pg_dump for specific schema
     const proc = Bun.spawn([
       'pg_dump',
       '-Fc', // Custom format (compressed)
-      '-n', schemaName, // Specific schema only
-      '-f', outputFile,
+      '-n',
+      schemaName, // Specific schema only
+      '-f',
+      outputFile,
       process.env.DATABASE_URL || '',
     ]);
 
     const exitCode = await proc.exited;
-    
+
     if (exitCode !== 0) {
       const error = await new Response(proc.stderr).text();
       throw new Error(`pg_dump failed: ${error}`);
@@ -47,12 +54,14 @@ export class NativeExportStrategy implements ExportStrategy {
 
     // Get file stats
     const stat = await Bun.file(outputFile).stat();
-    
+
     // Calculate checksum
     const fileData = await Bun.file(outputFile).arrayBuffer();
     const hashBuffer = await crypto.subtle.digest('SHA-256', fileData);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
-    const checksumHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    const checksumHex = hashArray
+      .map((b) => b.toString(16).padStart(2, '0'))
+      .join('');
 
     const manifest: ExportManifest = {
       tenantId: options.tenantId,

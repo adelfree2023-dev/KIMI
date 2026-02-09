@@ -37,7 +37,7 @@ describe('Audit Service (S4 Protocol)', () => {
       release: vi.fn(),
     };
     vi.mocked(publicPool.connect).mockResolvedValue(mockClient as any);
-    vi.spyOn(console, 'log').mockImplementation(() => { });
+    vi.spyOn(console, 'log').mockImplementation(() => {});
   });
 
   describe('log', () => {
@@ -61,7 +61,11 @@ describe('Audit Service (S4 Protocol)', () => {
 
       await log(entry);
 
-      const queryCall = mockClient.query.mock.calls.find(c => typeof c[0] === 'string' && /INSERT INTO public\.audit_logs/i.test(c[0]));
+      const queryCall = mockClient.query.mock.calls.find(
+        (c) =>
+          typeof c[0] === 'string' &&
+          /INSERT INTO public\.audit_logs/i.test(c[0])
+      );
       expect(queryCall).toBeDefined();
       expect(queryCall![1]).toContain('TENANT_PROVISIONED');
       expect(mockClient.release).toHaveBeenCalled();
@@ -85,12 +89,19 @@ describe('Audit Service (S4 Protocol)', () => {
 
       await log(entry);
 
-      const queryCall = mockClient.query.mock.calls.find(c => typeof c[0] === 'string' && /INSERT INTO public\.audit_logs/i.test(c[0]));
+      const queryCall = mockClient.query.mock.calls.find(
+        (c) =>
+          typeof c[0] === 'string' &&
+          /INSERT INTO public\.audit_logs/i.test(c[0])
+      );
       expect(queryCall).toBeDefined();
       // Ensure the email is in the params (index 2 corresponds to actor_email in the schema)
       const params = queryCall![1];
       const emailParam = params[2];
-      expect(typeof emailParam === 'string' && emailParam.includes('admin@example.com')).toBe(true);
+      expect(
+        typeof emailParam === 'string' &&
+          emailParam.includes('admin@example.com')
+      ).toBe(true);
     });
 
     it('should output structured log to console for monitoring', async () => {
@@ -138,7 +149,11 @@ describe('Audit Service (S4 Protocol)', () => {
 
       await log(entry);
 
-      const queryCall = mockClient.query.mock.calls.find(c => typeof c[0] === 'string' && /INSERT INTO public\.audit_logs/i.test(c[0]));
+      const queryCall = mockClient.query.mock.calls.find(
+        (c) =>
+          typeof c[0] === 'string' &&
+          /INSERT INTO public\.audit_logs/i.test(c[0])
+      );
       expect(queryCall).toBeDefined();
       expect(queryCall![1][6]).toContain('Database connection failed'); // metadata is index 6 after adding userEmail
       expect(queryCall![1]).toContain('FAILURE');
@@ -165,7 +180,11 @@ describe('Audit Service (S4 Protocol)', () => {
 
       await log(entry);
 
-      const queryCall = mockClient.query.mock.calls.find(c => typeof c[0] === 'string' && /INSERT INTO public\.audit_logs/i.test(c[0]));
+      const queryCall = mockClient.query.mock.calls.find(
+        (c) =>
+          typeof c[0] === 'string' &&
+          /INSERT INTO public\.audit_logs/i.test(c[0])
+      );
       expect(queryCall).toBeDefined();
       const metadataJson = queryCall![1].find(
         (arg: any) => typeof arg === 'string' && arg.includes('changedFields')
@@ -230,7 +249,11 @@ describe('Audit Service (S4 Protocol)', () => {
 
       await log(entry);
 
-      const queryCall = mockClient.query.mock.calls.find(c => typeof c[0] === 'string' && /INSERT INTO public\.audit_logs/i.test(c[0]));
+      const queryCall = mockClient.query.mock.calls.find(
+        (c) =>
+          typeof c[0] === 'string' &&
+          /INSERT INTO public\.audit_logs/i.test(c[0])
+      );
       expect(queryCall).toBeDefined();
       // Verify defaults are applied
       const params = queryCall![1];
@@ -318,7 +341,11 @@ describe('Audit Service (S4 Protocol)', () => {
         true
       );
 
-      const queryCall = mockClient.query.mock.calls.find(c => typeof c[0] === 'string' && /INSERT INTO public\.audit_logs/i.test(c[0]));
+      const queryCall = mockClient.query.mock.calls.find(
+        (c) =>
+          typeof c[0] === 'string' &&
+          /INSERT INTO public\.audit_logs/i.test(c[0])
+      );
       expect(queryCall).toBeDefined();
       expect(queryCall![1]).toContain('TENANT_PROVISIONED');
       expect(queryCall![1]).toContain('SUCCESS');
@@ -336,7 +363,11 @@ describe('Audit Service (S4 Protocol)', () => {
         error
       );
 
-      const queryCall = mockClient.query.mock.calls.find(c => typeof c[0] === 'string' && /INSERT INTO public\.audit_logs/i.test(c[0]));
+      const queryCall = mockClient.query.mock.calls.find(
+        (c) =>
+          typeof c[0] === 'string' &&
+          /INSERT INTO public\.audit_logs/i.test(c[0])
+      );
       expect(queryCall).toBeDefined();
       expect(queryCall![1]).toContain('FAILURE');
       expect(queryCall![1][6]).toContain('Schema creation failed'); // metadata is index 6 after adding userEmail
@@ -354,7 +385,11 @@ describe('Audit Service (S4 Protocol)', () => {
         { requestedResource: 'orders', method: 'GET' }
       );
 
-      const queryCall = mockClient.query.mock.calls.find(c => typeof c[0] === 'string' && /INSERT INTO public\.audit_logs/i.test(c[0]));
+      const queryCall = mockClient.query.mock.calls.find(
+        (c) =>
+          typeof c[0] === 'string' &&
+          /INSERT INTO public\.audit_logs/i.test(c[0])
+      );
       expect(queryCall).toBeDefined();
       expect(queryCall![1]).toContain('CRITICAL');
       expect(queryCall![1]).toContain('CROSS_TENANT_ACCESS_ATTEMPT');
@@ -371,7 +406,11 @@ describe('Audit Service (S4 Protocol)', () => {
         '10.0.0.1'
       );
 
-      const queryCall = mockClient.query.mock.calls.find(c => typeof c[0] === 'string' && /INSERT INTO public\.audit_logs/i.test(c[0]));
+      const queryCall = mockClient.query.mock.calls.find(
+        (c) =>
+          typeof c[0] === 'string' &&
+          /INSERT INTO public\.audit_logs/i.test(c[0])
+      );
       expect(queryCall).toBeDefined();
       expect(queryCall![1]).toContain('FAILURE');
     });

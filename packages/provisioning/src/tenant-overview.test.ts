@@ -3,19 +3,19 @@
  * Super-#01: Tenant Overview Table
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
-  getTenantList,
+  type TenantPlan,
+  type TenantStatus,
+  deleteTenant,
   getTenantById,
   getTenantBySubdomain,
-  updateTenantStatus,
-  updateTenantPlan,
-  updateTenant,
-  deleteTenant,
+  getTenantList,
   getTenantStats,
   killSwitch,
-  type TenantStatus,
-  type TenantPlan,
+  updateTenant,
+  updateTenantPlan,
+  updateTenantStatus,
 } from './tenant-overview.js';
 
 // Mock database
@@ -48,15 +48,18 @@ const { mockTenants } = vi.hoisted(() => ({
       createdAt: new Date(),
       updatedAt: new Date(),
     },
-  ]
+  ],
 }));
 
 vi.mock('@apex/db', () => {
   const mockQuery = {
     where: vi.fn().mockReturnThis(),
     limit: vi.fn().mockImplementation((n: number) => ({
-      offset: vi.fn().mockImplementation(() => Promise.resolve(mockTenants.slice(0, n))),
-      then: (onfulfilled: any) => Promise.resolve(mockTenants.slice(0, n)).then(onfulfilled),
+      offset: vi
+        .fn()
+        .mockImplementation(() => Promise.resolve(mockTenants.slice(0, n))),
+      then: (onfulfilled: any) =>
+        Promise.resolve(mockTenants.slice(0, n)).then(onfulfilled),
     })),
     orderBy: vi.fn().mockReturnThis(),
     then: (onfulfilled: any) => Promise.resolve(mockTenants).then(onfulfilled),
@@ -121,13 +124,22 @@ describe('Tenant Overview Service', () => {
     });
 
     it('should support sorting by different fields', async () => {
-      const resultByDate = await getTenantList({ sortBy: 'createdAt', sortOrder: 'desc' });
+      const resultByDate = await getTenantList({
+        sortBy: 'createdAt',
+        sortOrder: 'desc',
+      });
       expect(resultByDate.tenants).toBeDefined();
 
-      const resultBySubdomain = await getTenantList({ sortBy: 'subdomain', sortOrder: 'asc' });
+      const resultBySubdomain = await getTenantList({
+        sortBy: 'subdomain',
+        sortOrder: 'asc',
+      });
       expect(resultBySubdomain.tenants).toBeDefined();
 
-      const resultByPlan = await getTenantList({ sortBy: 'plan', sortOrder: 'desc' });
+      const resultByPlan = await getTenantList({
+        sortBy: 'plan',
+        sortOrder: 'desc',
+      });
       expect(resultByPlan.tenants).toBeDefined();
 
       const resultByDefault = await getTenantList({ sortBy: undefined });
@@ -293,7 +305,7 @@ describe('Tenant Overview Service', () => {
       const { publicDb } = await import('@apex/db');
       vi.mocked(publicDb.select).mockReturnValueOnce({
         from: vi.fn().mockResolvedValue([
-          { status: 'active', plan: 'free' } // Missing createdAt
+          { status: 'active', plan: 'free' }, // Missing createdAt
         ]),
       } as any);
 

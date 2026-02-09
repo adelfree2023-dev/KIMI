@@ -3,10 +3,10 @@
  * S2 Protocol: Tenant Resolution
  */
 
-import { describe, expect, it, vi } from 'vitest';
 import type { Request, Response } from 'express';
-import { extractSubdomain, resolveTenant } from './tenant-resolution.js';
+import { describe, expect, it, vi } from 'vitest';
 import { tenantStorage } from './tenant-context.js';
+import { extractSubdomain, resolveTenant } from './tenant-resolution.js';
 
 describe('extractSubdomain', () => {
   it('should extract subdomain from apex.com domain', () => {
@@ -113,7 +113,9 @@ describe('Tenant Extraction Helpers', () => {
   });
 
   it('should extract tenant from header', async () => {
-    const req = { headers: { 'x-tenant-id': 'tenant-789' } } as unknown as Request;
+    const req = {
+      headers: { 'x-tenant-id': 'tenant-789' },
+    } as unknown as Request;
     const { extractTenantFromHeader } = await import('./tenant-resolution.js');
     expect(extractTenantFromHeader(req)).toBe('tenant-789');
   });
@@ -123,4 +125,3 @@ describe('Tenant Extraction Helpers', () => {
     expect(extractTenantFromJWT({} as any)).toBeNull();
   });
 });
-

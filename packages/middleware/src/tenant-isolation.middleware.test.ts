@@ -3,14 +3,14 @@
  * S2 Protocol: Tenant Isolation
  */
 
-import { describe, expect, it, vi, beforeEach } from 'vitest';
+import { publicDb, tenants } from '@apex/db';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { tenantStorage } from './connection-context.js';
 import {
+  SuperAdminOrTenantGuard,
   TenantIsolationMiddleware,
   TenantScopedGuard,
-  SuperAdminOrTenantGuard,
 } from './tenant-isolation.middleware.js';
-import { publicDb, tenants } from '@apex/db';
-import { tenantStorage } from './connection-context.js';
 
 // Mock @apex/db
 vi.mock('@apex/db', () => ({
@@ -95,8 +95,9 @@ describe('TenantIsolationMiddleware', () => {
     };
     vi.mocked(publicDb.select).mockReturnValue(mockSelect as any);
 
-    await expect(middleware.use(mockReq as any, mockRes as any, mockNext))
-      .rejects.toThrow('Invalid tenant: unknown');
+    await expect(
+      middleware.use(mockReq as any, mockRes as any, mockNext)
+    ).rejects.toThrow('Invalid tenant: unknown');
   });
 
   it('should handle ports in host header', async () => {
@@ -164,8 +165,9 @@ describe('TenantIsolationMiddleware', () => {
     };
     vi.mocked(publicDb.select).mockReturnValue(mockSelect as any);
 
-    await expect(middleware.use(mockReq as any, mockRes as any, mockNext))
-      .rejects.toThrow('Invalid tenant: suspended');
+    await expect(
+      middleware.use(mockReq as any, mockRes as any, mockNext)
+    ).rejects.toThrow('Invalid tenant: suspended');
   });
 
   it('should throw UnauthorizedException for pending tenant', async () => {
@@ -187,8 +189,9 @@ describe('TenantIsolationMiddleware', () => {
     };
     vi.mocked(publicDb.select).mockReturnValue(mockSelect as any);
 
-    await expect(middleware.use(mockReq as any, mockRes as any, mockNext))
-      .rejects.toThrow('Invalid tenant: pending');
+    await expect(
+      middleware.use(mockReq as any, mockRes as any, mockNext)
+    ).rejects.toThrow('Invalid tenant: pending');
   });
 });
 
@@ -218,7 +221,9 @@ describe('TenantScopedGuard', () => {
       }),
     };
 
-    expect(() => guard.canActivate(mockContext as any)).toThrow('Tenant context required');
+    expect(() => guard.canActivate(mockContext as any)).toThrow(
+      'Tenant context required'
+    );
   });
 
   it('should deny access if tenant is suspended (isActive=false)', () => {
@@ -230,7 +235,9 @@ describe('TenantScopedGuard', () => {
       }),
     };
 
-    expect(() => guard.canActivate(mockContext as any)).toThrow('Tenant is suspended');
+    expect(() => guard.canActivate(mockContext as any)).toThrow(
+      'Tenant is suspended'
+    );
   });
 });
 
@@ -276,7 +283,9 @@ describe('SuperAdminOrTenantGuard', () => {
       }),
     };
 
-    expect(() => guard.canActivate(mockContext as any)).toThrow('Cross-tenant access denied');
+    expect(() => guard.canActivate(mockContext as any)).toThrow(
+      'Cross-tenant access denied'
+    );
   });
 
   it('should deny access when tenant is inactive without super_admin role', () => {
@@ -289,7 +298,9 @@ describe('SuperAdminOrTenantGuard', () => {
       }),
     };
 
-    expect(() => guard.canActivate(mockContext as any)).toThrow('Tenant access denied');
+    expect(() => guard.canActivate(mockContext as any)).toThrow(
+      'Tenant access denied'
+    );
   });
 
   it('should deny access when tenantContext is missing for non-superadmin', () => {
@@ -302,6 +313,8 @@ describe('SuperAdminOrTenantGuard', () => {
       }),
     };
 
-    expect(() => guard.canActivate(mockContext as any)).toThrow('Tenant access denied');
+    expect(() => guard.canActivate(mockContext as any)).toThrow(
+      'Tenant access denied'
+    );
   });
 });

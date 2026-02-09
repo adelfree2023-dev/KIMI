@@ -5,7 +5,10 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import { ProvisionRequestSchema, ProvisionRequestDto } from './provision-request.dto.js';
+import {
+  ProvisionRequestDto,
+  ProvisionRequestSchema,
+} from './provision-request.dto.js';
 
 describe('ProvisionRequestSchema', () => {
   const validProvisionData = {
@@ -223,7 +226,7 @@ describe('ProvisionRequestSchema', () => {
   describe('plan validation', () => {
     it('should accept all valid plan types', () => {
       const plans = ['free', 'basic', 'pro', 'enterprise'] as const;
-      
+
       for (const plan of plans) {
         const validData = {
           ...validProvisionData,

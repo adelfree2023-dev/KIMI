@@ -5,7 +5,7 @@
  */
 
 import { Injectable, NestMiddleware } from '@nestjs/common';
-import { Request, Response, NextFunction } from 'express';
+import { NextFunction, Request, Response } from 'express';
 
 /**
  * Security headers configuration
@@ -80,7 +80,14 @@ export class SecurityHeadersMiddleware implements NestMiddleware {
  * S8 FIX: origin can be a function for dynamic whitelist
  */
 export interface CorsConfig {
-  origin: string | string[] | boolean | ((origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => void);
+  origin:
+    | string
+    | string[]
+    | boolean
+    | ((
+        origin: string | undefined,
+        callback: (err: Error | null, allow?: boolean) => void
+      ) => void);
   methods: string[];
   allowedHeaders: string[];
   exposedHeaders: string[];
@@ -110,7 +117,8 @@ export const defaultCorsConfig: CorsConfig = {
     ];
 
     // Load additional origins from env
-    const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',').filter(Boolean) || [];
+    const allowedOrigins =
+      process.env.ALLOWED_ORIGINS?.split(',').filter(Boolean) || [];
     const whitelist = [...devOrigins, ...allowedOrigins];
 
     // CRITICAL FIX (S8): Even in development, only allow whitelisted origins
@@ -123,8 +131,17 @@ export const defaultCorsConfig: CorsConfig = {
     }
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-ID', 'X-Tenant-ID'],
-  exposedHeaders: ['X-RateLimit-Limit', 'X-RateLimit-Remaining', 'X-RateLimit-Reset'],
+  allowedHeaders: [
+    'Content-Type',
+    'Authorization',
+    'X-Request-ID',
+    'X-Tenant-ID',
+  ],
+  exposedHeaders: [
+    'X-RateLimit-Limit',
+    'X-RateLimit-Remaining',
+    'X-RateLimit-Reset',
+  ],
   credentials: true,
   maxAge: 86400, // 24 hours
 };
@@ -139,7 +156,9 @@ export function getTenantCorsConfig(tenantDomain: string): CorsConfig {
       tenantDomain,
       `admin.${tenantDomain}`,
       // Add localhost for development
-      ...(process.env.NODE_ENV === 'development' ? ['http://localhost:3000', 'http://localhost:3001'] : []),
+      ...(process.env.NODE_ENV === 'development'
+        ? ['http://localhost:3000', 'http://localhost:3001']
+        : []),
     ],
   };
 }
@@ -159,7 +178,7 @@ export class CsrfProtection {
   setCookie(res: Response, token: string): void {
     res.cookie(this.tokenName, token, {
       httpOnly: true, // S8 FIX: Sensitive tokens must be httpOnly (Surgical Gate Compliance)
-      secure: true,   // S8 FIX: Always secure in modern environments
+      secure: true, // S8 FIX: Always secure in modern environments
       sameSite: 'strict',
       path: '/',
     });

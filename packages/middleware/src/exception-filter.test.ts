@@ -1,8 +1,19 @@
-
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { GlobalExceptionFilter, OperationalError, ValidationError, AuthenticationError, AuthorizationError, TenantIsolationError } from './exception-filter.js';
-import { ArgumentsHost, HttpException, HttpStatus, Logger } from '@nestjs/common';
+import {
+  ArgumentsHost,
+  HttpException,
+  HttpStatus,
+  Logger,
+} from '@nestjs/common';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ZodError } from 'zod';
+import {
+  AuthenticationError,
+  AuthorizationError,
+  GlobalExceptionFilter,
+  OperationalError,
+  TenantIsolationError,
+  ValidationError,
+} from './exception-filter.js';
 
 describe('GlobalExceptionFilter', () => {
   let filter: GlobalExceptionFilter;
@@ -17,8 +28,8 @@ describe('GlobalExceptionFilter', () => {
     filter = new GlobalExceptionFilter();
 
     // Spy on logger
-    vi.spyOn(Logger.prototype, 'error').mockImplementation(() => { });
-    vi.spyOn(Logger.prototype, 'warn').mockImplementation(() => { });
+    vi.spyOn(Logger.prototype, 'error').mockImplementation(() => {});
+    vi.spyOn(Logger.prototype, 'warn').mockImplementation(() => {});
 
     mockJson = vi.fn();
     mockStatus = vi.fn().mockReturnValue({ json: mockJson });
@@ -53,21 +64,28 @@ describe('GlobalExceptionFilter', () => {
     filter.catch(exception, mockArgumentsHost);
 
     expect(mockStatus).toHaveBeenCalledWith(HttpStatus.FORBIDDEN);
-    expect(mockJson).toHaveBeenCalledWith(expect.objectContaining({
-      statusCode: HttpStatus.FORBIDDEN,
-      message: 'Forbidden',
-      error: 'Forbidden',
-      path: '/test-url',
-    }));
+    expect(mockJson).toHaveBeenCalledWith(
+      expect.objectContaining({
+        statusCode: HttpStatus.FORBIDDEN,
+        message: 'Forbidden',
+        error: 'Forbidden',
+        path: '/test-url',
+      })
+    );
   });
 
   it('should handle HttpException with string response', () => {
-    const exception = new HttpException('Simple String Error', HttpStatus.BAD_REQUEST);
+    const exception = new HttpException(
+      'Simple String Error',
+      HttpStatus.BAD_REQUEST
+    );
     filter.catch(exception, mockArgumentsHost);
 
-    expect(mockJson).toHaveBeenCalledWith(expect.objectContaining({
-      message: 'Simple String Error',
-    }));
+    expect(mockJson).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: 'Simple String Error',
+      })
+    );
   });
 
   it('should handle HttpException with object response', () => {
@@ -76,29 +94,35 @@ describe('GlobalExceptionFilter', () => {
     filter.catch(exception, mockArgumentsHost);
 
     expect(mockStatus).toHaveBeenCalledWith(HttpStatus.BAD_REQUEST);
-    expect(mockJson).toHaveBeenCalledWith(expect.objectContaining({
-      statusCode: HttpStatus.BAD_REQUEST,
-      message: 'Custom Error',
-      error: 'Custom',
-    }));
+    expect(mockJson).toHaveBeenCalledWith(
+      expect.objectContaining({
+        statusCode: HttpStatus.BAD_REQUEST,
+        message: 'Custom Error',
+        error: 'Custom',
+      })
+    );
   });
 
   it('should handle ZodError', () => {
-    const zodError = new ZodError([{
-      code: 'invalid_type',
-      expected: 'string',
-      received: 'number',
-      path: ['field'],
-      message: 'Expected string'
-    }]);
+    const zodError = new ZodError([
+      {
+        code: 'invalid_type',
+        expected: 'string',
+        received: 'number',
+        path: ['field'],
+        message: 'Expected string',
+      },
+    ]);
     filter.catch(zodError, mockArgumentsHost);
 
     expect(mockStatus).toHaveBeenCalledWith(HttpStatus.BAD_REQUEST);
-    expect(mockJson).toHaveBeenCalledWith(expect.objectContaining({
-      statusCode: HttpStatus.BAD_REQUEST,
-      message: expect.stringContaining('Validation failed'),
-      error: 'Bad Request',
-    }));
+    expect(mockJson).toHaveBeenCalledWith(
+      expect.objectContaining({
+        statusCode: HttpStatus.BAD_REQUEST,
+        message: expect.stringContaining('Validation failed'),
+        error: 'Bad Request',
+      })
+    );
   });
 
   it('should handle unknown errors as Internal Server Error', () => {
@@ -106,33 +130,42 @@ describe('GlobalExceptionFilter', () => {
     filter.catch(exception, mockArgumentsHost);
 
     expect(mockStatus).toHaveBeenCalledWith(HttpStatus.INTERNAL_SERVER_ERROR);
-    expect(mockJson).toHaveBeenCalledWith(expect.objectContaining({
-      statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
-      message: 'Internal server error', // Sanitized
-      error: 'Internal Server Error',
-      path: expect.any(String),
-      requestId: expect.any(String),
-      timestamp: expect.any(String),
-    }));
+    expect(mockJson).toHaveBeenCalledWith(
+      expect.objectContaining({
+        statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        message: 'Internal server error', // Sanitized
+        error: 'Internal Server Error',
+        path: expect.any(String),
+        requestId: expect.any(String),
+        timestamp: expect.any(String),
+      })
+    );
   });
 
   it('should sanitize 500 errors', () => {
     const exception = new Error('Database connection failed');
     filter.catch(exception, mockArgumentsHost);
 
-    expect(mockJson).toHaveBeenCalledWith(expect.objectContaining({
-      message: 'Internal server error',
-      statusCode: 500,
-    }));
+    expect(mockJson).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: 'Internal server error',
+        statusCode: 500,
+      })
+    );
   });
 
   it('should sanitize sensitive internal details in 4xx errors', () => {
-    const exception = new HttpException('Invalid column "password" in table "users"', HttpStatus.BAD_REQUEST);
+    const exception = new HttpException(
+      'Invalid column "password" in table "users"',
+      HttpStatus.BAD_REQUEST
+    );
     filter.catch(exception, mockArgumentsHost);
 
-    expect(mockJson).toHaveBeenCalledWith(expect.objectContaining({
-      message: 'Invalid request', // Sanitized
-    }));
+    expect(mockJson).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: 'Invalid request', // Sanitized
+      })
+    );
   });
 
   it('should include stack trace in development', () => {
@@ -141,9 +174,11 @@ describe('GlobalExceptionFilter', () => {
     const exception = new Error('Test Error');
     filter.catch(exception, mockArgumentsHost);
 
-    expect(mockJson).toHaveBeenCalledWith(expect.objectContaining({
-      stack: expect.any(String),
-    }));
+    expect(mockJson).toHaveBeenCalledWith(
+      expect.objectContaining({
+        stack: expect.any(String),
+      })
+    );
 
     vi.unstubAllEnvs();
   });
@@ -154,16 +189,21 @@ describe('GlobalExceptionFilter', () => {
     filter.catch(exception, mockArgumentsHost);
 
     expect(mockStatus).toHaveBeenCalledWith(HttpStatus.INTERNAL_SERVER_ERROR);
-    expect(mockJson).toHaveBeenCalledWith(expect.objectContaining({
-      message: 'Internal server error',
-    }));
+    expect(mockJson).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: 'Internal server error',
+      })
+    );
   });
 
   it('should report to error tracking in production for 500 errors', () => {
     vi.stubEnv('NODE_ENV', 'production');
 
     // Spy on the private reportToErrorTracking via prototype if possible or just verify execution
-    const reportSpy = vi.spyOn(GlobalExceptionFilter.prototype as any, 'reportToErrorTracking');
+    const reportSpy = vi.spyOn(
+      GlobalExceptionFilter.prototype as any,
+      'reportToErrorTracking'
+    );
 
     const exception = new Error('Production 500');
     filter.catch(exception, mockArgumentsHost);
@@ -179,30 +219,42 @@ describe('GlobalExceptionFilter', () => {
     const exception = new Error('Test Error');
     filter.catch(exception, mockArgumentsHost);
 
-    expect(mockJson).toHaveBeenCalledWith(expect.not.objectContaining({
-      stack: expect.anything(),
-    }));
+    expect(mockJson).toHaveBeenCalledWith(
+      expect.not.objectContaining({
+        stack: expect.anything(),
+      })
+    );
 
     vi.unstubAllEnvs();
   });
 
   it('should sanitize multiple patterns in a single message', () => {
-    const exception = new HttpException('Table "users" has invalid column "secret"', HttpStatus.BAD_REQUEST);
+    const exception = new HttpException(
+      'Table "users" has invalid column "secret"',
+      HttpStatus.BAD_REQUEST
+    );
     filter.catch(exception, mockArgumentsHost);
 
-    expect(mockJson).toHaveBeenCalledWith(expect.objectContaining({
-      message: 'Invalid request',
-    }));
+    expect(mockJson).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: 'Invalid request',
+      })
+    );
   });
 
   it('should sanitize pattern matches even in development', () => {
     vi.stubEnv('NODE_ENV', 'development');
-    const exception = new HttpException('Table "users" is fine', HttpStatus.BAD_REQUEST);
+    const exception = new HttpException(
+      'Table "users" is fine',
+      HttpStatus.BAD_REQUEST
+    );
     filter.catch(exception, mockArgumentsHost);
 
-    expect(mockJson).toHaveBeenCalledWith(expect.objectContaining({
-      message: 'Invalid request',
-    }));
+    expect(mockJson).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: 'Invalid request',
+      })
+    );
     vi.unstubAllEnvs();
   });
 
@@ -211,9 +263,11 @@ describe('GlobalExceptionFilter', () => {
     const exception = new HttpException('Unknown', 418); // I'm a teapot
     filter.catch(exception, mockArgumentsHost);
 
-    expect(mockJson).toHaveBeenCalledWith(expect.objectContaining({
-      error: 'Error',
-    }));
+    expect(mockJson).toHaveBeenCalledWith(
+      expect.objectContaining({
+        error: 'Error',
+      })
+    );
   });
 
   it('should sanitize all internal error patterns individually', () => {
@@ -226,44 +280,56 @@ describe('GlobalExceptionFilter', () => {
       '/app/node_modules/nestjs/core',
     ];
 
-    patterns.forEach(msg => {
+    patterns.forEach((msg) => {
       const exception = new HttpException(msg, HttpStatus.BAD_REQUEST);
       filter.catch(exception, mockArgumentsHost);
-      expect(mockJson).toHaveBeenCalledWith(expect.objectContaining({
-        message: 'Invalid request',
-      }));
+      expect(mockJson).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'Invalid request',
+        })
+      );
     });
   });
 
   it('should redact Windows paths in development stack traces', () => {
     vi.stubEnv('NODE_ENV', 'development');
     const exception = new Error('Win Error');
-    exception.stack = 'Error: Win Error\n    at Object.<anonymous> (C:\\Users\\Dell\\project\\file.ts:1:1)';
+    exception.stack =
+      'Error: Win Error\n    at Object.<anonymous> (C:\\Users\\Dell\\project\\file.ts:1:1)';
 
     filter.catch(exception, mockArgumentsHost);
 
-    expect(mockJson).toHaveBeenCalledWith(expect.objectContaining({
-      stack: expect.stringMatching(/\[USER\][\/\\]project[\/\\]file.ts/),
-    }));
-    expect(mockJson).toHaveBeenCalledWith(expect.objectContaining({
-      stack: expect.not.stringContaining('C:\\Users\\Dell'),
-    }));
+    expect(mockJson).toHaveBeenCalledWith(
+      expect.objectContaining({
+        stack: expect.stringMatching(/\[USER\][\/\\]project[\/\\]file.ts/),
+      })
+    );
+    expect(mockJson).toHaveBeenCalledWith(
+      expect.objectContaining({
+        stack: expect.not.stringContaining('C:\\Users\\Dell'),
+      })
+    );
     vi.unstubAllEnvs();
   });
 
   it('should redact Linux/Mac paths in development stack traces', () => {
     vi.stubEnv('NODE_ENV', 'development');
     const exception = new Error('Nix Error');
-    exception.stack = 'Error: Nix Error\n    at Object.<anonymous> (/home/user/project/file.ts:1:1)';
+    exception.stack =
+      'Error: Nix Error\n    at Object.<anonymous> (/home/user/project/file.ts:1:1)';
 
     filter.catch(exception, mockArgumentsHost);
 
-    expect(mockJson).toHaveBeenCalledWith(expect.objectContaining({
-      stack: expect.stringContaining('[USER]/project/file.ts'),
-    }));
-    expect(mockJson).toHaveBeenCalledWith(expect.objectContaining({
-      stack: expect.not.stringContaining('/home/user'),
-    }));
+    expect(mockJson).toHaveBeenCalledWith(
+      expect.objectContaining({
+        stack: expect.stringContaining('[USER]/project/file.ts'),
+      })
+    );
+    expect(mockJson).toHaveBeenCalledWith(
+      expect.objectContaining({
+        stack: expect.not.stringContaining('/home/user'),
+      })
+    );
     vi.unstubAllEnvs();
   });
 
@@ -274,9 +340,11 @@ describe('GlobalExceptionFilter', () => {
     filter.catch(exception, mockArgumentsHost);
 
     // Should not crash and should not have stack
-    expect(mockJson).toHaveBeenCalledWith(expect.not.objectContaining({
-      stack: expect.anything(),
-    }));
+    expect(mockJson).toHaveBeenCalledWith(
+      expect.not.objectContaining({
+        stack: expect.anything(),
+      })
+    );
     vi.unstubAllEnvs();
   });
 
@@ -287,7 +355,9 @@ describe('GlobalExceptionFilter', () => {
     const exception = new Error('Critical Failure');
     filter.catch(exception, mockArgumentsHost);
 
-    expect(loggerWarnSpy).toHaveBeenCalledWith(expect.stringContaining('Would report to error tracking'));
+    expect(loggerWarnSpy).toHaveBeenCalledWith(
+      expect.stringContaining('Would report to error tracking')
+    );
     vi.unstubAllEnvs();
   });
 });

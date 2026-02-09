@@ -29,8 +29,8 @@ export async function runTenantMigrations(
   // Resolve migrations path relative to this file's location (@apex/provisioning package)
   // This ensures correct path regardless of where the code is executed (api app, cli app, etc.)
   // Allow override via environment variable for flexibility in different deployment scenarios
-  const migrationsPath = process.env.MIGRATIONS_PATH ||
-    path.resolve(__dirname, '../../db/drizzle');
+  const migrationsPath =
+    process.env.MIGRATIONS_PATH || path.resolve(__dirname, '../../db/drizzle');
 
   try {
     await migrate(db as any, { migrationsFolder: migrationsPath });

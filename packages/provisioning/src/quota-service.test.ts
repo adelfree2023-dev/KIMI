@@ -6,10 +6,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   PLAN_LIMITS,
   checkProvisioningQuota,
+  checkQuota,
   getPlanLimits,
   isFeatureAllowed,
   validateSubdomainAvailability,
-  checkQuota,
 } from './quota-service.js';
 
 describe('QuotaService', () => {
@@ -89,7 +89,9 @@ describe('QuotaService', () => {
     it('should reject subdomains with spaces', async () => {
       const result = await validateSubdomainAvailability('valid subdomain');
       expect(result.available).toBe(false);
-      expect(result.reason).toContain('Only lowercase letters, numbers, and hyphens');
+      expect(result.reason).toContain(
+        'Only lowercase letters, numbers, and hyphens'
+      );
     });
 
     it('should reject subdomains that are too short or too long', async () => {
@@ -100,9 +102,15 @@ describe('QuotaService', () => {
     });
 
     it('should handle reserveds words admin, api, www', async () => {
-      expect((await validateSubdomainAvailability('admin')).available).toBe(false);
-      expect((await validateSubdomainAvailability('api')).available).toBe(false);
-      expect((await validateSubdomainAvailability('www')).available).toBe(false);
+      expect((await validateSubdomainAvailability('admin')).available).toBe(
+        false
+      );
+      expect((await validateSubdomainAvailability('api')).available).toBe(
+        false
+      );
+      expect((await validateSubdomainAvailability('www')).available).toBe(
+        false
+      );
     });
   });
 

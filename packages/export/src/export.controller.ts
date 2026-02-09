@@ -5,22 +5,22 @@
  */
 
 import {
-  Controller,
-  Post,
-  Get,
-  Delete,
   Body,
-  Param,
+  Controller,
+  Delete,
+  ForbiddenException,
+  Get,
   HttpCode,
   HttpStatus,
-  Req,
-  ForbiddenException,
   NotFoundException,
+  Param,
+  Post,
+  Req,
 } from '@nestjs/common';
+import type { Request } from 'express';
 import { ExportService } from './export.service.js';
 import { ExportWorker } from './export.worker.js';
-import type { ExportProfile, ExportJob } from './types.js';
-import type { Request } from 'express';
+import type { ExportJob, ExportProfile } from './types.js';
 
 interface AuthenticatedRequest extends Request {
   user?: {
@@ -43,7 +43,7 @@ class CreateExportDto {
 export class ExportController {
   constructor(
     private readonly exportService: ExportService,
-    private readonly exportWorker: ExportWorker,
+    private readonly exportWorker: ExportWorker
   ) {}
 
   /**
@@ -54,7 +54,7 @@ export class ExportController {
   @HttpCode(HttpStatus.ACCEPTED)
   async createExport(
     @Body() dto: CreateExportDto,
-    @Req() req: AuthenticatedRequest,
+    @Req() req: AuthenticatedRequest
   ): Promise<{ message: string; job: ExportJob }> {
     const user = req.user;
     if (!user) {
@@ -92,7 +92,7 @@ export class ExportController {
   @Get(':id/status')
   async getStatus(
     @Param('id') jobId: string,
-    @Req() req: AuthenticatedRequest,
+    @Req() req: AuthenticatedRequest
   ): Promise<ExportJob> {
     const user = req.user;
     if (!user) {
@@ -134,7 +134,7 @@ export class ExportController {
   @HttpCode(HttpStatus.OK)
   async confirmDownload(
     @Param('id') jobId: string,
-    @Req() req: AuthenticatedRequest,
+    @Req() req: AuthenticatedRequest
   ): Promise<{ message: string }> {
     const user = req.user;
     if (!user) {
@@ -164,7 +164,7 @@ export class ExportController {
   @HttpCode(HttpStatus.OK)
   async cancelJob(
     @Param('id') jobId: string,
-    @Req() req: AuthenticatedRequest,
+    @Req() req: AuthenticatedRequest
   ): Promise<{ message: string }> {
     const user = req.user;
     if (!user) {
@@ -183,7 +183,9 @@ export class ExportController {
 
     const cancelled = await this.exportService.cancelJob(jobId);
     if (!cancelled) {
-      return { message: 'Job cannot be cancelled (already processing or completed)' };
+      return {
+        message: 'Job cannot be cancelled (already processing or completed)',
+      };
     }
 
     return { message: 'Export job cancelled successfully' };

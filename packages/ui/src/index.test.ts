@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { cn, buttonStyles, inputStyles, theme } from './index.js';
+import { describe, expect, it } from 'vitest';
+import { buttonStyles, cn, inputStyles, theme } from './index.js';
 
 describe('UI Package', () => {
   describe('cn helper', () => {
@@ -8,7 +8,9 @@ describe('UI Package', () => {
     });
 
     it('should filter falsy values', () => {
-      expect(cn('class1', null, undefined, false, 'class2')).toBe('class1 class2');
+      expect(cn('class1', null, undefined, false, 'class2')).toBe(
+        'class1 class2'
+      );
     });
   });
 

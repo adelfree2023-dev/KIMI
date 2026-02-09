@@ -8,10 +8,10 @@ import * as Minio from 'minio';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   createStorageBucket,
-  deleteStorageBucket,
-  getSignedUploadUrl,
-  getSignedDownloadUrl,
   deleteObject,
+  deleteStorageBucket,
+  getSignedDownloadUrl,
+  getSignedUploadUrl,
   getStorageStats,
   resetMinioClient,
   setMinioClient,
@@ -53,7 +53,6 @@ vi.mock('@apex/config', () => ({
 }));
 
 // ...
-
 
 describe('Storage Manager', () => {
   let mockClient: any;
@@ -151,7 +150,10 @@ describe('Storage Manager', () => {
       expect(proResult.quotaBytes).toBe(100 * 1024 * 1024 * 1024);
 
       // Test Invalid plan (fallback to free 1GB)
-      const invalidResult = await createStorageBucket('uuid-3', 'invalid' as any);
+      const invalidResult = await createStorageBucket(
+        'uuid-3',
+        'invalid' as any
+      );
       expect(invalidResult.quotaBytes).toBe(1024 * 1024 * 1024);
     });
 
@@ -212,7 +214,7 @@ describe('Storage Manager', () => {
     it('should delete empty bucket', async () => {
       mockClient.bucketExists.mockResolvedValue(true);
       mockClient.listObjects.mockReturnValue({
-        toArray: async () => []
+        toArray: async () => [],
       });
       mockClient.removeBucket.mockResolvedValue(undefined);
 
@@ -227,7 +229,7 @@ describe('Storage Manager', () => {
     it('should throw if bucket not empty and force=false', async () => {
       mockClient.bucketExists.mockResolvedValue(true);
       mockClient.listObjects.mockReturnValue({
-        toArray: async () => [{ name: 'file.txt', size: 100 }]
+        toArray: async () => [{ name: 'file.txt', size: 100 }],
       });
 
       await expect(deleteStorageBucket('uuid-123')).rejects.toThrow(
@@ -238,7 +240,7 @@ describe('Storage Manager', () => {
     it('should delete non-empty bucket with force=true', async () => {
       mockClient.bucketExists.mockResolvedValue(true);
       mockClient.listObjects.mockReturnValue({
-        toArray: async () => [{ name: 'file.txt', size: 100 }]
+        toArray: async () => [{ name: 'file.txt', size: 100 }],
       });
       mockClient.removeBucket.mockResolvedValue(undefined);
 
@@ -251,7 +253,7 @@ describe('Storage Manager', () => {
     it('should handle generic errors in deleteStorageBucket', async () => {
       mockClient.bucketExists.mockResolvedValue(true);
       mockClient.listObjects.mockReturnValue({
-        toArray: async () => []
+        toArray: async () => [],
       });
       mockClient.removeBucket.mockRejectedValue(new Error('Random Fail'));
 
@@ -262,7 +264,7 @@ describe('Storage Manager', () => {
     it('should handle non-Error objects in deleteStorageBucket catch block', async () => {
       mockClient.bucketExists.mockResolvedValue(true);
       mockClient.listObjects.mockReturnValue({
-        toArray: async () => []
+        toArray: async () => [],
       });
       mockClient.removeBucket.mockRejectedValue('String Error');
 
@@ -278,7 +280,7 @@ describe('Storage Manager', () => {
           { name: 'file1.jpg', size: 1024, lastModified: new Date() },
           { name: 'file2.jpg', size: 2048, lastModified: new Date() },
           { name: 'file3.jpg', size: 4096, lastModified: new Date() },
-        ]
+        ],
       });
       mockClient.getBucketTagging.mockResolvedValue({ plan: 'free' });
 
@@ -293,7 +295,7 @@ describe('Storage Manager', () => {
 
     it('should handle empty bucket', async () => {
       mockClient.listObjects.mockReturnValue({
-        toArray: async () => []
+        toArray: async () => [],
       });
       mockClient.getBucketTagging.mockResolvedValue({ plan: 'free' });
 
@@ -307,7 +309,7 @@ describe('Storage Manager', () => {
 
     it('should fallback to default quota if getBucketTagging fails', async () => {
       mockClient.listObjects.mockReturnValue({
-        toArray: async () => []
+        toArray: async () => [],
       });
       mockClient.getBucketTagging.mockRejectedValue(new Error('Tags Fail'));
 
@@ -318,10 +320,12 @@ describe('Storage Manager', () => {
     it('should handle objects with missing lastModified in getStorageStats', async () => {
       mockClient.listObjects.mockReturnValue({
         toArray: async () => [
-          { name: 'file1.jpg', size: 1024 } // No lastModified
-        ]
+          { name: 'file1.jpg', size: 1024 }, // No lastModified
+        ],
       });
-      mockClient.getBucketTagging.mockResolvedValue([{ Key: 'plan', Value: 'pro' }]);
+      mockClient.getBucketTagging.mockResolvedValue([
+        { Key: 'plan', Value: 'pro' },
+      ]);
 
       const result = await getStorageStats('uuid-123');
       expect(result.lastModified).toBeInstanceOf(Date);
@@ -366,7 +370,9 @@ describe('Storage Manager', () => {
 
   describe('getSignedDownloadUrl', () => {
     it('should generate presigned URL for download', async () => {
-      mockClient.presignedGetObject.mockResolvedValue('https://example.com/download');
+      mockClient.presignedGetObject.mockResolvedValue(
+        'https://example.com/download'
+      );
       const url = await getSignedDownloadUrl('uuid-123', 'file.txt');
       expect(url).toBe('https://example.com/download');
       expect(mockClient.presignedGetObject).toHaveBeenCalled();
@@ -374,7 +380,9 @@ describe('Storage Manager', () => {
 
     it('should throw on error', async () => {
       mockClient.presignedGetObject.mockRejectedValue(new Error('fail'));
-      await expect(getSignedDownloadUrl('uuid-123', 'file.txt')).rejects.toThrow('Failed to generate download URL');
+      await expect(
+        getSignedDownloadUrl('uuid-123', 'file.txt')
+      ).rejects.toThrow('Failed to generate download URL');
     });
   });
 
@@ -416,7 +424,9 @@ describe('Storage Manager', () => {
 
     it('should throw "Failed to generate upload URL" on presignedPutObject error', async () => {
       mockClient.presignedPutObject.mockRejectedValue(new Error('fail'));
-      await expect(getSignedUploadUrl('uuid-123', 'file.txt')).rejects.toThrow('Failed to generate upload URL');
+      await expect(getSignedUploadUrl('uuid-123', 'file.txt')).rejects.toThrow(
+        'Failed to generate upload URL'
+      );
     });
   });
   describe('Configuration Edge Cases', () => {
@@ -433,7 +443,11 @@ describe('Storage Manager', () => {
     it('should use HTTPS endpoint when MINIO_USE_SSL is true', async () => {
       mockEnv.MINIO_USE_SSL = 'true';
 
-      const result = await createStorageBucket('ssl-test', 'free', manualMock as any);
+      const result = await createStorageBucket(
+        'ssl-test',
+        'free',
+        manualMock as any
+      );
 
       expect(result.endpoint).toContain('https://');
       mockEnv.MINIO_USE_SSL = 'false'; // Reset
@@ -452,17 +466,19 @@ describe('Storage Manager', () => {
     });
   });
 
-
   describe('Non-Error Exception Handling', () => {
     it('should handle non-Error objects in createStorageBucket', async () => {
       mockClient.bucketExists.mockRejectedValue('String Error');
-      await expect(createStorageBucket('fail')).rejects.toThrow('Unknown error');
+      await expect(createStorageBucket('fail')).rejects.toThrow(
+        'Unknown error'
+      );
     });
 
     it('should handle non-Error objects in getStorageStats', async () => {
-      mockClient.listObjects.mockImplementation(() => { throw 'String Error' });
+      mockClient.listObjects.mockImplementation(() => {
+        throw 'String Error';
+      });
       await expect(getStorageStats('fail')).rejects.toThrow('Unknown error');
     });
   });
 });
-

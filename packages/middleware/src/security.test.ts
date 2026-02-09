@@ -1,8 +1,13 @@
-
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { SecurityHeadersMiddleware, defaultCorsConfig, getTenantCorsConfig, CsrfProtection, CsrfGuard } from './security.js';
-import { NextFunction, Request, Response } from 'express';
 import { ExecutionContext } from '@nestjs/common';
+import { NextFunction, Request, Response } from 'express';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  CsrfGuard,
+  CsrfProtection,
+  SecurityHeadersMiddleware,
+  defaultCorsConfig,
+  getTenantCorsConfig,
+} from './security.js';
 
 describe('SecurityMiddleware', () => {
   let middleware: SecurityHeadersMiddleware;
@@ -27,17 +32,37 @@ describe('SecurityMiddleware', () => {
   });
 
   it('should set basic security headers', () => {
-    middleware.use(mockRequest as Request, mockResponse as Response, nextFunction);
+    middleware.use(
+      mockRequest as Request,
+      mockResponse as Response,
+      nextFunction
+    );
 
-    expect(mockResponse.setHeader).toHaveBeenCalledWith('X-DNS-Prefetch-Control', 'off');
-    expect(mockResponse.setHeader).toHaveBeenCalledWith('X-Frame-Options', 'DENY');
-    expect(mockResponse.setHeader).toHaveBeenCalledWith('X-Content-Type-Options', 'nosniff');
-    expect(mockResponse.setHeader).toHaveBeenCalledWith('Referrer-Policy', 'strict-origin-when-cross-origin');
+    expect(mockResponse.setHeader).toHaveBeenCalledWith(
+      'X-DNS-Prefetch-Control',
+      'off'
+    );
+    expect(mockResponse.setHeader).toHaveBeenCalledWith(
+      'X-Frame-Options',
+      'DENY'
+    );
+    expect(mockResponse.setHeader).toHaveBeenCalledWith(
+      'X-Content-Type-Options',
+      'nosniff'
+    );
+    expect(mockResponse.setHeader).toHaveBeenCalledWith(
+      'Referrer-Policy',
+      'strict-origin-when-cross-origin'
+    );
     expect(nextFunction).toHaveBeenCalled();
   });
 
   it('should set HSTS header', () => {
-    middleware.use(mockRequest as Request, mockResponse as Response, nextFunction);
+    middleware.use(
+      mockRequest as Request,
+      mockResponse as Response,
+      nextFunction
+    );
     expect(mockResponse.setHeader).toHaveBeenCalledWith(
       'Strict-Transport-Security',
       expect.stringContaining('max-age=31536000')
@@ -45,12 +70,20 @@ describe('SecurityMiddleware', () => {
   });
 
   it('should remove X-Powered-By header', () => {
-    middleware.use(mockRequest as Request, mockResponse as Response, nextFunction);
+    middleware.use(
+      mockRequest as Request,
+      mockResponse as Response,
+      nextFunction
+    );
     expect(mockResponse.removeHeader).toHaveBeenCalledWith('X-Powered-By');
   });
 
   it('should set CSP headers if configured', () => {
-    middleware.use(mockRequest as Request, mockResponse as Response, nextFunction);
+    middleware.use(
+      mockRequest as Request,
+      mockResponse as Response,
+      nextFunction
+    );
     expect(mockResponse.setHeader).toHaveBeenCalledWith(
       'Content-Security-Policy',
       expect.stringContaining("default-src 'self'")
@@ -87,7 +120,7 @@ describe('CORS Configuration', () => {
 
     it('should block non-whitelisted origins', () => {
       const callback = vi.fn();
-      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => { });
+      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
       originFn('http://evil.com', callback);
       expect(callback).toHaveBeenCalledWith(expect.any(Error));
       expect(consoleSpy).toHaveBeenCalled();
@@ -127,7 +160,11 @@ describe('CsrfProtection', () => {
   it('should set XSRF-TOKEN cookie', () => {
     const mockRes = { cookie: vi.fn() } as unknown as Response;
     csrf.setCookie(mockRes, 'test-token');
-    expect(mockRes.cookie).toHaveBeenCalledWith('XSRF-TOKEN', 'test-token', expect.any(Object));
+    expect(mockRes.cookie).toHaveBeenCalledWith(
+      'XSRF-TOKEN',
+      'test-token',
+      expect.any(Object)
+    );
   });
 
   it('should validate matching tokens', () => {

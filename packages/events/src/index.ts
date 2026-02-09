@@ -96,9 +96,15 @@ export const AuditEventSchema = BaseEventSchema.extend({
 // ==========================================
 // Event Type Exports
 // ==========================================
-export type TenantProvisioningStarted = z.infer<typeof TenantProvisioningStartedSchema>;
-export type TenantProvisioningCompleted = z.infer<typeof TenantProvisioningCompletedSchema>;
-export type TenantProvisioningFailed = z.infer<typeof TenantProvisioningFailedSchema>;
+export type TenantProvisioningStarted = z.infer<
+  typeof TenantProvisioningStartedSchema
+>;
+export type TenantProvisioningCompleted = z.infer<
+  typeof TenantProvisioningCompletedSchema
+>;
+export type TenantProvisioningFailed = z.infer<
+  typeof TenantProvisioningFailedSchema
+>;
 export type PaymentConfirmed = z.infer<typeof PaymentConfirmedSchema>;
 export type PaymentFailed = z.infer<typeof PaymentFailedSchema>;
 export type AuditEvent = z.infer<typeof AuditEventSchema>;
@@ -127,7 +133,8 @@ export interface EventBus {
 // In-Memory Event Bus (Development)
 // ==========================================
 export class InMemoryEventBus implements EventBus {
-  private handlers: Map<string, Array<(event: ApexEvent) => Promise<void>>> = new Map();
+  private handlers: Map<string, Array<(event: ApexEvent) => Promise<void>>> =
+    new Map();
 
   async publish<T extends ApexEvent>(event: T): Promise<void> {
     const handlers = this.handlers.get(event.eventType) || [];

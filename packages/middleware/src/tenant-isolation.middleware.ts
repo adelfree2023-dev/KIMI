@@ -4,11 +4,15 @@
  * Purpose: Extract tenant from subdomain and enforce schema isolation
  */
 
-import { Injectable, NestMiddleware, UnauthorizedException } from '@nestjs/common';
-import { Request, Response, NextFunction } from 'express';
 import { publicDb, tenants } from '@apex/db';
+import {
+  Injectable,
+  NestMiddleware,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { eq } from 'drizzle-orm';
-import { tenantStorage, TenantContext } from './connection-context.js';
+import { NextFunction, Request, Response } from 'express';
+import { TenantContext, tenantStorage } from './connection-context.js';
 
 export interface TenantRequest extends Request {
   tenantContext?: TenantContext;
@@ -21,7 +25,7 @@ export interface TenantRequest extends Request {
 function extractSubdomain(host: string): string | null {
   // Remove port if present
   const hostname = host.split(':')[0];
-  
+
   // Localhost development
   if (hostname.includes('localhost')) {
     const parts = hostname.split('.');
@@ -30,13 +34,13 @@ function extractSubdomain(host: string): string | null {
     }
     return null; // Root domain
   }
-  
+
   // Production
   const parts = hostname.split('.');
   if (parts.length >= 3) {
     return parts[0];
   }
-  
+
   return null;
 }
 
@@ -98,24 +102,24 @@ export class TenantIsolationMiddleware implements NestMiddleware {
   async use(req: TenantRequest, res: Response, next: NextFunction) {
     const host = req.headers.host || '';
     const subdomain = extractSubdomain(host);
-    
+
     if (!subdomain) {
       // Allow root domain requests (e.g., landing page)
       return next();
     }
-    
+
     try {
       const tenantContext = await validateTenant(subdomain);
-      
+
       // Store in AsyncLocalStorage for downstream access
       tenantStorage.run(tenantContext, () => {
         req.tenantContext = tenantContext;
-        
+
         // Set PostgreSQL search_path for this request
         // This ensures all queries go to tenant schema
         res.setHeader('X-Tenant-ID', tenantContext.tenantId);
         res.setHeader('X-Tenant-Schema', tenantContext.schemaName);
-        
+
         next();
       });
     } catch (error) {
@@ -133,15 +137,15 @@ import { CanActivate, ExecutionContext } from '@nestjs/common';
 export class TenantScopedGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest<TenantRequest>();
-    
+
     if (!request.tenantContext) {
       throw new UnauthorizedException('Tenant context required');
     }
-    
+
     if (!request.tenantContext.isActive) {
       throw new UnauthorizedException('Tenant is suspended');
     }
-    
+
     return true;
   }
 }
@@ -154,22 +158,22 @@ export class SuperAdminOrTenantGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest<TenantRequest>();
     const user = request.user as any;
-    
+
     // Super admin bypass
     if (user?.role === 'super_admin') {
       return true;
     }
-    
+
     // Regular tenant check
     if (!request.tenantContext?.isActive) {
       throw new UnauthorizedException('Tenant access denied');
     }
-    
+
     // Ensure user belongs to this tenant
     if (user?.tenantId !== request.tenantContext.tenantId) {
       throw new UnauthorizedException('Cross-tenant access denied');
     }
-    
+
     return true;
   }
 }

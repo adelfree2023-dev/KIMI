@@ -102,7 +102,8 @@ export function cn(...classes: (string | undefined | null | false)[]): string {
 export const buttonStyles = {
   base: 'inline-flex items-center justify-center font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
   variants: {
-    primary: 'bg-primary-600 text-white hover:bg-primary-700 active:bg-primary-800',
+    primary:
+      'bg-primary-600 text-white hover:bg-primary-700 active:bg-primary-800',
     secondary: 'bg-gray-200 text-gray-900 hover:bg-gray-300 active:bg-gray-400',
     outline: 'border-2 border-primary-600 text-primary-600 hover:bg-primary-50',
     ghost: 'text-primary-600 hover:bg-primary-50',

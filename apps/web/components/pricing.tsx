@@ -74,15 +74,27 @@ export function Pricing() {
                   Most Popular
                 </span>
               )}
-              <h3 className={`mt-4 text-2xl font-bold ${plan.popular ? 'text-white' : 'text-gray-900'}`}>
+              <h3
+                className={`mt-4 text-2xl font-bold ${
+                  plan.popular ? 'text-white' : 'text-gray-900'
+                }`}
+              >
                 {plan.name}
               </h3>
-              <p className={`mt-2 ${plan.popular ? 'text-primary-100' : 'text-gray-600'}`}>
+              <p
+                className={`mt-2 ${
+                  plan.popular ? 'text-primary-100' : 'text-gray-600'
+                }`}
+              >
                 {plan.description}
               </p>
               <div className="mt-4">
                 <span className="text-4xl font-bold">{plan.price}</span>
-                <span className={plan.popular ? 'text-primary-200' : 'text-gray-500'}>
+                <span
+                  className={
+                    plan.popular ? 'text-primary-200' : 'text-gray-500'
+                  }
+                >
                   {plan.period}
                 </span>
               </div>
@@ -91,7 +103,9 @@ export function Pricing() {
                 {plan.features.map((feature) => (
                   <li key={feature} className="flex items-center">
                     <svg
-                      className={`h-5 w-5 ${plan.popular ? 'text-primary-200' : 'text-green-500'}`}
+                      className={`h-5 w-5 ${
+                        plan.popular ? 'text-primary-200' : 'text-green-500'
+                      }`}
                       fill="currentColor"
                       viewBox="0 0 20 20"
                     >

@@ -46,11 +46,13 @@ describe('Tenant Seeder', () => {
       throw new Error('DB Fail');
     });
 
-    await expect(seedTenantData({
-      subdomain: 'test',
-      adminEmail: 'admin@test.com',
-      storeName: 'Test Store',
-    })).rejects.toThrow('Seeding Failure: DB Fail');
+    await expect(
+      seedTenantData({
+        subdomain: 'test',
+        adminEmail: 'admin@test.com',
+        storeName: 'Test Store',
+      })
+    ).rejects.toThrow('Seeding Failure: DB Fail');
   });
 
   it('should handle non-Error objects in seeding catch block', async () => {
@@ -58,11 +60,13 @@ describe('Tenant Seeder', () => {
       throw 'Raw string error';
     });
 
-    await expect(seedTenantData({
-      subdomain: 'test',
-      adminEmail: 'admin@test.com',
-      storeName: 'Test Store',
-    })).rejects.toThrow('Seeding Failure: Raw string error');
+    await expect(
+      seedTenantData({
+        subdomain: 'test',
+        adminEmail: 'admin@test.com',
+        storeName: 'Test Store',
+      })
+    ).rejects.toThrow('Seeding Failure: Raw string error');
   });
 
   it('should check if seeded correctly', async () => {

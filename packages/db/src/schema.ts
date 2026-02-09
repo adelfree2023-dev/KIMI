@@ -1,5 +1,5 @@
-import { pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 import type { InferSelectModel } from 'drizzle-orm';
+import { pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 
 /**
  * S2 Compliance: Public Schema Tables (Tenant Management)
@@ -81,7 +81,10 @@ export const settings = pgTable('settings', {
  * S2 Compliance Helper: Generate schema-qualified table name
  * Usage: const tableName = getTenantTableName('users', tenantId);
  */
-export function getTenantTableName(tableName: string, tenantId: string): string {
+export function getTenantTableName(
+  tableName: string,
+  tenantId: string
+): string {
   return `tenant_${tenantId}.${tableName}`;
 }
 

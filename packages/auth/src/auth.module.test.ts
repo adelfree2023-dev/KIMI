@@ -11,12 +11,16 @@ vi.mock('@nestjs/passport', () => ({
     register: () => ({ module: 'PassportModule' }),
   },
   // PassportStrategy is a mixin function that returns a class
-  PassportStrategy: () => class MockPassportStrategy {
-    constructor() { }
-  },
-  AuthGuard: () => class MockAuthGuard {
-    canActivate() { return true; }
-  },
+  PassportStrategy: () =>
+    class MockPassportStrategy {
+      constructor() {}
+    },
+  AuthGuard: () =>
+    class MockAuthGuard {
+      canActivate() {
+        return true;
+      }
+    },
 }));
 
 const { jwtMocks } = vi.hoisted(() => ({
@@ -29,13 +33,17 @@ vi.mock('@nestjs/jwt', () => ({
   JwtModule: {
     registerAsync: jwtMocks.registerAsync,
   },
-  JwtService: class MockJwtService { },
+  JwtService: class MockJwtService {},
 }));
 
 vi.mock('@apex/config', () => ({
   ConfigService: class MockConfigService {
-    get(key: string) { return 'test-value'; }
-    getWithDefault(key: string, defaultValue: string) { return defaultValue; }
+    get(key: string) {
+      return 'test-value';
+    }
+    getWithDefault(key: string, defaultValue: string) {
+      return defaultValue;
+    }
   },
   validateEnv: () => ({ JWT_SECRET: 'test' }),
 }));
@@ -58,13 +66,15 @@ describe('AuthModule', () => {
 
     // Extract the factory from JwtModule.registerAsync mock
     expect(jwtMocks.registerAsync).toHaveBeenCalled();
-    const call = jwtMocks.registerAsync.mock.calls.find(c => c[0].useFactory);
+    const call = jwtMocks.registerAsync.mock.calls.find((c) => c[0].useFactory);
     expect(call).toBeDefined();
     const config = call![0];
     expect(config.useFactory).toBeDefined();
 
     const mockConfigService = {
-      get: vi.fn().mockImplementation((key) => key === 'JWT_SECRET' ? 'secret' : null),
+      get: vi
+        .fn()
+        .mockImplementation((key) => (key === 'JWT_SECRET' ? 'secret' : null)),
       getWithDefault: vi.fn().mockReturnValue('7d'),
     };
 

@@ -1,10 +1,13 @@
-
-import 'reflect-metadata';
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { RateLimitGuard, RateLimit, RedisRateLimitStore } from './rate-limit.js';
 import { ExecutionContext, HttpException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { createClient } from 'redis';
+import 'reflect-metadata';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  RateLimit,
+  RateLimitGuard,
+  RedisRateLimitStore,
+} from './rate-limit.js';
 
 // Mock Redis
 vi.mock('redis', () => ({
@@ -37,10 +40,21 @@ describe('RateLimitGuard', () => {
     vi.clearAllMocks();
 
     // Mock the singleton store instance methods
-    vi.spyOn(RedisRateLimitStore.prototype, 'isBlocked').mockResolvedValue({ blocked: false, retryAfter: 0 });
-    vi.spyOn(RedisRateLimitStore.prototype, 'increment').mockResolvedValue({ count: 1, ttl: 60 });
-    vi.spyOn(RedisRateLimitStore.prototype, 'incrementViolations').mockResolvedValue(0);
-    vi.spyOn(RedisRateLimitStore.prototype, 'block').mockResolvedValue(undefined);
+    vi.spyOn(RedisRateLimitStore.prototype, 'isBlocked').mockResolvedValue({
+      blocked: false,
+      retryAfter: 0,
+    });
+    vi.spyOn(RedisRateLimitStore.prototype, 'increment').mockResolvedValue({
+      count: 1,
+      ttl: 60,
+    });
+    vi.spyOn(
+      RedisRateLimitStore.prototype,
+      'incrementViolations'
+    ).mockResolvedValue(0);
+    vi.spyOn(RedisRateLimitStore.prototype, 'block').mockResolvedValue(
+      undefined
+    );
 
     reflector = new Reflector();
     guard = new RateLimitGuard(reflector);
@@ -60,8 +74,8 @@ describe('RateLimitGuard', () => {
         getRequest: () => mockRequest,
         getResponse: () => mockResponse,
       }),
-      getHandler: () => function testHandler() { },
-      getClass: () => class TestController { },
+      getHandler: () => function testHandler() {},
+      getClass: () => class TestController {},
     } as any;
   });
 
@@ -76,19 +90,31 @@ describe('RateLimitGuard', () => {
   it('should allow request within limit', async () => {
     const result = await guard.canActivate(mockContext);
     expect(result).toBe(true);
-    expect(mockResponse.setHeader).toHaveBeenCalledWith('X-RateLimit-Limit', expect.any(Number));
+    expect(mockResponse.setHeader).toHaveBeenCalledWith(
+      'X-RateLimit-Limit',
+      expect.any(Number)
+    );
   });
 
   it('should use tenant plan limits', async () => {
     mockRequest.tenantContext.plan = 'enterprise';
     await guard.canActivate(mockContext);
-    expect(mockResponse.setHeader).toHaveBeenCalledWith('X-RateLimit-Limit', 5000);
+    expect(mockResponse.setHeader).toHaveBeenCalledWith(
+      'X-RateLimit-Limit',
+      5000
+    );
   });
 
   it('should prioritize custom decorator limits', async () => {
-    vi.spyOn(reflector, 'getAllAndOverride').mockReturnValue({ requests: 10, windowMs: 1000 });
+    vi.spyOn(reflector, 'getAllAndOverride').mockReturnValue({
+      requests: 10,
+      windowMs: 1000,
+    });
     await guard.canActivate(mockContext);
-    expect(mockResponse.setHeader).toHaveBeenCalledWith('X-RateLimit-Limit', 10);
+    expect(mockResponse.setHeader).toHaveBeenCalledWith(
+      'X-RateLimit-Limit',
+      10
+    );
   });
 
   it('should identify by API key if present', async () => {
@@ -99,12 +125,18 @@ describe('RateLimitGuard', () => {
   });
 
   it('should throw TOO_MANY_REQUESTS when limit exceeded', async () => {
-    vi.spyOn(RedisRateLimitStore.prototype, 'increment').mockResolvedValue({ count: 101, ttl: 60 });
+    vi.spyOn(RedisRateLimitStore.prototype, 'increment').mockResolvedValue({
+      count: 101,
+      ttl: 60,
+    });
     await expect(guard.canActivate(mockContext)).rejects.toThrow(HttpException);
   });
 
   it('should throw TOO_MANY_REQUESTS when blocked', async () => {
-    vi.spyOn(RedisRateLimitStore.prototype, 'isBlocked').mockResolvedValue({ blocked: true, retryAfter: 300 });
+    vi.spyOn(RedisRateLimitStore.prototype, 'isBlocked').mockResolvedValue({
+      blocked: true,
+      retryAfter: 300,
+    });
     await expect(guard.canActivate(mockContext)).rejects.toThrow('IP blocked');
   });
 
@@ -134,20 +166,40 @@ describe('RateLimitGuard', () => {
   });
 
   it('should block IP after 5 violations', async () => {
-    vi.spyOn(RedisRateLimitStore.prototype, 'increment').mockResolvedValue({ count: 101, ttl: 60 });
-    vi.spyOn(RedisRateLimitStore.prototype, 'incrementViolations').mockResolvedValue(5);
-    const blockSpy = vi.spyOn(RedisRateLimitStore.prototype, 'block').mockResolvedValue(undefined);
+    vi.spyOn(RedisRateLimitStore.prototype, 'increment').mockResolvedValue({
+      count: 101,
+      ttl: 60,
+    });
+    vi.spyOn(
+      RedisRateLimitStore.prototype,
+      'incrementViolations'
+    ).mockResolvedValue(5);
+    const blockSpy = vi
+      .spyOn(RedisRateLimitStore.prototype, 'block')
+      .mockResolvedValue(undefined);
 
-    await expect(guard.canActivate(mockContext)).rejects.toThrow('Rate limit exceeded');
+    await expect(guard.canActivate(mockContext)).rejects.toThrow(
+      'Rate limit exceeded'
+    );
     expect(blockSpy).toHaveBeenCalled();
   });
 
   it('should not block before 5 violations', async () => {
-    vi.spyOn(RedisRateLimitStore.prototype, 'increment').mockResolvedValue({ count: 101, ttl: 60 });
-    vi.spyOn(RedisRateLimitStore.prototype, 'incrementViolations').mockResolvedValue(3);
-    const blockSpy = vi.spyOn(RedisRateLimitStore.prototype, 'block').mockResolvedValue(undefined);
+    vi.spyOn(RedisRateLimitStore.prototype, 'increment').mockResolvedValue({
+      count: 101,
+      ttl: 60,
+    });
+    vi.spyOn(
+      RedisRateLimitStore.prototype,
+      'incrementViolations'
+    ).mockResolvedValue(3);
+    const blockSpy = vi
+      .spyOn(RedisRateLimitStore.prototype, 'block')
+      .mockResolvedValue(undefined);
 
-    await expect(guard.canActivate(mockContext)).rejects.toThrow('Rate limit exceeded');
+    await expect(guard.canActivate(mockContext)).rejects.toThrow(
+      'Rate limit exceeded'
+    );
     expect(blockSpy).not.toHaveBeenCalled();
   });
 });
@@ -186,7 +238,9 @@ describe('RedisRateLimitStore Branches', () => {
     // Mock getClient to return null
     vi.spyOn(store, 'getClient').mockResolvedValue(null);
 
-    await expect(store.increment('test-key', 60000)).rejects.toThrow(HttpException);
+    await expect(store.increment('test-key', 60000)).rejects.toThrow(
+      HttpException
+    );
 
     vi.unstubAllEnvs();
   });
@@ -204,4 +258,3 @@ describe('RateLimit Decorator', () => {
     expect(decorator).toBeDefined();
   });
 });
-

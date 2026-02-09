@@ -1,16 +1,15 @@
-
-import 'reflect-metadata';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ExecutionContext } from '@nestjs/common';
+import 'reflect-metadata';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const { mocks } = vi.hoisted(() => ({
   mocks: {
-    capturedFactory: undefined as any
-  }
+    capturedFactory: undefined as any,
+  },
 }));
 
 vi.mock('@nestjs/common', async (importOriginal) => {
-  const actual = await importOriginal() as any;
+  const actual = (await importOriginal()) as any;
   return {
     ...actual,
     createParamDecorator: (factory: any) => {

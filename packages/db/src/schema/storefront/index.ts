@@ -1,8 +1,8 @@
 /**
  * Storefront Schema Exports
- * 
+ *
  * All database schemas for e-commerce templates.
- * 
+ *
  * @module @apex/db/schema/storefront
  */
 

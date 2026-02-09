@@ -3,13 +3,13 @@
  * Configures S1-S8 Security Protocols
  */
 
+import { TenantIsolationMiddleware } from '@apex/middleware';
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { HealthModule } from './health/health.module.js';
 import { ProvisioningModule } from './provisioning/provisioning.module.js';
-import { TenantIsolationMiddleware } from '@apex/middleware';
 
 @Module({
   imports: [
@@ -50,8 +50,6 @@ import { TenantIsolationMiddleware } from '@apex/middleware';
 export class AppModule implements NestModule {
   // S2: Apply Tenant Isolation Middleware
   configure(consumer: MiddlewareConsumer) {
-    consumer
-      .apply(TenantIsolationMiddleware)
-      .forRoutes('*'); // Apply to all routes
+    consumer.apply(TenantIsolationMiddleware).forRoutes('*'); // Apply to all routes
   }
 }

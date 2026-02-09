@@ -12,12 +12,16 @@ vi.mock('@nestjs/passport', () => ({
     register: () => ({ module: 'PassportModule' }),
   },
   // PassportStrategy is a mixin function that returns a class
-  PassportStrategy: () => class MockPassportStrategy {
-    constructor() { }
-  },
-  AuthGuard: () => class MockAuthGuard {
-    canActivate() { return true; }
-  },
+  PassportStrategy: () =>
+    class MockPassportStrategy {
+      constructor() {}
+    },
+  AuthGuard: () =>
+    class MockAuthGuard {
+      canActivate() {
+        return true;
+      }
+    },
 }));
 
 describe('Auth Module Exports', () => {

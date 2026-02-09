@@ -5,10 +5,10 @@
 
 import { describe, expect, it } from 'vitest';
 import {
+  type TenantContext,
   getTenantContext,
   hasTenantContext,
   tenantStorage,
-  type TenantContext,
 } from './tenant-context.js';
 
 describe('Tenant Context (Legacy)', () => {
@@ -18,7 +18,9 @@ describe('Tenant Context (Legacy)', () => {
 
   it('should throw when getting context outside of scope', () => {
     // Ensure we're outside any context
-    expect(() => getTenantContext()).toThrow('S2 Violation: Tenant context accessed outside of tenant scope');
+    expect(() => getTenantContext()).toThrow(
+      'S2 Violation: Tenant context accessed outside of tenant scope'
+    );
   });
 
   it('should return false when checking context outside of scope', () => {

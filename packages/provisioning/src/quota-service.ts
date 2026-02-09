@@ -89,12 +89,18 @@ export function isFeatureAllowed(plan: PlanType, feature: string): boolean {
   if (plan === 'enterprise') return true;
   if (
     plan === 'pro' &&
-    ['api_access', 'webhooks', 'priority_support', 'multi_warehouse', 'customDomain', 'storage'].includes(
-      feature
-    )
+    [
+      'api_access',
+      'webhooks',
+      'priority_support',
+      'multi_warehouse',
+      'customDomain',
+      'storage',
+    ].includes(feature)
   )
     return true;
-  if (plan === 'basic' && ['coupons', 'customDomain'].includes(feature)) return true;
+  if (plan === 'basic' && ['coupons', 'customDomain'].includes(feature))
+    return true;
   if (['products', 'orders', 'basic_analytics'].includes(feature)) return true;
 
   return false;

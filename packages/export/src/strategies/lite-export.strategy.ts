@@ -4,16 +4,21 @@
  * Best for: Migration to other platforms, backups
  */
 
+import { TenantRegistryService, publicPool } from '@apex/db';
 import { Injectable, Logger } from '@nestjs/common';
-import type { ExportStrategy, ExportOptions, ExportResult, ExportManifest } from '../types.js';
-import { publicPool, TenantRegistryService } from '@apex/db';
+import type {
+  ExportManifest,
+  ExportOptions,
+  ExportResult,
+  ExportStrategy,
+} from '../types.js';
 
 @Injectable()
 export class LiteExportStrategy implements ExportStrategy {
   readonly name = 'lite' as const;
   private readonly logger = new Logger(LiteExportStrategy.name);
 
-  constructor(private readonly tenantRegistry: TenantRegistryService) { }
+  constructor(private readonly tenantRegistry: TenantRegistryService) {}
 
   async validate(options: ExportOptions): Promise<boolean> {
     return this.tenantRegistry.exists(options.tenantId);
@@ -29,8 +34,8 @@ export class LiteExportStrategy implements ExportStrategy {
 
     // Cleanup on any error
     const cleanup = async () => {
-      await Bun.spawn(['rm', '-rf', workDir]).exited.catch(() => { });
-      await Bun.spawn(['rm', '-f', `${workDir}.tar.gz`]).exited.catch(() => { });
+      await Bun.spawn(['rm', '-rf', workDir]).exited.catch(() => {});
+      await Bun.spawn(['rm', '-f', `${workDir}.tar.gz`]).exited.catch(() => {});
     };
 
     // Create work directory
@@ -45,7 +50,7 @@ export class LiteExportStrategy implements ExportStrategy {
         [schemaName]
       );
 
-      const tables = tablesResult.rows.map(r => r.table_name);
+      const tables = tablesResult.rows.map((r) => r.table_name);
       let totalRows = 0;
 
       // Export each table as JSON
@@ -100,7 +105,9 @@ export class LiteExportStrategy implements ExportStrategy {
       const fileData = await Bun.file(outputFile).arrayBuffer();
       const hashBuffer = await crypto.subtle.digest('SHA-256', fileData);
       const hashArray = Array.from(new Uint8Array(hashBuffer));
-      const checksumHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      const checksumHex = hashArray
+        .map((b) => b.toString(16).padStart(2, '0'))
+        .join('');
 
       this.logger.log(`Lite export completed: ${outputFile}`);
 
@@ -118,7 +125,7 @@ export class LiteExportStrategy implements ExportStrategy {
     } finally {
       client.release();
       // Cleanup work directory (keep tar.gz on success)
-      await Bun.spawn(['rm', '-rf', workDir]).exited.catch(() => { });
+      await Bun.spawn(['rm', '-rf', workDir]).exited.catch(() => {});
     }
   }
 }

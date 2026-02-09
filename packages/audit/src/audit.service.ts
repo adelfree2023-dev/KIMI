@@ -119,12 +119,15 @@ export class AuditService {
       } catch (cleanupError) {
         console.error('S2 CRITICAL: Failed to reset search_path', cleanupError);
       }
-      
+
       // Release connection only if cleanup succeeded, otherwise destroy it
       try {
         client.release(!cleanupSuccessful); // true = destroy if cleanup failed
       } catch (releaseError) {
-        console.error('S2 CRITICAL: Failed to release connection', releaseError);
+        console.error(
+          'S2 CRITICAL: Failed to release connection',
+          releaseError
+        );
       }
     }
   }
@@ -159,8 +162,12 @@ export class AuditService {
       `);
 
       // 2. Create performance indexes
-      await client.query('CREATE INDEX IF NOT EXISTS idx_audit_timestamp ON public.audit_logs(created_at)');
-      await client.query('CREATE INDEX IF NOT EXISTS idx_audit_tenant ON public.audit_logs(tenant_id)');
+      await client.query(
+        'CREATE INDEX IF NOT EXISTS idx_audit_timestamp ON public.audit_logs(created_at)'
+      );
+      await client.query(
+        'CREATE INDEX IF NOT EXISTS idx_audit_tenant ON public.audit_logs(tenant_id)'
+      );
 
       // 2. Create immutability triggers
       // Prevent UPDATE

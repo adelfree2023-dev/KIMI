@@ -3,19 +3,19 @@
  * Super-#21: Onboarding Blueprint Editor
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { publicDb } from '@apex/db';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
+  type BlueprintTemplate,
   createBlueprint,
+  defaultBlueprintTemplate,
+  deleteBlueprint,
   getAllBlueprints,
   getBlueprintById,
   getDefaultBlueprint,
   updateBlueprint,
-  deleteBlueprint,
   validateBlueprint,
-  defaultBlueprintTemplate,
-  type BlueprintTemplate,
 } from './blueprint.js';
-import { publicDb } from '@apex/db';
 
 // Mock the database
 const mockBlueprints: Array<{
@@ -75,7 +75,8 @@ vi.mock('@apex/db', () => ({
             const record = {
               id: 'test-id',
               name: v.name || 'Updated',
-              blueprint: v.blueprint || JSON.stringify(defaultBlueprintTemplate),
+              blueprint:
+                v.blueprint || JSON.stringify(defaultBlueprintTemplate),
               isDefault: v.isDefault || 'false',
               plan: v.plan || 'free',
               createdAt: new Date(),
@@ -114,8 +115,12 @@ describe('Blueprint Service', () => {
     });
 
     it('should reject non-object blueprint', () => {
-      expect(() => validateBlueprint(null)).toThrow('Blueprint must be an object');
-      expect(() => validateBlueprint('not an object')).toThrow('Blueprint must be an object');
+      expect(() => validateBlueprint(null)).toThrow(
+        'Blueprint must be an object'
+      );
+      expect(() => validateBlueprint('not an object')).toThrow(
+        'Blueprint must be an object'
+      );
     });
 
     it('should validate pages if present', () => {
@@ -129,12 +134,20 @@ describe('Blueprint Service', () => {
 
     it('should reject invalid pages array', () => {
       const invalid = { version: '1.0', name: 'Test', pages: 'not an array' };
-      expect(() => validateBlueprint(invalid)).toThrow('pages must be an array');
+      expect(() => validateBlueprint(invalid)).toThrow(
+        'pages must be an array'
+      );
     });
 
     it('should reject page without slug or title', () => {
-      const invalid = { version: '1.0', name: 'Test', pages: [{ content: 'test' }] };
-      expect(() => validateBlueprint(invalid)).toThrow('Page must have slug and title');
+      const invalid = {
+        version: '1.0',
+        name: 'Test',
+        pages: [{ content: 'test' }],
+      };
+      expect(() => validateBlueprint(invalid)).toThrow(
+        'Page must have slug and title'
+      );
     });
 
     it('should reject invalid version', () => {
@@ -251,33 +264,43 @@ describe('Blueprint Service', () => {
   describe('validateBlueprint edge cases', () => {
     it('should reject blueprint without name', () => {
       const bp = { ...defaultBlueprintTemplate, name: undefined };
-      expect(() => validateBlueprint(bp as any)).toThrow('Blueprint must have a name');
+      expect(() => validateBlueprint(bp as any)).toThrow(
+        'Blueprint must have a name'
+      );
     });
 
     it('should reject blueprint with empty name', () => {
       const bp = { ...defaultBlueprintTemplate, name: '' };
-      expect(() => validateBlueprint(bp as any)).toThrow('Blueprint must have a name');
+      expect(() => validateBlueprint(bp as any)).toThrow(
+        'Blueprint must have a name'
+      );
     });
 
     it('should reject blueprint without version', () => {
       const bp = { ...defaultBlueprintTemplate, version: undefined };
-      expect(() => validateBlueprint(bp as any)).toThrow('Blueprint version must be "1.0"');
+      expect(() => validateBlueprint(bp as any)).toThrow(
+        'Blueprint version must be "1.0"'
+      );
     });
 
     it('should reject product without name', () => {
       const bp = {
         ...defaultBlueprintTemplate,
-        products: [{ price: 10 }]
+        products: [{ price: 10 }],
       };
-      expect(() => validateBlueprint(bp as any)).toThrow('Product must have a name');
+      expect(() => validateBlueprint(bp as any)).toThrow(
+        'Product must have a name'
+      );
     });
 
     it('should reject page without title', () => {
       const bp = {
         ...defaultBlueprintTemplate,
-        pages: [{ slug: 'test' }]
+        pages: [{ slug: 'test' }],
       };
-      expect(() => validateBlueprint(bp as any)).toThrow('Page must have slug and title');
+      expect(() => validateBlueprint(bp as any)).toThrow(
+        'Page must have slug and title'
+      );
     });
   });
 
@@ -339,7 +362,7 @@ describe('Blueprint Service', () => {
         name: 'Updated Name',
         isDefault: true,
         plan: 'pro',
-        blueprint: defaultBlueprintTemplate
+        blueprint: defaultBlueprintTemplate,
       });
       expect(result).not.toBeNull();
       expect(result?.name).toBe('Updated Name');
@@ -349,7 +372,7 @@ describe('Blueprint Service', () => {
     it('should handle partial updates', async () => {
       const result = await updateBlueprint('test-id', {
         description: 'New Description',
-        isDefault: false
+        isDefault: false,
       });
       expect(result).not.toBeNull();
     });
@@ -386,4 +409,3 @@ describe('Blueprint Service', () => {
     });
   });
 });
-

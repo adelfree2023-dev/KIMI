@@ -22,7 +22,8 @@ const poolConfig: any = {
 
 // Manually reinforce if common env vars are present
 if (process.env.POSTGRES_USER) poolConfig.user = process.env.POSTGRES_USER;
-if (process.env.POSTGRES_PASSWORD) poolConfig.password = process.env.POSTGRES_PASSWORD;
+if (process.env.POSTGRES_PASSWORD)
+  poolConfig.password = process.env.POSTGRES_PASSWORD;
 if (process.env.POSTGRES_DB) poolConfig.database = process.env.POSTGRES_DB;
 
 // Connection pool for public schema (tenant management)
@@ -87,7 +88,10 @@ export async function withTenantConnection<T>(
       await client.query('RESET search_path');
       cleanupSuccessful = true;
     } catch (cleanupError) {
-      console.error('S2 CRITICAL: Failed to reset search_path after error', cleanupError);
+      console.error(
+        'S2 CRITICAL: Failed to reset search_path after error',
+        cleanupError
+      );
       // cleanupSuccessful remains false, triggering connection destruction in finally
     }
     throw error;

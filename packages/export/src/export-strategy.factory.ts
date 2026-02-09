@@ -4,10 +4,10 @@
  */
 
 import { Injectable } from '@nestjs/common';
-import type { ExportStrategy, ExportProfile, ExportOptions } from './types.js';
+import { AnalyticsExportStrategy } from './strategies/analytics-export.strategy.js';
 import { LiteExportStrategy } from './strategies/lite-export.strategy.js';
 import { NativeExportStrategy } from './strategies/native-export.strategy.js';
-import { AnalyticsExportStrategy } from './strategies/analytics-export.strategy.js';
+import type { ExportOptions, ExportProfile, ExportStrategy } from './types.js';
 
 @Injectable()
 export class ExportStrategyFactory {
@@ -16,7 +16,7 @@ export class ExportStrategyFactory {
   constructor(
     private readonly liteStrategy: LiteExportStrategy,
     private readonly nativeStrategy: NativeExportStrategy,
-    private readonly analyticsStrategy: AnalyticsExportStrategy,
+    private readonly analyticsStrategy: AnalyticsExportStrategy
   ) {
     this.strategies = new Map([
       ['lite', liteStrategy],

@@ -1,14 +1,14 @@
 /**
  * Database Migration Tests
  * Rule 4.1: Test Coverage Mandate
- * 
+ *
  * Note: migrate.ts runs immediately on import. These tests verify code structure.
  */
 
-import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'fs';
-import { fileURLToPath } from 'url';
 import { dirname, resolve } from 'path';
+import { fileURLToPath } from 'url';
+import { describe, expect, it } from 'vitest';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const migratePath = resolve(__dirname, 'migrate.ts');
@@ -21,8 +21,12 @@ describe('Migration Script Structure', () => {
 
   it('should import required dependencies', () => {
     const content = readFileSync(migratePath, 'utf-8');
-    expect(content).toContain("import { drizzle } from 'drizzle-orm/node-postgres'");
-    expect(content).toContain("import { migrate } from 'drizzle-orm/node-postgres/migrator'");
+    expect(content).toContain(
+      "import { drizzle } from 'drizzle-orm/node-postgres'"
+    );
+    expect(content).toContain(
+      "import { migrate } from 'drizzle-orm/node-postgres/migrator'"
+    );
     expect(content).toContain("import { validateEnv } from '@apex/config'");
   });
 

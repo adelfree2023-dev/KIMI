@@ -1,5 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { enforceS1Compliance, validateEnv, ConfigService, env } from './index.js';
+import {
+  ConfigService,
+  enforceS1Compliance,
+  env,
+  validateEnv,
+} from './index.js';
 
 describe('S1: Environment Verification Protocol', () => {
   const originalEnv = process.env;
@@ -98,8 +103,12 @@ describe('S1: Environment Verification Protocol', () => {
     it('should get config values', () => {
       const configService = new ConfigService();
       expect(configService.get('JWT_SECRET')).toMatch(/^[A-Za-z0-9-_]+$/);
-      expect(configService.get('JWT_SECRET')?.length).toBeGreaterThanOrEqual(32);
-      expect(configService.get('DATABASE_URL')).toBe('postgresql://localhost:5432/test');
+      expect(configService.get('JWT_SECRET')?.length).toBeGreaterThanOrEqual(
+        32
+      );
+      expect(configService.get('DATABASE_URL')).toBe(
+        'postgresql://localhost:5432/test'
+      );
     });
 
     it('should get values with default', () => {

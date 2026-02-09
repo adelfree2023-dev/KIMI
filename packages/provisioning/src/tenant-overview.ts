@@ -4,9 +4,9 @@
  * Purpose: Super Admin page showing searchable table of all tenants
  */
 
-import { tenants, type Tenant } from '@apex/db';
-import { eq, like, and, desc, asc, sql, count } from 'drizzle-orm';
+import { type Tenant, tenants } from '@apex/db';
 import { publicDb } from '@apex/db';
+import { and, asc, count, desc, eq, like, sql } from 'drizzle-orm';
 
 export type TenantStatus = 'active' | 'suspended' | 'pending' | 'maintenance';
 export type TenantPlan = 'free' | 'basic' | 'pro' | 'enterprise';
@@ -100,7 +100,8 @@ export async function getTenantList(
           ? tenants.plan
           : tenants.createdAt;
 
-  const orderBy = sortOrder === 'asc' ? asc(orderByColumn) : desc(orderByColumn);
+  const orderBy =
+    sortOrder === 'asc' ? asc(orderByColumn) : desc(orderByColumn);
 
   // Get total count
   const countResult = await publicDb
@@ -134,8 +135,14 @@ export async function getTenantList(
 /**
  * Get a single tenant by ID
  */
-export async function getTenantById(id: string): Promise<TenantOverviewRecord | null> {
-  const results = await publicDb.select().from(tenants).where(eq(tenants.id, id)).limit(1);
+export async function getTenantById(
+  id: string
+): Promise<TenantOverviewRecord | null> {
+  const results = await publicDb
+    .select()
+    .from(tenants)
+    .where(eq(tenants.id, id))
+    .limit(1);
 
   if (results.length === 0) {
     return null;
@@ -147,7 +154,9 @@ export async function getTenantById(id: string): Promise<TenantOverviewRecord | 
 /**
  * Get tenant by subdomain
  */
-export async function getTenantBySubdomain(subdomain: string): Promise<TenantOverviewRecord | null> {
+export async function getTenantBySubdomain(
+  subdomain: string
+): Promise<TenantOverviewRecord | null> {
   const results = await publicDb
     .select()
     .from(tenants)
@@ -228,7 +237,11 @@ export async function updateTenant(
   if (updates.plan) updateData.plan = updates.plan;
   if (updates.status) updateData.status = updates.status;
 
-  const result = await publicDb.update(tenants).set(updateData).where(eq(tenants.id, id)).returning();
+  const result = await publicDb
+    .update(tenants)
+    .set(updateData)
+    .where(eq(tenants.id, id))
+    .returning();
 
   if (result.length === 0) {
     return null;
@@ -240,7 +253,9 @@ export async function updateTenant(
 /**
  * Delete a tenant (with safety checks)
  */
-export async function deleteTenant(id: string): Promise<{ success: boolean; error?: string }> {
+export async function deleteTenant(
+  id: string
+): Promise<{ success: boolean; error?: string }> {
   try {
     // First check if tenant exists
     const existing = await getTenantById(id);
@@ -250,7 +265,10 @@ export async function deleteTenant(id: string): Promise<{ success: boolean; erro
 
     // Prevent deletion of active tenants (must suspend first)
     if (existing.status === 'active') {
-      return { success: false, error: 'Cannot delete active tenant. Suspend first.' };
+      return {
+        success: false,
+        error: 'Cannot delete active tenant. Suspend first.',
+      };
     }
 
     await publicDb.delete(tenants).where(eq(tenants.id, id));

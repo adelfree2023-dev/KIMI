@@ -5,9 +5,9 @@
  */
 
 import {
-  ExceptionFilter,
-  Catch,
   ArgumentsHost,
+  Catch,
+  ExceptionFilter,
   HttpException,
   HttpStatus,
   Logger,
@@ -61,11 +61,12 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         const sanitizedStack = stack
           .split('\n')
           .slice(0, 5)
-          .map((line) =>
-            line
-              .replace(/[A-Z]:\\Users\\[^\\]+\\/gi, '[USER]/') // Windows paths
-              .replace(/\/home\/[^/]+\//g, '[USER]/') // Linux paths
-              .replace(/\/Users\/[^/]+\//g, '[USER]/') // macOS paths
+          .map(
+            (line) =>
+              line
+                .replace(/[A-Z]:\\Users\\[^\\]+\\/gi, '[USER]/') // Windows paths
+                .replace(/\/home\/[^/]+\//g, '[USER]/') // Linux paths
+                .replace(/\/Users\/[^/]+\//g, '[USER]/') // macOS paths
           )
           .join('\n');
         errorResponse.stack = sanitizedStack;
@@ -90,14 +91,22 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     }
   }
 
-  private parseError(exception: unknown): { statusCode: number; message: string; error: string } {
+  private parseError(exception: unknown): {
+    statusCode: number;
+    message: string;
+    error: string;
+  } {
     // NestJS HTTP exceptions
     if (exception instanceof HttpException) {
       const status = exception.getStatus();
       const response = exception.getResponse();
 
       if (typeof response === 'string') {
-        return { statusCode: status, message: response, error: this.getErrorName(status) };
+        return {
+          statusCode: status,
+          message: response,
+          error: this.getErrorName(status),
+        };
       }
 
       return {
@@ -109,7 +118,9 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 
     // Zod validation errors (S3)
     if (exception instanceof ZodError) {
-      const issues = exception.issues.map(i => `${i.path.join('.')}: ${i.message}`).join('; ');
+      const issues = exception.issues
+        .map((i) => `${i.path.join('.')}: ${i.message}`)
+        .join('; ');
       return {
         statusCode: HttpStatus.BAD_REQUEST,
         message: `Validation failed: ${issues}`,
@@ -149,7 +160,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       /\/.*\/node_modules\//g,
     ];
 
-    let sanitized = message;
+    const sanitized = message;
     for (const pattern of internalPatterns) {
       if (pattern.test(sanitized)) {
         // If message contains internal details, return generic message
@@ -178,19 +189,27 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     return names[status] || 'Error';
   }
 
-  private logError(exception: unknown, requestId: string, request: Request): void {
-    const error = exception instanceof Error ? exception : new Error(String(exception));
+  private logError(
+    exception: unknown,
+    requestId: string,
+    request: Request
+  ): void {
+    const error =
+      exception instanceof Error ? exception : new Error(String(exception));
     const { message, stack: errorStackTrace } = error;
 
-    this.logger.error({
-      requestId,
-      message,
-      stackTrace: errorStackTrace,
-      path: request.url,
-      method: request.method,
-      ip: request.ip,
-      userAgent: request.headers?.['user-agent'],
-    }, 'Exception caught');
+    this.logger.error(
+      {
+        requestId,
+        message,
+        stackTrace: errorStackTrace,
+        path: request.url,
+        method: request.method,
+        ip: request.ip,
+        userAgent: request.headers?.['user-agent'],
+      },
+      'Exception caught'
+    );
   }
 
   private generateRequestId(): string {
@@ -225,19 +244,19 @@ export class ValidationError extends OperationalError {
 }
 
 export class AuthenticationError extends OperationalError {
-  constructor(message: string = 'Authentication required') {
+  constructor(message = 'Authentication required') {
     super(message, HttpStatus.UNAUTHORIZED);
   }
 }
 
 export class AuthorizationError extends OperationalError {
-  constructor(message: string = 'Access denied') {
+  constructor(message = 'Access denied') {
     super(message, HttpStatus.FORBIDDEN);
   }
 }
 
 export class TenantIsolationError extends OperationalError {
-  constructor(message: string = 'Tenant access violation') {
+  constructor(message = 'Tenant access violation') {
     super(message, HttpStatus.FORBIDDEN);
   }
 }

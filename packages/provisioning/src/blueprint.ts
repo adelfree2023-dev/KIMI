@@ -5,8 +5,8 @@
  */
 
 import { onboardingBlueprints } from '@apex/db';
-import { eq, desc, and } from 'drizzle-orm';
 import { publicDb } from '@apex/db';
+import { and, desc, eq } from 'drizzle-orm';
 
 export interface BlueprintTemplate {
   version: '1.0';
@@ -59,7 +59,9 @@ export interface BlueprintRecord {
 /**
  * Validate blueprint JSON structure
  */
-export function validateBlueprint(blueprint: unknown): blueprint is BlueprintTemplate {
+export function validateBlueprint(
+  blueprint: unknown
+): blueprint is BlueprintTemplate {
   if (typeof blueprint !== 'object' || blueprint === null) {
     throw new Error('Blueprint must be an object');
   }
@@ -166,7 +168,9 @@ export async function getAllBlueprints(): Promise<BlueprintRecord[]> {
 /**
  * Get blueprint by ID
  */
-export async function getBlueprintById(id: string): Promise<BlueprintRecord | null> {
+export async function getBlueprintById(
+  id: string
+): Promise<BlueprintRecord | null> {
   const results = await publicDb
     .select()
     .from(onboardingBlueprints)
@@ -187,14 +191,18 @@ export async function getBlueprintById(id: string): Promise<BlueprintRecord | nu
 /**
  * Get default blueprint for a plan
  */
-export async function getDefaultBlueprint(plan: string = 'free'): Promise<BlueprintRecord | null> {
+export async function getDefaultBlueprint(
+  plan = 'free'
+): Promise<BlueprintRecord | null> {
   const results = await publicDb
     .select()
     .from(onboardingBlueprints)
-    .where(and(
-      eq(onboardingBlueprints.isDefault, 'true'),
-      eq(onboardingBlueprints.plan, plan)
-    ))
+    .where(
+      and(
+        eq(onboardingBlueprints.isDefault, 'true'),
+        eq(onboardingBlueprints.plan, plan)
+      )
+    )
     .limit(1);
 
   if (results.length === 0) {
@@ -251,9 +259,12 @@ export async function updateBlueprint(
 
   const updateData: Record<string, string | null> = {};
   if (updates.name) updateData.name = updates.name;
-  if (updates.description !== undefined) updateData.description = updates.description;
-  if (updates.blueprint) updateData.blueprint = JSON.stringify(updates.blueprint);
-  if (updates.isDefault !== undefined) updateData.isDefault = updates.isDefault ? 'true' : 'false';
+  if (updates.description !== undefined)
+    updateData.description = updates.description;
+  if (updates.blueprint)
+    updateData.blueprint = JSON.stringify(updates.blueprint);
+  if (updates.isDefault !== undefined)
+    updateData.isDefault = updates.isDefault ? 'true' : 'false';
   if (updates.plan) updateData.plan = updates.plan;
 
   const result = await publicDb

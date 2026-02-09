@@ -6,12 +6,12 @@
 
 import { describe, expect, it } from 'vitest';
 import {
-  CreateTenantSchema,
-  TenantResponseSchema,
-  UpdateTenantSchema,
   type CreateTenantDto,
+  CreateTenantSchema,
   type TenantResponseDto,
+  TenantResponseSchema,
   type UpdateTenantDto,
+  UpdateTenantSchema,
 } from './tenant.schema.js';
 
 describe('Tenant Schema', () => {
@@ -143,7 +143,7 @@ describe('Tenant Schema', () => {
 
     it('should accept all valid plan types', () => {
       const plans = ['free', 'basic', 'pro', 'enterprise'] as const;
-      
+
       for (const plan of plans) {
         const validData = {
           subdomain: 'my-store',
@@ -222,7 +222,7 @@ describe('Tenant Schema', () => {
 
     it('should accept all valid status types', () => {
       const statuses = ['active', 'suspended', 'pending'] as const;
-      
+
       for (const status of statuses) {
         const validResponse = {
           id: '550e8400-e29b-41d4-a716-446655440000',

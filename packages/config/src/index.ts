@@ -5,7 +5,7 @@
  */
 
 import { z } from 'zod';
-import { EnvSchema, type EnvConfig } from './schema';
+import { type EnvConfig, EnvSchema } from './schema';
 
 export * from './schema';
 

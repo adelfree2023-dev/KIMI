@@ -5,10 +5,10 @@
 
 import { describe, expect, it } from 'vitest';
 import {
-  ProvisionResponseSchema,
+  type ProvisionErrorDto,
   ProvisionErrorSchema,
   type ProvisionResponseDto,
-  type ProvisionErrorDto,
+  ProvisionResponseSchema,
 } from './provision-response.dto.js';
 
 describe('ProvisionResponseSchema', () => {

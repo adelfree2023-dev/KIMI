@@ -3,7 +3,7 @@
  * Rule 4.1: Test Coverage Mandate
  */
 
-import { describe, expect, it, beforeEach, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AuthService, type AuthUser, type JwtPayload } from './auth.service.js';
 
 // Mock JwtService
@@ -81,7 +81,9 @@ describe('AuthService', () => {
         email: 'test@example.com',
       } as JwtPayload;
 
-      await expect(authService.validateUser(payload)).rejects.toThrow('Invalid token payload');
+      await expect(authService.validateUser(payload)).rejects.toThrow(
+        'Invalid token payload'
+      );
     });
 
     it('should handle payload without tenantId', async () => {
@@ -121,7 +123,9 @@ describe('AuthService', () => {
         throw new Error('Invalid token');
       });
 
-      await expect(authService.verifyToken('invalid-token')).rejects.toThrow('Invalid token');
+      await expect(authService.verifyToken('invalid-token')).rejects.toThrow(
+        'Invalid token'
+      );
     });
 
     it('should throw for expired token', async () => {
@@ -129,7 +133,9 @@ describe('AuthService', () => {
         throw new Error('Token expired');
       });
 
-      await expect(authService.verifyToken('expired-token')).rejects.toThrow('Invalid token');
+      await expect(authService.verifyToken('expired-token')).rejects.toThrow(
+        'Invalid token'
+      );
     });
   });
 });

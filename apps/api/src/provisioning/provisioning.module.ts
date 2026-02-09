@@ -1,3 +1,4 @@
+import { TenantRegistryService } from '@apex/db';
 import { AuditService } from '@apex/audit';
 import { Module } from '@nestjs/common';
 import { ProvisioningController } from './provisioning.controller.js';
@@ -6,6 +7,8 @@ import { ProvisioningService } from './provisioning.service.js';
 @Module({
   controllers: [ProvisioningController],
   providers: [
+    ProvisioningService,
+    TenantRegistryService,
     {
       provide: 'PROVISIONING_SERVICE',
       useClass: ProvisioningService,
@@ -17,4 +20,4 @@ import { ProvisioningService } from './provisioning.service.js';
   ],
   exports: ['PROVISIONING_SERVICE'],
 })
-export class ProvisioningModule {}
+export class ProvisioningModule { }

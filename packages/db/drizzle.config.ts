@@ -4,7 +4,6 @@ export default {
   schema: './src/schema.ts',
   out: './drizzle',
   dialect: 'postgresql',
-  driver: 'pg',
   dbCredentials: {
     connectionString:
       process.env.DATABASE_URL ||

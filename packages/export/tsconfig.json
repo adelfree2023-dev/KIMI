@@ -1,9 +1,9 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "composite": false,
+    "composite": true,
     "outDir": "./dist",
-    "rootDir": ".",
+    "rootDir": "../../",
     "baseUrl": ".",
     "types": [
       "node",
@@ -12,16 +12,16 @@
     "declaration": true,
     "paths": {
       "@apex/audit": [
-        "../audit/src"
+        "../audit/src/index.ts"
       ],
       "@apex/db": [
-        "../db/src"
+        "../db/src/index.ts"
       ],
       "@apex/middleware": [
-        "../middleware/src"
+        "../middleware/src/index.ts"
       ],
       "@apex/config": [
-        "../config/src"
+        "../config/src/index.ts"
       ]
     }
   },
@@ -33,5 +33,19 @@
     "dist",
     "build",
     "**/*.test.ts"
+  ],
+  "references": [
+    {
+      "path": "../audit"
+    },
+    {
+      "path": "../db"
+    },
+    {
+      "path": "../middleware"
+    },
+    {
+      "path": "../config"
+    }
   ]
 }

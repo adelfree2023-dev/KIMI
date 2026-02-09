@@ -38,19 +38,19 @@
         "first-contentful-paint": [
           "error",
           {
-            "maxNumericValue": 2000
+            "minScore": 2000
           }
         ],
         "interactive": [
           "error",
           {
-            "maxNumericValue": 3500
+            "minScore": 3500
           }
         ],
         "total-byte-weight": [
           "error",
           {
-            "maxNumericValue": 512000
+            "minScore": 512000
           }
         ]
       }

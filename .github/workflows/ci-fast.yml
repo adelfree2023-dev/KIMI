@@ -128,8 +128,8 @@ jobs:
         run: |
           echo "🔍 Validating JSON syntax (handling comments and control chars)..."
           find . -name "*.json" -not -path "*/node_modules/*" -not -path "*/dist/*" -not -path "*/.next/*" -not -path "*/.turbo/*" | while read file; do
-            # Using sed to strip comments and tr to strip illegal control characters for jq validation
-            sed 's#//.*##; s#/\*.*\*/##' "$file" | tr -d '\000-\037' | jq . > /dev/null || { echo "🚨 CRITICAL: Invalid JSON in $file"; exit 1; }
+            # Using sed to strip comments and tr to strip illegal control characters (preserving LF/CR)
+            sed 's#//.*##; s#/\*.*\*/##' "$file" | tr -d '\000-\011\013\014\016-\037' | jq . > /dev/null || { echo "🚨 CRITICAL: Invalid JSON in $file"; exit 1; }
           done
           echo "✅ All JSON files are valid"
 

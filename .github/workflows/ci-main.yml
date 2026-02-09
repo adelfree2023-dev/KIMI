@@ -201,16 +201,14 @@ jobs:
           echo "═══════════════════════════════════════════════════════════════════"
           
           # Check for hardcoded credentials patterns
-          echo "[*] Scanning for hardcoded credentials..."
+          echo "[*] Scanning for hardcoded credentials (listing filenames only)..."
           CRED_PATTERNS="(password|passwd|pwd|secret|token|api_key|apikey)\s*[=:]\s*['\"][^'\"]{8,}['\"]"
-          HARDCODED=$(grep -riE "$CRED_PATTERNS" packages apps --include="*.ts" --include="*.tsx" --include="*.js" 2>/dev/null | \
+          HARDCODED=$(grep -rlE "$CRED_PATTERNS" packages apps --include="*.ts" --include="*.tsx" --include="*.js" 2>/dev/null | \
             grep -vE "(test|spec|example|placeholder|process\.env|IS_PUBLIC_KEY|RATE_LIMIT_KEY|seeder|dto)" || true)
           
           if [ -n "$HARDCODED" ]; then
-            echo "🚨 CRITICAL: Potential hardcoded credentials found!"
-            # We don't print $HARDCODED directly if it might contain secrets, but usually
-            # the matched line is needed for debugging. However, to be safe:
-            echo "    [!] Found matches in files (check locally to avoid log leakage)."
+            echo "🚨 CRITICAL: Potential hardcoded credentials found in the following files:"
+            echo "$HARDCODED"
             echo "❌ S10 FAILED: Hardcoded credentials detected!"
             exit 1
           fi

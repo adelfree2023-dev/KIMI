@@ -75,23 +75,29 @@ export async function withTenantConnection<T>(
     const result = await operation(db);
 
     // S2 FIX: Reset context BEFORE returning result
-    await client.query('SET search_path TO public');
+    // Radical Fix: Use RESET search_path to clear all session-level path settings
+    await client.query('RESET search_path');
     cleanupSuccessful = true;
 
     return result;
   } catch (error) {
     // S2 FIX: Attempt cleanup even on error
     try {
-      await client.query('SET search_path TO public');
+      await client.query('RESET search_path');
       cleanupSuccessful = true;
     } catch (cleanupError) {
       console.error('S2 CRITICAL: Failed to reset search_path after error', cleanupError);
+      // cleanupSuccessful remains false, triggering connection destruction in finally
     }
     throw error;
   } finally {
     // 🔒 S2 Protocol: Destroy connection if cleanup failed to prevent context leakage
-    // client.release(true) destroys the connection instead of returning to pool
-    client.release(!cleanupSuccessful);
+    // Radical Fix: client.release(true) physically closes the connection to purge logic state
+    if (!cleanupSuccessful) {
+      client.release(true);
+    } else {
+      client.release();
+    }
   }
 }
 

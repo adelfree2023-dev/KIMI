@@ -17,12 +17,13 @@ describe('S2: Tenant Isolation Protocol', () => {
 
         try {
             // 🛠️ Setup: Create mock tenant schemas and tables
+            // Radical Fix: Ensure schemas and tables exist or are recreated
             await publicPool.query(`
-                DROP SCHEMA IF EXISTS tenant_${tenantAlpha} CASCADE;
-                DROP SCHEMA IF EXISTS tenant_${tenantBeta} CASCADE;
+                CREATE SCHEMA IF NOT EXISTS tenant_${tenantAlpha};
+                CREATE SCHEMA IF NOT EXISTS tenant_${tenantBeta};
                 
-                CREATE SCHEMA tenant_${tenantAlpha};
-                CREATE SCHEMA tenant_${tenantBeta};
+                DROP TABLE IF EXISTS tenant_${tenantAlpha}.products CASCADE;
+                DROP TABLE IF EXISTS tenant_${tenantBeta}.products CASCADE;
                 
                 CREATE TABLE tenant_${tenantAlpha}.products (id SERIAL PRIMARY KEY, name TEXT);
                 CREATE TABLE tenant_${tenantBeta}.products (id SERIAL PRIMARY KEY, name TEXT);
@@ -31,6 +32,7 @@ describe('S2: Tenant Isolation Protocol', () => {
                 INSERT INTO tenant_${tenantBeta}.products (name) VALUES ('Beta Secret');
                 
                 -- Ensure tenants exist in the registry for withTenantConnection check
+                -- The global 'tenants' table is created by CI db:push, but we ensure records here
                 DELETE FROM tenants WHERE subdomain IN ('${tenantAlpha}', '${tenantBeta}');
                 INSERT INTO tenants (id, subdomain, name, plan, status) 
                 VALUES (gen_random_uuid(), '${tenantAlpha}', 'Alpha', 'pro', 'active');

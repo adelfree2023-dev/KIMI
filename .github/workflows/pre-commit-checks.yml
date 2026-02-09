@@ -71,7 +71,7 @@ jobs:
           # Check for common secret patterns
           PATTERNS="(password|passwd|pwd|secret|token|api_key|apikey)\s*=\s*[\"'][^\"']{8,}[\"']"
           
-          MATCHES=$(grep -rnE "$PATTERNS" packages/export/src --include="*.ts" 2>/dev/null | grep -v ".test.ts" | grep -v "process.env" || true)
+          MATCHES=$(grep -rnE "$PATTERNS" packages/export/src --include="*.ts" 2>/dev/null | grep -v ".test.ts" | grep -v "process.env")
           
           if [ -n "$MATCHES" ]; then
             echo "⚠️ Potential hardcoded secrets found:"

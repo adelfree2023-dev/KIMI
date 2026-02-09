@@ -285,6 +285,7 @@ jobs:
             apps/api/dist/**
             apps/web/.next/**
           retention-days: 1
+          if-no-files-found: error
 
   # ═══════════════════════════════════════════════════════════════
   # Phase 7: Unit Tests (No Docker)
@@ -320,6 +321,7 @@ jobs:
             coverage/**
             packages/*/coverage/**
           retention-days: 7
+          if-no-files-found: error
 
   # ═══════════════════════════════════════════════════════════════
   # Phase 8: Coverage Gate (Production: 90% threshold)

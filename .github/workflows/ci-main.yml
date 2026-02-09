@@ -751,6 +751,7 @@ jobs:
         with:
           name: zap-scan-report
           path: report_*.html
+          if-no-files-found: error
       
       - name: Parse ZAP Results
         run: |

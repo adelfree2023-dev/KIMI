@@ -49,6 +49,7 @@ jobs:
         with:
           name: static-analysis-report
           path: static-analysis-report.json
+          if-no-files-found: error
   
   # PHASE 2: Security Protocol Validation (S1-S9 Compliance)
   security-protocols:
@@ -78,6 +79,7 @@ jobs:
           path: |
             s1-s9-report.json
             static-analysis-report.json
+          if-no-files-found: error
   
   # PHASE 3: Build & Performance Audit
   performance-audit:
@@ -115,6 +117,7 @@ jobs:
         with:
           name: performance-report
           path: performance-report.json
+          if-no-files-found: error
 
   # FINAL: Security Score & PR Comment
   security-score:
@@ -135,9 +138,9 @@ jobs:
       
       - name: Move Reports to root
         run: |
-          mv static-analysis-report/static-analysis-report.json . || true
-          mv s1-s9-reports/s1-s9-report.json . || true
-          mv performance-report/performance-report.json . || true
+          mv static-analysis-report/static-analysis-report.json .
+          mv s1-s9-reports/s1-s9-report.json .
+          mv performance-report/performance-report.json .
           # Note: penetration test report would be here too in a full flow
           echo '{"vulnerabilities": []}' > penetration-test-full-report.json
       

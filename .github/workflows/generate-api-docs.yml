@@ -81,6 +81,7 @@ jobs:
         with:
           name: openapi-spec
           path: apps/api/openapi-spec.json
+          if-no-files-found: error
 
   deploy-docs:
     name: 'Deploy to Pages'

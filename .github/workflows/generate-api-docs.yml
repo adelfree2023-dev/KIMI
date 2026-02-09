@@ -74,6 +74,10 @@ jobs:
           TENANT_ISOLATION_MODE: strict
           DATABASE_URL: postgresql://test:test@localhost:5432/test
           REDIS_URL: redis://localhost:6379
+          MINIO_ENDPOINT: localhost
+          MINIO_ACCESS_KEY: test_access_key
+          MINIO_SECRET_KEY: test_secret_key
+          MINIO_REGION: us-east-1
           NODE_ENV: test
 
       - name: Upload Spec

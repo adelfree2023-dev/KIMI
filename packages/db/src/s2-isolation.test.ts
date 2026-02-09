@@ -7,6 +7,10 @@ describe('S2: Tenant Isolation Protocol', () => {
   const tenantBeta = 'beta_test';
 
   beforeEach(async () => {
+    // 🔍 DEBUG: Log environment for S2 crash analysis
+    console.log('S2 DEBUG: ISOLATION_MODE:', process.env.TENANT_ISOLATION_MODE);
+    console.log('S2 DEBUG: REDIS_URL:', process.env.REDIS_URL ? 'PRESENT' : 'MISSING');
+
     // 🔒 S2 CI Guard: Strict environment validation
     const dbUrl = process.env.DATABASE_URL;
     if (!dbUrl || dbUrl.includes('undefined')) {
@@ -104,7 +108,7 @@ describe('S2: Tenant Isolation Protocol', () => {
 
   it('should throw S2 Violation error for non-existent tenant', async () => {
     await expect(
-      withTenantConnection('fake_tenant', async () => {})
+      withTenantConnection('fake_tenant', async () => { })
     ).rejects.toThrow(
       "S2 Violation: Tenant 'fake_tenant' not found or invalid"
     );
@@ -112,7 +116,7 @@ describe('S2: Tenant Isolation Protocol', () => {
 
   it('should NOT have cross-tenant schemas in search_path (Leak Prevention)', async () => {
     // Run a tenant operation
-    await withTenantConnection(tenantAlpha, async () => {});
+    await withTenantConnection(tenantAlpha, async () => { });
 
     // Immediately check a fresh connection from the pool
     const client = await publicPool.connect();

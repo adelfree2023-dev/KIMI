@@ -22,7 +22,7 @@ env:
   MINIO_ENDPOINT: localhost
   MINIO_ACCESS_KEY: test_access_key
   MINIO_SECRET_KEY: test_secret_key
-  ENABLE_S1_ENFORCEMENT: "false"
+  ENABLE_S1_ENFORCEMENT: "true"
 
 jobs:
   # ═══════════════════════════════════════════════════════════════
@@ -52,7 +52,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: '1.0.0'
+          bun-version: latest
 
       - name: Check S1 Environment File Exists
         run: |
@@ -119,18 +119,18 @@ jobs:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: '1.0.0'
+          bun-version: latest
 
       - name: Install Dependencies
         run: bun install
 
       - name: Biome Lint Check
-        run: bun run lint || echo "⚠️ Biome lint issues (non-blocking for Phase 1)"
+        run: bun run lint
 
       - name: Type Check (TSC)
         run: |
           echo "📝 Running TypeScript type checking..."
-          bunx tsc --noEmit || echo "⚠️ Type errors detected (non-blocking for Phase 1)"
+          bunx tsc --noEmit
 
   # ═══════════════════════════════════════════════════════════════
   # Phase 3: Database Schema Validation
@@ -143,7 +143,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: '1.0.0'
+          bun-version: latest
 
       - name: Install Dependencies
         run: bun install
@@ -245,7 +245,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: '1.0.0'
+          bun-version: latest
 
       - name: Install Dependencies
         run: bun install
@@ -304,7 +304,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: '1.0.0'
+          bun-version: latest
 
       - name: Install Dependencies
         run: bun install
@@ -616,14 +616,14 @@ jobs:
           
           # Test PostgreSQL
           if command -v psql &> /dev/null; then
-            PGPASSWORD=test psql -h localhost -U test -d test -c "SELECT 1;" > /dev/null 2>&1 && echo "✅ PostgreSQL connection successful" || echo "⚠️ PostgreSQL connection test skipped"
+            PGPASSWORD=test psql -h localhost -U test -d test -c "SELECT 1;" > /dev/null 2>&1 && echo "✅ PostgreSQL connection successful"
           else
             echo "⚠️ psql not available, skipping connection test"
           fi
           
           # Test Redis
           if command -v redis-cli &> /dev/null; then
-            redis-cli -h localhost ping | grep -q "PONG" && echo "✅ Redis connection successful" || echo "⚠️ Redis connection test skipped"
+            redis-cli -h localhost ping | grep -q "PONG" && echo "✅ Redis connection successful"
           else
             echo "⚠️ redis-cli not available, skipping connection test"
           fi

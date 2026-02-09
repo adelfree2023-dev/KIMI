@@ -35,7 +35,7 @@
   ],
   "exclude": [
     "node_modules",
-    "dist",
+    "dist", "build",
     "**/*.spec.ts"
   ],
   "references": [

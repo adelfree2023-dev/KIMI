@@ -400,6 +400,7 @@ jobs:
         uses: oven-sh/setup-bun@v1
         with:
           bun-version: latest
+          cache: true
 
       - name: Install Dependencies
         run: bun install

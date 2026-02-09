@@ -121,50 +121,37 @@ jobs:
         run: bun run build
 
       # ═══════════════════════════════════════════════════════════════════════
-      # S9: ADVANCED DEPENDENCY VULNERABILITY & SUPPLY CHAIN SECURITY
+      # S9: OPTIMIZED DEPENDENCY SECURITY & SUPPLY CHAIN
       # ═══════════════════════════════════════════════════════════════════════
-      - name: "S9 - Advanced Dependency Scan"
+      - name: "S9a - Bun Audit (Fast Defense)"
         run: |
           echo "═══════════════════════════════════════════════════════════════════"
-          echo "  S9: ADVANCED DEPENDENCY VULNERABILITY & SUPPLY CHAIN SCAN"
+          echo "  S9a: BUN AUDIT (FAST VULNERABILITY DEFENSE)"
           echo "═══════════════════════════════════════════════════════════════════"
-          
-          # Install OWASP Dependency Check
-          echo "[*] Installing OWASP Dependency Check..."
-          wget -q https://github.com/jeremylong/DependencyCheck/releases/download/v9.0.9/dependency-check-9.0.9-release.zip
-          unzip -q dependency-check-9.0.9-release.zip
-          
-          # Run OWASP Dependency Check
-          echo "[*] Running OWASP Dependency Check analysis..."
-          ./dependency-check/bin/dependency-check.sh \
-            --project "KIMI" \
-            --scan . \
-            --exclude "**/node_modules/**" \
-            --exclude "**/.git/**" \
-            --format JSON \
-            --format HTML \
-            --out dependency-check-report \
-            --noupdate \
-            2>&1 || true
-          
-          # Check for critical vulnerabilities
-          if [ -f dependency-check-report/dependency-check-report.json ]; then
-            CRITICAL_VULNS=$(cat dependency-check-report/dependency-check-report.json | jq '[.dependencies[]?.vulnerabilities[]? | select(.severity == "CRITICAL")] | length' 2>/dev/null || echo "0")
-            HIGH_VULNS=$(cat dependency-check-report/dependency-check-report.json | jq '[.dependencies[]?.vulnerabilities[]? | select(.severity == "HIGH")] | length' 2>/dev/null || echo "0")
-            
-            echo "[!] VULNERABILITIES FOUND:"
-            echo "    - CRITICAL: $CRITICAL_VULNS"
-            echo "    - HIGH: $HIGH_VULNS"
-            
-            if [ "$CRITICAL_VULNS" -gt 0 ]; then
-              echo "❌ S9 FAILED: $CRITICAL_VULNS critical vulnerabilities detected!"
-              exit 1
-            fi
-          fi
+          bun audit || {
+            echo "❌ S9a FAILED: Known security vulnerabilities detected in dependencies!"
+            exit 1
+          }
+
+      - name: "S9b - Dependency Review (GitHub Native)"
+        if: github.event_name == 'pull_request'
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: moderate
+          base-ref: ${{ github.event.pull_request.base.sha }}
+          head-ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: "S9c - Supply Chain & Lockfile Integrity"
+        run: |
+          echo "═══════════════════════════════════════════════════════════════════"
+          echo "  S9c: SUPPLY CHAIN & LOCKFILE INTEGRITY SCAN"
+          echo "═══════════════════════════════════════════════════════════════════"
           
           # Lockfile integrity check
           echo "[*] Checking lockfile integrity..."
-          if [ -f bun.lock ]; then
+          if [ -f bun.lockb ]; then
+            echo "    ✅ bun.lockb (binary) detected - higher integrity"
+          elif [ -f bun.lock ]; then
             LOCK_ENTRIES=$(cat bun.lock | grep -c "^\s*\"" || echo "0")
             echo "    - bun.lock entries: $LOCK_ENTRIES"
             
@@ -184,7 +171,7 @@ jobs:
             echo "$POST_INSTALL"
           fi
           
-          echo "✅ S9: Advanced dependency scan completed"
+          echo "✅ S9: Optimized dependency security checks completed"
 
       # ═══════════════════════════════════════════════════════════════════════
       # S10: ADVANCED SECRET DETECTION (HARDENED)

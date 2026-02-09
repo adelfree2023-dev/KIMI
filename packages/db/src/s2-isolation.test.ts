@@ -104,7 +104,7 @@ describe('S2: Tenant Isolation Protocol', () => {
 
   it('should throw S2 Violation error for non-existent tenant', async () => {
     await expect(
-      withTenantConnection('fake_tenant', async () => { })
+      withTenantConnection('fake_tenant', async () => {})
     ).rejects.toThrow(
       "S2 Violation: Tenant 'fake_tenant' not found or invalid"
     );
@@ -112,7 +112,7 @@ describe('S2: Tenant Isolation Protocol', () => {
 
   it('should NOT have cross-tenant schemas in search_path (Leak Prevention)', async () => {
     // Run a tenant operation
-    await withTenantConnection(tenantAlpha, async () => { });
+    await withTenantConnection(tenantAlpha, async () => {});
 
     // Immediately check a fresh connection from the pool
     const client = await publicPool.connect();

@@ -52,9 +52,7 @@ export class TemplateValidator {
     };
   }
 
-  private async validateConfig(
-    templatePath: string
-  ): Promise<{
+  private async validateConfig(templatePath: string): Promise<{
     errors: string[];
     warnings: string[];
     config?: TemplateConfig;

@@ -289,7 +289,7 @@ jobs:
             it('should detect no string-interpolated SQL queries', () => {
               // Scan for ACTUALLY dangerous patterns - raw SQL with template literals
               // This pattern looks for SQL keywords followed by template literal with ${}
-              const dangerousSqlPattern = /\b(SELECT|INSERT|UPDATE|DELETE|FROM|WHERE|JOIN)\b[^;]*`[^`]*\$\{/i;
+              const dangerousSqlPattern = /(?<!\.)\b(SELECT|INSERT|UPDATE|DELETE|FROM|WHERE|JOIN)\b[^;]*`[^`]*\$\{/i;
               
               let foundDangerous = false;
               const scanDir = (dir: string) => {

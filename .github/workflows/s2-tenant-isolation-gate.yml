@@ -49,8 +49,9 @@ jobs:
       - name: "S1/S2 - Prepare Security Database"
         run: |
           cd packages/db
-          bun run db:generate
-          bun run db:push
+          echo "🚀 Generating and Pushing Schema to Test DB..."
+          bunx drizzle-kit generate:pg
+          bunx drizzle-kit push:pg
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/test
 

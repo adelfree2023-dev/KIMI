@@ -53,9 +53,9 @@ jobs:
     uses: ./.github/workflows/s5-exception-handling-gate.yml
     secrets: inherit
 
-  s6-rate:
-    name: "S6 Rate Limiting"
-    uses: ./.github/workflows/s6-rate-limiting-gate.yml
+  s6-s14-capacity:
+    name: "S6/S14 Capacity & Export"
+    uses: ./.github/workflows/s6-s14-capacity-gate.yml
     secrets: inherit
 
   s7-encrypt:
@@ -68,13 +68,6 @@ jobs:
     uses: ./.github/workflows/s8-security-headers-gate.yml
     secrets: inherit
 
-  # ═══════════════════════════════════════════════════════════════
-  # PHASE 1b: S14 Export Security (New Feature)
-  # ═══════════════════════════════════════════════════════════════
-  s14-export:
-    name: "S14 Export Security"
-    uses: ./.github/workflows/s14-export-security-gate.yml
-    secrets: inherit
 
   # ═══════════════════════════════════════════════════════════════
   # PHASE 2: S9-S13 Penetration Tests
@@ -83,7 +76,7 @@ jobs:
     name: "🎯 S9-S13 Penetration Tests"
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    needs: [s1-env, s2-tenant, s3-input, s4-audit, s5-exception, s6-rate, s7-encrypt, s8-headers, s14-export]
+    needs: [s1-env, s2-tenant, s3-input, s4-audit, s5-exception, s7-encrypt, s8-headers]
     if: always() && !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled')
     
     services:
@@ -516,7 +509,7 @@ jobs:
     name: "⏱️ 60-Second Provisioning"
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    needs: [s1-env, s2-tenant, s3-input, s4-audit, s5-exception, s6-rate, s7-encrypt, s8-headers, s9-s13-penetration]
+    needs: [s1-env, s2-tenant, s3-input, s4-audit, s5-exception, s7-encrypt, s8-headers, s9-s13-penetration]
     if: always() && !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled')
     
     services:
@@ -920,7 +913,7 @@ jobs:
   final-report:
     name: "📊 Pipeline Report"
     runs-on: ubuntu-latest
-    needs: [s1-env, s2-tenant, s3-input, s4-audit, s5-exception, s6-rate, s7-encrypt, s8-headers, s14-export, s9-s13-penetration, provisioning-speed, deploy-staging, dast-scan, security-alerts]
+    needs: [s1-env, s2-tenant, s3-input, s4-audit, s5-exception, s6-s14-capacity, s7-encrypt, s8-headers, s9-s13-penetration, provisioning-speed, deploy-staging, dast-scan, security-alerts]
     if: always()
 
     steps:
@@ -938,16 +931,17 @@ jobs:
             else echo "⏳"; fi
           }
 
-          # Core Security (S1-S8)
-          echo "🔒 Core Security Gates (S1-S8):"
+          # Core Security (S1-S8/S14)
+          echo "🔒 Core Security Gates (S1-S8, S14):"
           echo "  $(icon '${{ needs.s1-env.result }}') S1: Environment Verification"
           echo "  $(icon '${{ needs.s2-tenant.result }}') S2: Tenant Isolation"
           echo "  $(icon '${{ needs.s3-input.result }}') S3: Input Validation"
           echo "  $(icon '${{ needs.s4-audit.result }}') S4: Audit Logging"
           echo "  $(icon '${{ needs.s5-exception.result }}') S5: Exception Handling"
-          echo "  $(icon '${{ needs.s6-rate.result }}') S6: Rate Limiting"
+          echo "  $(icon '${{ needs.s6-s14-capacity.result }}') S6: Rate Limiting (Capacity)"
           echo "  $(icon '${{ needs.s7-encrypt.result }}') S7: Encryption"
           echo "  $(icon '${{ needs.s8-headers.result }}') S8: Security Headers"
+          echo "  $(icon '${{ needs.s6-s14-capacity.result }}') S14: Export System Security"
           echo ""
 
           # Penetration Tests (S9-S13)
@@ -989,7 +983,7 @@ jobs:
           FAILED=0
           SKIPPED=0
 
-          for result in "${{ needs.s1-env.result }}" "${{ needs.s2-tenant.result }}" "${{ needs.s3-input.result }}" "${{ needs.s4-audit.result }}" "${{ needs.s5-exception.result }}" "${{ needs.s6-rate.result }}" "${{ needs.s7-encrypt.result }}" "${{ needs.s8-headers.result }}" "${{ needs.s14-export.result }}" "${{ needs.s9-s13-penetration.result }}" "${{ needs.provisioning-speed.result }}" "${{ needs.deploy-staging.result }}" "${{ needs.dast-scan.result }}"; do
+          for result in "${{ needs.s1-env.result }}" "${{ needs.s2-tenant.result }}" "${{ needs.s3-input.result }}" "${{ needs.s4-audit.result }}" "${{ needs.s5-exception.result }}" "${{ needs.s6-s14-capacity.result }}" "${{ needs.s7-encrypt.result }}" "${{ needs.s8-headers.result }}" "${{ needs.s9-s13-penetration.result }}" "${{ needs.provisioning-speed.result }}" "${{ needs.deploy-staging.result }}" "${{ needs.dast-scan.result }}"; do
             case "$result" in
               success) PASSED=$((PASSED + 1)) ;;
               failure) FAILED=$((FAILED + 1)) ;;

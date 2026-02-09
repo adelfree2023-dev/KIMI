@@ -6,6 +6,7 @@
       "name": "apex-v2",
       "dependencies": {
         "@nestjs/swagger": "^11.2.6",
+        "js-yaml": "^4.1.1",
         "swagger-ui-express": "^5.0.1",
       },
       "devDependencies": {
@@ -147,6 +148,7 @@
       "dependencies": {
         "@apex/config": "workspace:*",
         "@apex/security": "workspace:*",
+        "@nestjs/common": "^10.0.0",
         "drizzle-orm": "^0.29.0",
         "pg": "^8.11.0",
         "zod": "^3.22.4",
@@ -368,6 +370,7 @@
     "express": "^4.18.2",
     "fast-xml-parser": "^5.3.4",
     "glob": "^10.4.5",
+    "js-yaml": "^4.1.1",
     "lodash": "^4.17.21",
     "micromatch": "^4.0.8",
     "rimraf": "^5.0.5",
@@ -2442,8 +2445,6 @@
     "api/@nestjs/swagger/@microsoft/tsdoc": ["@microsoft/tsdoc@0.15.1", "", {}, "sha512-4aErSrCR/On/e5G2hDP0wjooqDdauzEbIq8hIkIe5pXV0rtWJZvdCEKL0ykZxex+IxIwBp0eGeV48hQN07dXtw=="],
 
     "api/@nestjs/swagger/@nestjs/mapped-types": ["@nestjs/mapped-types@2.0.5", "", { "peerDependencies": { "@nestjs/common": "^8.0.0 || ^9.0.0 || ^10.0.0", "class-transformer": "^0.4.0 || ^0.5.0", "class-validator": "^0.13.0 || ^0.14.0", "reflect-metadata": "^0.1.12 || ^0.2.0" }, "optionalPeers": ["class-transformer", "class-validator"] }, "sha512-bSJv4pd6EY99NX9CjBIyn4TVDoSit82DUZlL4I3bqNfy5Gt+gXTa86i3I/i0iIV9P4hntcGM5GyO+FhZAhxtyg=="],
-
-    "api/@nestjs/swagger/js-yaml": ["js-yaml@4.1.0", "", { "dependencies": { "argparse": "^2.0.1" }, "bin": { "js-yaml": "bin/js-yaml.js" } }, "sha512-wpxZs9NoxZaJESJGIZTyDEaYpl0FKSA+FB9aJiyemKhMwkxQg63h4T1KJgUGHpTqPDNRcmmYLugrRjJlBtWvRA=="],
 
     "api/@nestjs/swagger/path-to-regexp": ["path-to-regexp@3.3.0", "", {}, "sha512-qyCH421YQPS2WFDxDjftfc1ZR5WKQzVzqsp4n9M2kQhVOo/ByahFoUNJfl58kOcEGfQ//7weFTDhm+ss8Ecxgw=="],
 

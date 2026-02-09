@@ -33,19 +33,5 @@
     "dist",
     "build",
     "**/*.test.ts"
-  ],
-  "references": [
-    {
-      "path": "../audit"
-    },
-    {
-      "path": "../db"
-    },
-    {
-      "path": "../middleware"
-    },
-    {
-      "path": "../config"
-    }
   ]
 }

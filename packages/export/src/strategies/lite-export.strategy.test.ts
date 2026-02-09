@@ -33,12 +33,17 @@ global.Bun = {
   }),
 } as any;
 
+// Mock TenantRegistryService
+const mockTenantRegistry = {
+  exists: vi.fn(),
+};
+
 describe('LiteExportStrategy', () => {
   let strategy: LiteExportStrategy;
 
   beforeEach(() => {
     vi.clearAllMocks();
-    strategy = new LiteExportStrategy();
+    strategy = new LiteExportStrategy(mockTenantRegistry as any);
   });
 
   afterEach(() => {
@@ -47,7 +52,7 @@ describe('LiteExportStrategy', () => {
 
   describe('validate', () => {
     it('should validate existing tenant', async () => {
-      mockClient.query.mockResolvedValue({ rowCount: 1 });
+      mockTenantRegistry.exists.mockResolvedValue(true);
 
       const options: ExportOptions = {
         tenantId: 'tenant-123',
@@ -58,15 +63,11 @@ describe('LiteExportStrategy', () => {
       const result = await strategy.validate(options);
 
       expect(result).toBe(true);
-      expect(mockClient.query).toHaveBeenCalledWith(
-        'SELECT 1 FROM public.tenants WHERE subdomain = $1',
-        ['tenant-123']
-      );
-      expect(mockClient.release).toHaveBeenCalled();
+      expect(mockTenantRegistry.exists).toHaveBeenCalledWith('tenant-123');
     });
 
     it('should reject non-existent tenant', async () => {
-      mockClient.query.mockResolvedValue({ rowCount: 0 });
+      mockTenantRegistry.exists.mockResolvedValue(false);
 
       const options: ExportOptions = {
         tenantId: 'non-existent',

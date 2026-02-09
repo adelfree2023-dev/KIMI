@@ -18,7 +18,7 @@ import {
   OnModuleDestroy,
   OnModuleInit,
 } from '@nestjs/common';
-import { Job, Worker } from 'bullmq';
+import { Job, Queue, Worker } from 'bullmq';
 import { readFile, rm } from 'fs/promises';
 import { ExportStrategyFactory } from './export-strategy.factory.js';
 import type { ExportOptions, ExportResult } from './types.js';

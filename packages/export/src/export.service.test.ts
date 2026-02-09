@@ -36,7 +36,11 @@ vi.mock('bullmq', () => ({
           getState: vi.fn().mockResolvedValue('waiting'),
           remove: vi.fn().mockImplementation(() => {
             const index = jobs.indexOf(job);
-            if (index > -1) jobs.splice(index, 1);
+            console.log(`[TEST DEBUG] Removing job index ${index} (of ${jobs.length})`);
+            if (index > -1) {
+              jobs.splice(index, 1);
+              console.log(`[TEST DEBUG] Job removed. Remaining: ${jobs.length}`);
+            }
             return Promise.resolve();
           }),
         };

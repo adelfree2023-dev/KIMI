@@ -109,8 +109,10 @@ jobs:
 
       - name: JSON Syntax Validation
         run: |
-          echo "🔍 Validating JSON syntax..."
-          find . -name "*.json" -not -path "*/node_modules/*" -not -path "*/dist/*" -exec jq . {} + 1>/dev/null
+          echo "🔍 Validating JSON syntax file by file..."
+          find . -name "*.json" -not -path "*/node_modules/*" -not -path "*/dist/*" | while read file; do
+            jq . "$file" > /dev/null || { echo "❌ Invalid JSON in: $file"; exit 1; }
+          done
           echo "✅ All JSON files are valid"
 
       # Initializes the CodeQL tools for scanning.

@@ -349,301 +349,65 @@ jobs:
           echo "✅ S12: XSS surgical checks and structural gates completed"
 
       # ═══════════════════════════════════════════════════════════════════════
-      # S13: ADVANCED RED TEAM SIMULATION & ATTACK CHAINS
+      # S13: BACKEND SURGICAL VULNERABILITY & RCE SCAN
       # ═══════════════════════════════════════════════════════════════════════
-      - name: "S13 - Advanced Red Team Simulation"
+      - name: "S13 - Backend Surgical Grep Checks"
         run: |
           echo "═══════════════════════════════════════════════════════════════════"
-          echo "  S13: ADVANCED RED TEAM SIMULATION & ATTACK CHAINS"
+          echo "  S13: BACKEND SURGICAL VULNERABILITY & RCE SCAN"
           echo "═══════════════════════════════════════════════════════════════════"
           
-          mkdir -p packages/security/src/redteam
-          
-          cat > packages/security/src/redteam/advanced-attacks.test.ts << 'TESTEOF'
-          import { describe, it, expect } from 'vitest';
-          
-          // ═════════════════════════════════════════════════════════════════
-          // JWT ATTACK SIMULATION
-          // ═════════════════════════════════════════════════════════════════
-          describe('JWT Security Tests', () => {
-            const jwtAttacks = {
-              algorithm_confusion: {
-                desc: "Algorithm confusion attack (RS256 -> none)",
-                header: { alg: "none", typ: "JWT" },
-                shouldBlock: true
-              },
-              algorithm_switch: {
-                desc: "Algorithm switch (RS256 -> HS256)",
-                header: { alg: "HS256", typ: "JWT" },
-                shouldBlock: true
-              },
-              key_injection: {
-                desc: "JWK key injection",
-                header: { 
-                  alg: "RS256",
-                  jwk: { kty: "RSA", n: "fake", e: "AQAB" }
-                },
-                shouldBlock: true
-              }
-            };
-            
-            Object.entries(jwtAttacks).forEach(([name, attack]) => {
-              it(`should block ${attack.desc}`, () => {
-                const dangerousAlgs = ['none', 'None', 'NONE', 'HS256'];
-                const hasDangerousAlg = dangerousAlgs.includes(attack.header.alg);
-                const hasJwk = attack.header.jwk !== undefined;
-                
-                expect(hasDangerousAlg || hasJwk).toBe(attack.shouldBlock);
-              });
-            });
-            
-            it('should require strong JWT secrets', () => {
-              // Verify that strong secrets (32+ chars) are allowed
-              const strongSecret = 'this_is_a_very_strong_jwt_secret_key_32b';
-              expect(strongSecret.length).toBeGreaterThanOrEqual(32);
-              
-              // Verify weak secrets would be rejected (less than 32 chars)
-              const weakSecrets = ['secret', 'password', '123456'];
-              weakSecrets.forEach(secret => {
-                expect(secret.length).toBeLessThan(32);
-              });
-            });
-          });
-          
-          // ═════════════════════════════════════════════════════════════════
-          // RATE LIMITING BYPASS ATTEMPTS
-          // ═════════════════════════════════════════════════════════════════
-          describe('Rate Limiting Defense', () => {
-            const bypassTechniques = [
-              { header: 'X-Forwarded-For', value: '1.1.1.1' },
-              { header: 'X-Real-IP', value: '2.2.2.2' },
-              { header: 'CF-Connecting-IP', value: '3.3.3.3' },
-              { header: 'X-Client-IP', value: '4.4.4.4' },
-              { header: 'X-Forwarded', value: '5.5.5.5' },
-              { header: 'Forwarded-For', value: '6.6.6.6' },
-            ];
-            
-            it('should handle IP spoofing attempts', () => {
-              // Rate limiter should use trusted headers only
-              const trustedHeaders = ['X-Forwarded-For'];
-              
-              bypassTechniques.forEach(tech => {
-                if (!trustedHeaders.includes(tech.header)) {
-                  expect(trustedHeaders).not.toContain(tech.header);
-                }
-              });
-            });
-          });
-          
-          // ═════════════════════════════════════════════════════════════════
-          // IDOR (INSECURE DIRECT OBJECT REFERENCE)
-          // ═════════════════════════════════════════════════════════════════
-          describe('IDOR Prevention', () => {
-            it('should validate resource ownership', () => {
-              const requests = [
-                { userId: 'user-1', resourceId: 'doc-1', ownerId: 'user-1' }, // Own resource
-                { userId: 'user-1', resourceId: 'doc-2', ownerId: 'user-2' }, // Other's resource
-              ];
-              
-              requests.forEach(req => {
-                const isAuthorized = req.userId === req.ownerId;
-                
-                if (req.resourceId === 'doc-2') {
-                  expect(isAuthorized).toBe(false);
-                } else {
-                  expect(isAuthorized).toBe(true);
-                }
-              });
-            });
-            
-            it('should use unpredictable IDs', () => {
-              // UUIDs should be used instead of sequential IDs
-              const id = '550e8400-e29b-41d4-a716-446655440000';
-              const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-              
-              expect(id).toMatch(uuidPattern);
-            });
-          });
-          
-          // ═════════════════════════════════════════════════════════════════
-          // MASS ASSIGNMENT PROTECTION
-          // ═════════════════════════════════════════════════════════════════
-          describe('Mass Assignment Prevention', () => {
-            it('should filter unwanted fields', () => {
-              const maliciousInput = {
-                username: 'attacker',
-                email: 'attacker@evil.com',
-                role: 'admin',        // Should not be allowed
-                isAdmin: true,        // Should not be allowed  
-                password: 'legit123',
-                id: 'override-id'     // Should not be allowed
-              };
-              
-              const allowedFields = ['username', 'email', 'password'];
-              const filtered = Object.keys(maliciousInput)
-                .filter(key => allowedFields.includes(key))
-                .reduce((obj, key) => {
-                  obj[key] = maliciousInput[key];
-                  return obj;
-                }, {} as any);
-              
-              expect(filtered.role).toBeUndefined();
-              expect(filtered.isAdmin).toBeUndefined();
-              expect(filtered.id).toBeUndefined();
-            });
-          });
-          
-          // ═════════════════════════════════════════════════════════════════
-          // COMMAND INJECTION
-          // ═════════════════════════════════════════════════════════════════
-          describe('Command Injection Prevention', () => {
-            const cmdPayloads = [
-              '; cat /etc/passwd',
-              '&& whoami',
-              '| ls -la',
-              '$(id)',
-              '`whoami`',
-              '\n/etc/passwd',
-              '..;/bin/cat /etc/passwd'
-            ];
-            
-            it('should sanitize shell input', () => {
-              cmdPayloads.forEach(payload => {
-                const sanitized = payload
-                  .replace(/[;&|`$()\n]/g, '')
-                  .replace(/\.{2,}/g, '');
-                
-                expect(sanitized).not.toMatch(/[;&|`$()]/);
-              });
-            });
-          });
-          
-          // ═════════════════════════════════════════════════════════════════
-          // HTTP PARAMETER POLLUTION
-          // ═════════════════════════════════════════════════════════════════
-          describe('HTTP Parameter Pollution Prevention', () => {
-            it('should handle array parameters safely', () => {
-              const polluted = {
-                id: ['admin', 'user'] // HPP attack
-              };
-              
-              // Should use first value or reject array
-              const sanitized = Array.isArray(polluted.id) 
-                ? polluted.id[0] 
-                : polluted.id;
-              
-              expect(sanitized).toBe('admin');
-            });
-          });
-          
-          // ═════════════════════════════════════════════════════════════════
-          // SSRF (SERVER-SIDE REQUEST FORGERY)
-          // ═════════════════════════════════════════════════════════════════
-          describe('SSRF Prevention', () => {
-            const ssrfPayloads = [
-              'http://169.254.169.254/latest/meta-data/',  // AWS metadata
-              'http://localhost:22/',                       // Local SSH
-              'http://127.0.0.1:3306/',                     // Local MySQL
-              'file:///etc/passwd',                         // File protocol
-              'dict://localhost:11211/',                    // Memcached
-              'ftp://anonymous@localhost/',                 // FTP
-              'http://0x7f000001/',                         // Hex encoded
-              'http://0177.0.0.1/',                         // Octal encoded
-            ];
-            
-            it('should block internal IP ranges', () => {
-              const blockedRanges = [
-                /^127\./,
-                /^10\./,
-                /^172\.(1[6-9]|2[0-9]|3[01])\./,
-                /^192\.168\./,
-                /^169\.254\./,
-                /^0\./,
-                /^::1$/,
-                /^fc00:/,
-                /^fe80:/,
-                /^localhost$/i  // localhost hostname
-              ];
-              
-              ssrfPayloads.forEach(url => {
-                const hostname = new URL(url).hostname;
-                const isBlockedByRange = blockedRanges.some(r => r.test(hostname));
-                
-                // Check for hex/octal encoded IPs and non-HTTP protocols
-                const isHexEncoded = hostname.toLowerCase().startsWith('0x');
-                const isOctalEncoded = hostname.startsWith('0177');
-                const isNonHttpProtocol = !url.startsWith('http');
-                const isBlocked = isBlockedByRange || isHexEncoded || isOctalEncoded || isNonHttpProtocol;
-                
-                // Verify all SSRF payloads are blocked
-                expect(isBlocked).toBe(true);
-              });
-            });
-          });
-          
-          // ═════════════════════════════════════════════════════════════════
-          // BUSINESS LOGIC ATTACKS
-          // ═════════════════════════════════════════════════════════════════
-          describe('Business Logic Security', () => {
-            it('should prevent negative amounts', () => {
-              const transactions = [
-                { amount: 100, valid: true },
-                { amount: -100, valid: false },
-                { amount: 0, valid: false },
-                { amount: 0.001, valid: false }, // Too small
-              ];
-              
-              transactions.forEach(tx => {
-                const isValid = tx.amount > 0.01;
-                expect(isValid).toBe(tx.valid);
-              });
-            });
-            
-            it('should prevent race conditions in critical operations', () => {
-              // Check for optimistic locking patterns
-              const fs = require('fs');
-              
-              // Look for version/checksum fields in schema
-              const schemaPath = './packages/db/src/schema.ts';
-              if (fs.existsSync(schemaPath)) {
-                const schema = fs.readFileSync(schemaPath, 'utf8');
-                const hasVersioning = schema.includes('version') || 
-                                     schema.includes('updatedAt');
-                expect(hasVersioning).toBe(true);
-              }
-            });
-          });
-          TESTEOF
-          
-          echo "[*] Running advanced Red Team simulation..."
-          bun test packages/security/src/redteam/advanced-attacks.test.ts || {
-            echo "❌ S13 FAILED: Red Team simulation detected vulnerabilities!"
+          # 1. RCE Detection (Remote Code Execution)
+          echo "[*] Scanning for RCE patterns (exec/spawn/child_process)..."
+          RCE_PATTERNS="(child_process|exec|spawn|fork|vm\.runInContext)"
+          RCE_FOUND=$(grep -rlE "$RCE_PATTERNS" packages apps --include="*.ts" --include="*.js" 2>/dev/null | grep -vE "(node_modules|\.test\.|\.spec\.|vitest\.config)" || true)
+          if [ -n "$RCE_FOUND" ]; then
+            echo "🚨 CRITICAL: Dangerous execution patterns (RCE risk) found in production code!"
+            echo "$RCE_FOUND"
+            # Some usage might be legitimate (e.g. scripts), but in core apps it's a high risk.
+            # We fail the build to force a security review.
+            echo "❌ S13 FAILED: Potential RCE vulnerabilities detected!"
             exit 1
-          }
-          
-          # Additional security checks
-          echo "[*] Running supplementary security checks..."
-          
-          # Check for insecure HTTP methods
-          echo "  [+] Checking for insecure HTTP method handlers..."
-          HTTP_METHODS=$(grep -r "app\.(get\|post\|put\|delete\|patch" packages apps --include="*.ts" 2>/dev/null | wc -l || echo "0")
-          echo "      Found $HTTP_METHODS HTTP method handlers"
-          
-          # Check for CORS configuration
-          echo "  [+] Checking CORS configuration..."
-          CORS_CONFIG=$(grep -ri "cors" packages apps --include="*.ts" --include="*.json" 2>/dev/null | head -5 || true)
-          if [ -n "$CORS_CONFIG" ]; then
-            echo "      CORS configuration found (verify it's restrictive)"
           fi
           
-          # Check for secure cookie settings
-          echo "  [+] Checking cookie security..."
-          COOKIE_SECURITY=$(grep -ri "cookie" packages apps --include="*.ts" 2>/dev/null | grep -i "secure\|httponly\|samesite" | head -5 || true)
-          if [ -n "$COOKIE_SECURITY" ]; then
-            echo "      Cookie security attributes found"
+          # 2. Insecure CORS Configuration
+          echo "[*] Scanning for insecure CORS (origin: *)..."
+          BAD_CORS=$(grep -rl "origin\s*:\s*['\"]\*['\"]" packages apps --include="*.ts" --include="*.js" --include="*.json" 2>/dev/null | grep -v "node_modules" || true)
+          if [ -n "$BAD_CORS" ]; then
+            echo "🚨 CRITICAL: Insecure CORS wildcard (origin: '*') detected!"
+            echo "$BAD_CORS"
+            echo "❌ S13 FAILED: Insecure CORS configuration found!"
+            exit 1
           fi
           
-          echo "✅ S13: Advanced Red Team simulation completed"
+          # 3. Prototype Pollution Sinks
+          echo "[*] Scanning for dangerous object merge patterns (Prototype Pollution)..."
+          PROTO_POLLUTION=$(grep -rlE "(\[.*?\])\s*=\s*(.*?)\s*\[" packages apps --include="*.ts" 2>/dev/null | grep -vE "(node_modules|\.test\.|\.spec\.)" | head -10 || true)
+          if [ -n "$PROTO_POLLUTION" ]; then
+            echo "⚠️  WARNING: Potential prototype pollution sinks found (review object merges):"
+            echo "$PROTO_POLLUTION"
+          fi
+          
+          # 4. Insecure JWT Patterns
+          echo "[*] Scanning for insecure JWT configurations..."
+          BAD_JWT=$(grep -rlE "alg\s*:\s*['\"]none['\"]" packages apps --include="*.ts" --include="*.js" 2>/dev/null || true)
+          if [ -n "$BAD_JWT" ]; then
+            echo "🚨 CRITICAL: Insecure JWT 'none' algorithm found!"
+            echo "$BAD_JWT"
+            echo "❌ S13 FAILED: Insecure JWT configuration detected!"
+            exit 1
+          fi
+          
+          # 5. Mass Assignment / Prototype manipulation
+          echo "[*] Scanning for dangerous __proto__ or constructor manipulation..."
+          PROTO_MANIP=$(grep -rlE "(__proto__|constructor\.prototype)" packages apps --include="*.ts" --include="*.js" 2>/dev/null | grep -v "node_modules" || true)
+          if [ -n "$PROTO_MANIP" ]; then
+            echo "🚨 CRITICAL: Dangerous prototype manipulation (__proto__) detected!"
+            echo "$PROTO_MANIP"
+            exit 1
+          fi
+          
+          echo "✅ S13: Backend surgical vulnerability checks completed"
 
       # ═══════════════════════════════════════════════════════════════════════
       # S11b: ADVANCED STATIC SECURITY ANALYSIS (CodeQL) - ANALYSIS PHASE

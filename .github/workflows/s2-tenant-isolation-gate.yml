@@ -52,8 +52,8 @@ jobs:
         run: |
           cd packages/db
           echo "🚀 Generating and Pushing Schema to Test DB..."
-          bunx drizzle-kit generate:pg
-          bunx drizzle-kit push:pg
+          bunx drizzle-kit generate
+          bunx drizzle-kit push
           
           echo "🔍 Verifying Physical Schema Existence..."
           # Radical Fix: Physical verification of tables in 'public' schema

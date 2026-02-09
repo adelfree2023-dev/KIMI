@@ -1,6 +1,4 @@
-import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'fs';
-import { createServer } from 'https';
-import { tmpdir } from 'os';
+import { mkdirSync, rmSync } from 'fs';
 import { join } from 'path';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import {
@@ -37,7 +35,7 @@ describe('mTLS Implementation', () => {
   afterAll(() => {
     try {
       rmSync(testDir, { recursive: true });
-    } catch {}
+    } catch { }
   });
 
   describe('Certificate Loading', () => {

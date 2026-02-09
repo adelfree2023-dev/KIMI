@@ -92,7 +92,7 @@ export class SecretsManager {
         options.nextRotationAt ||
         new Date(
           now.getTime() +
-            (options.rotationInterval || this.DEFAULT_ROTATION_INTERVAL)
+          (options.rotationInterval || this.DEFAULT_ROTATION_INTERVAL)
         ),
       previousValue: options.previousValue,
     };
@@ -180,13 +180,13 @@ export class SecretsManager {
       reason,
     };
 
-    this.listeners.forEach((listener) => {
+    for (const listener of this.listeners) {
       try {
         listener(event);
       } catch (error) {
         console.error('[SecretsManager] Listener error:', error);
       }
-    });
+    }
 
     // Reschedule
     this.scheduleRotation(name);
@@ -260,7 +260,7 @@ export class SecretsManager {
       nextRotationAt: config.nextRotationAt,
       daysUntilRotation: Math.ceil(
         (config.nextRotationAt.getTime() - now.getTime()) /
-          (1000 * 60 * 60 * 24)
+        (1000 * 60 * 60 * 24)
       ),
     }));
   }

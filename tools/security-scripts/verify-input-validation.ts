@@ -63,6 +63,23 @@ function auditControllers() {
         }
     });
 
+    // 4. S3.3 Payload Size Check (New)
+    console.log('🔍 S3.3: Verifying Payload Size Limits in main.ts...');
+    const mainPath = 'apps/api/src/main.ts';
+    const mainContent = readFileSync(mainPath, 'utf-8');
+
+    // Check for explicit limit settings (e.g., '10mb', '1mb')
+    const hasLimit = mainContent.includes('limit:') &&
+        (mainContent.includes('json') || mainContent.includes('urlencoded'));
+
+    if (!hasLimit) {
+        console.error(`❌ S3.3 VIOLATION: Global payload size limit not found in ${mainPath}`);
+        console.error(`   > Security best practice requires explicit limits to prevent DoS.`);
+        violations++;
+    } else {
+        console.log('✅ S3.3: Global payload size limit detected');
+    }
+
     if (violations > 0) {
         console.error(`\n🚨 S3 Audit Failed: Found ${violations} critical input validation violations.`);
         process.exit(1);

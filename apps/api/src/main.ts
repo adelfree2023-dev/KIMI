@@ -14,14 +14,19 @@ import { defaultCorsConfig } from '@apex/middleware';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
-  
+
   // S1: Environment Verification happens automatically via @apex/config
-  
+
   const app = await NestFactory.create(AppModule);
+
+  // S3.3: Payload Size Limit (Prevent DoS/ReDoS)
+  const bodyParser = await import('body-parser');
+  app.use(bodyParser.json({ limit: '10mb' }));
+  app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));
 
   // S5: Global Exception Filter
   app.useGlobalFilters(new GlobalExceptionFilter());
-  
+
   // S3: Global Validation Pipe
   app.useGlobalPipes(
     new ZodValidationPipe(),

@@ -12,7 +12,15 @@ const { Pool } = pkg;
 export * from './schema.js';
 export * from './tenant-registry.service.js';
 
-const env = validateEnv();
+let env: any;
+try {
+  env = validateEnv();
+} catch (error: any) {
+  console.error('🚨 [S2 BOOTSTRAP PANIC] Environment validation failed during module evaluation:');
+  console.error(error.message);
+  // Re-throw to ensure S1 compliance (fail-fast)
+  throw error;
+}
 
 // S2 FIX: Explicitly pass credentials if parsed connectionString fails in some environments (e.g. Bun/Vitest in CI)
 const poolConfig: any = {

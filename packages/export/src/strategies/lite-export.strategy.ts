@@ -6,40 +6,33 @@
 
 import { Injectable, Logger } from '@nestjs/common';
 import type { ExportStrategy, ExportOptions, ExportResult, ExportManifest } from '../types.js';
-import { publicPool } from '@apex/db';
+import { publicPool, TenantRegistryService } from '@apex/db';
 
 @Injectable()
 export class LiteExportStrategy implements ExportStrategy {
   readonly name = 'lite' as const;
   private readonly logger = new Logger(LiteExportStrategy.name);
 
+  constructor(private readonly tenantRegistry: TenantRegistryService) { }
+
   async validate(options: ExportOptions): Promise<boolean> {
-    const client = await publicPool.connect();
-    try {
-      const result = await client.query(
-        'SELECT 1 FROM public.tenants WHERE subdomain = $1',
-        [options.tenantId]
-      );
-      return result.rowCount > 0;
-    } finally {
-      client.release();
-    }
+    return this.tenantRegistry.exists(options.tenantId);
   }
 
   private readonly MAX_ROWS_PER_TABLE = 100000; // 100K rows limit
 
   async export(options: ExportOptions): Promise<ExportResult> {
     this.logger.log(`Starting lite export for tenant: ${options.tenantId}`);
-    
+
     const schemaName = `tenant_${options.tenantId}`;
     const workDir = `/tmp/export-${options.tenantId}-${Date.now()}`;
-    
+
     // Cleanup on any error
     const cleanup = async () => {
-      await Bun.spawn(['rm', '-rf', workDir]).exited.catch(() => {});
-      await Bun.spawn(['rm', '-f', `${workDir}.tar.gz`]).exited.catch(() => {});
+      await Bun.spawn(['rm', '-rf', workDir]).exited.catch(() => { });
+      await Bun.spawn(['rm', '-f', `${workDir}.tar.gz`]).exited.catch(() => { });
     };
-    
+
     // Create work directory
     await Bun.spawn(['mkdir', '-p', `${workDir}/database`]).exited;
 
@@ -51,32 +44,32 @@ export class LiteExportStrategy implements ExportStrategy {
          WHERE table_schema = $1 AND table_type = 'BASE TABLE'`,
         [schemaName]
       );
-      
+
       const tables = tablesResult.rows.map(r => r.table_name);
       let totalRows = 0;
 
       // Export each table as JSON
       for (const table of tables) {
         this.logger.debug(`Exporting table: ${schemaName}.${table}`);
-        
+
         // Check row count limit
         const countResult = await client.query(
           `SELECT COUNT(*) FROM ${schemaName}.${table}`
         );
         const rowCount = parseInt(countResult.rows[0].count);
-        
+
         if (rowCount > this.MAX_ROWS_PER_TABLE) {
           throw new Error(
             `Table ${table} exceeds max rows (${rowCount} > ${this.MAX_ROWS_PER_TABLE})`
           );
         }
-        
+
         const dataResult = await client.query(
           `SELECT * FROM ${schemaName}.${table}`
         );
-        
+
         totalRows += dataResult.rowCount || 0;
-        
+
         // Write to JSON file
         await Bun.write(
           `${workDir}/database/${table}.json`,
@@ -125,7 +118,7 @@ export class LiteExportStrategy implements ExportStrategy {
     } finally {
       client.release();
       // Cleanup work directory (keep tar.gz on success)
-      await Bun.spawn(['rm', '-rf', workDir]).exited.catch(() => {});
+      await Bun.spawn(['rm', '-rf', workDir]).exited.catch(() => { });
     }
   }
 }

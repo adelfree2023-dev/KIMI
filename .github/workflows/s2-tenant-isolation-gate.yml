@@ -75,7 +75,7 @@ jobs:
           # Explicitly ALLOWS audit logs and public decorators
           PUBLIC_REFS=$(grep -rn "public\." packages/*/src apps/*/src --include="*.ts" 2>/dev/null | \
             grep -vE "^\s*//" | \
-            grep -vE "(audit|public\.decorator|node_modules|\.test\.|\.spec\.)" || true)
+            grep -vE "(audit|public\.decorator|tenant-registry\.service|node_modules|\.test\.|\.spec\.)" || true)
 
           if [ -n "$PUBLIC_REFS" ]; then
             echo "🚨 CRITICAL: Unauthorized public schema access detected!"

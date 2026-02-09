@@ -10,6 +10,7 @@ import pkg from 'pg';
 const { Pool } = pkg;
 
 export * from './schema.js';
+export * from './tenant-registry.service.js';
 
 const env = validateEnv();
 

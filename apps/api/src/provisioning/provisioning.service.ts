@@ -4,7 +4,7 @@
  */
 
 import { AuditService } from '@apex/audit';
-import { publicPool } from '@apex/db';
+import { publicPool, TenantRegistryService } from '@apex/db';
 import {
   createStorageBucket,
   createTenantSchema,
@@ -31,7 +31,10 @@ export interface ProvisioningOptions {
 export class ProvisioningService {
   private readonly logger = new Logger(ProvisioningService.name);
 
-  constructor(@Inject('AUDIT_SERVICE') private readonly audit: AuditService) { }
+  constructor(
+    @Inject('AUDIT_SERVICE') private readonly audit: AuditService,
+    private readonly tenantRegistry: TenantRegistryService
+  ) { }
 
   /**
    * Provision a new store in under 60 seconds
@@ -119,17 +122,16 @@ export class ProvisioningService {
    * Register tenant in the public.tenants table
    */
   private async registerTenant(options: ProvisioningOptions, _adminId: string) {
-    const client = await publicPool.connect();
     try {
-      await client.query(
-        `
-        INSERT INTO public.tenants (subdomain, name, plan, status, created_at)
-        VALUES ($1, $2, $3, $4, NOW())
-      `,
-        [options.subdomain, options.storeName, options.plan, 'active']
-      );
-    } finally {
-      client.release();
+      await this.tenantRegistry.register({
+        subdomain: options.subdomain,
+        name: options.storeName,
+        plan: options.plan,
+        status: 'active',
+      });
+    } catch (error) {
+      this.logger.error(`S2 FAILURE: Failed to register tenant ${options.subdomain} in registry`, error);
+      throw error;
     }
   }
 

@@ -36,6 +36,19 @@ async function runTest() {
         if (violations > 0) {
             console.log("✅ S6.3: Behavioral Violation counter functional.");
         }
+
+        // Surgical Fix: Explicitly close connections to prevent CI hang
+        try {
+            const client = await store.getClient();
+            if (client) {
+                await client.quit();
+                console.log("📡 Redis connection closed.");
+            }
+        } catch (e) {
+            console.warn("⚠️ Warning during Redis disconnection:", e);
+        }
+
+        process.exit(0);
     } else {
         console.error("🚨 S6.3 FAILURE: Rate limiter allowed requests beyond threshold!");
         process.exit(1);
